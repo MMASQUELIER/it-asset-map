@@ -4,8 +4,8 @@ export default function App() {
   // Configuration
   const MAP_CONFIG = {
     url: "http://localhost:8000/api/map",
-    width: 2000, 
-    height: 1500, 
+    width: 1000, 
+    height: 1000,
   };
 
   return (
