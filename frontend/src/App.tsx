@@ -1,25 +1,24 @@
-import { useState } from "react";
+import InfrastructureMap from "./components/InfrastructureMap";
 
 export default function App() {
-  const [error, setError] = useState(false);
-  const imageUrl = "http://localhost:8000/api/map";
+  // Configuration
+  const MAP_CONFIG = {
+    url: "http://localhost:8000/api/map",
+    width: 2000, 
+    height: 1500, 
+  };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>IT Map</h1>
-      
-      {error ? (
-        <p style={{ color: "red" }}>
-            Impossible de charger la carte. Vérifie que le serveur Deno tourne.
-        </p>
-      ) : (
-        <img 
-          src={imageUrl} 
-          alt="IT Map" 
-          style={{ maxWidth: "100%", border: "1px solid #ccc" }}
-          onError={() => setError(true)} 
-        />
-      )}
+    <div style={{ padding: 20, fontFamily: "sans-serif" }}>
+      <h1>IT Infrastructure Map</h1>
+      <p>Vue globale du réseau et des équipements.</p>
+
+      {/* Appel du composant */}
+      <InfrastructureMap 
+        imageUrl={MAP_CONFIG.url}
+        imageWidth={MAP_CONFIG.width}
+        imageHeight={MAP_CONFIG.height}
+      />
     </div>
   );
 }
