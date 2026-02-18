@@ -24,7 +24,8 @@ export default function InfrastructureMap({
     <div style={{ 
       height: "100vh",
       width: "100%",
-      overflow: "hidden"
+      overflow: "hidden",
+      position: "relative"
     }}>
       <MapContainer
         bounds={bounds}
