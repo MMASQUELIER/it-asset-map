@@ -1,0 +1,125 @@
+:root {
+  --bg: #f1f5f9;
+  --surface: #ffffff;
+  --line: #d4dce6;
+  --ink: #102a43;
+  --ink-soft: #486581;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 85% 10%, rgba(14, 165, 233, 0.14) 0%, transparent 32%),
+    radial-gradient(circle at 10% 90%, rgba(16, 185, 129, 0.12) 0%, transparent 34%),
+    var(--bg);
+  color: var(--ink);
+  font-family: "Manrope", "Segoe UI Variable", "Trebuchet MS", sans-serif;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app-shell {
+  width: min(1400px, 100%);
+  margin: 0 auto;
+  padding: 16px;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  background: linear-gradient(135deg, #102a43, #1f4f7a);
+  color: #f8fbff;
+  border-radius: 16px;
+  padding: 18px 20px;
+  margin-bottom: 14px;
+  box-shadow: 0 14px 36px rgba(10, 24, 45, 0.24);
+}
+
+.header-content h1 {
+  margin: 0;
+  font-size: clamp(1.3rem, 2vw, 1.75rem);
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  opacity: 0.85;
+}
+
+.subtitle {
+  margin: 6px 0 0;
+  color: #d3e7fb;
+  max-width: 60ch;
+}
+
+.stats-inline {
+  display: flex;
+  gap: 8px;
+}
+
+.stats-inline span {
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.map-panel {
+  height: calc(100vh - 170px);
+  min-height: 520px;
+  border: 1px solid rgba(148, 163, 184, 0.42);
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, rgba(226, 232, 240, 0.5), rgba(241, 245, 249, 0.25)),
+    var(--surface);
+  padding: 12px;
+  box-shadow:
+    0 14px 38px rgba(15, 39, 66, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.status-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+  margin-top: 14px;
+}
+
+.status-card h1 {
+  margin: 0 0 8px;
+}
+
+.status-card p {
+  margin: 0;
+  color: var(--ink-soft);
+}
+
+.status-card--error p {
+  color: #b91c1c;
+}
+
+@media (max-width: 1024px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .map-panel {
+    height: 70vh;
+    min-height: 520px;
+  }
+}

@@ -1,0 +1,812 @@
+{
+  "metadata": {
+    "mapWidth": 884,
+    "mapHeight": 609,
+    "positionFormat": "{ x, y }",
+    "targetCount": 100,
+    "distribution": "realiste-non-uniforme",
+    "source": "100 postes generes avec densites differentes par zone et repartition en amas"
+  },
+  "points": [
+    {
+      "id": 1,
+      "nom": "PC-030-001",
+      "description": "Poste de test zone 030",
+      "zoneCode": "030",
+      "x": 49,
+      "y": 41
+    },
+    {
+      "id": 2,
+      "nom": "PC-050-001",
+      "description": "Poste de test zone 050",
+      "zoneCode": "050",
+      "x": 123,
+      "y": 35
+    },
+    {
+      "id": 3,
+      "nom": "PC-020-001",
+      "description": "Poste de test zone 020",
+      "zoneCode": "020",
+      "x": 226,
+      "y": 53
+    },
+    {
+      "id": 4,
+      "nom": "PC-020-002",
+      "description": "Poste de test zone 020",
+      "zoneCode": "020",
+      "x": 279,
+      "y": 48
+    },
+    {
+      "id": 5,
+      "nom": "PC-055-001",
+      "description": "Poste de test zone 055",
+      "zoneCode": "055",
+      "x": 281,
+      "y": 108
+    },
+    {
+      "id": 6,
+      "nom": "PC-055-002",
+      "description": "Poste de test zone 055",
+      "zoneCode": "055",
+      "x": 282,
+      "y": 101
+    },
+    {
+      "id": 7,
+      "nom": "PC-060-001",
+      "description": "Poste de test zone 060",
+      "zoneCode": "060",
+      "x": 411,
+      "y": 54
+    },
+    {
+      "id": 8,
+      "nom": "PC-060-002",
+      "description": "Poste de test zone 060",
+      "zoneCode": "060",
+      "x": 395,
+      "y": 81
+    },
+    {
+      "id": 9,
+      "nom": "PC-060-003",
+      "description": "Poste de test zone 060",
+      "zoneCode": "060",
+      "x": 363,
+      "y": 57
+    },
+    {
+      "id": 10,
+      "nom": "PC-060-004",
+      "description": "Poste de test zone 060",
+      "zoneCode": "060",
+      "x": 489,
+      "y": 57
+    },
+    {
+      "id": 11,
+      "nom": "PC-060-005",
+      "description": "Poste de test zone 060",
+      "zoneCode": "060",
+      "x": 365,
+      "y": 100
+    },
+    {
+      "id": 12,
+      "nom": "PC-060-006",
+      "description": "Poste de test zone 060",
+      "zoneCode": "060",
+      "x": 304,
+      "y": 81
+    },
+    {
+      "id": 13,
+      "nom": "PC-060-007",
+      "description": "Poste de test zone 060",
+      "zoneCode": "060",
+      "x": 374,
+      "y": 97
+    },
+    {
+      "id": 14,
+      "nom": "PC-060-008",
+      "description": "Poste de test zone 060",
+      "zoneCode": "060",
+      "x": 428,
+      "y": 91
+    },
+    {
+      "id": 15,
+      "nom": "PC-010-001",
+      "description": "Poste de test zone 010",
+      "zoneCode": "010",
+      "x": 74,
+      "y": 161
+    },
+    {
+      "id": 16,
+      "nom": "PC-010-002",
+      "description": "Poste de test zone 010",
+      "zoneCode": "010",
+      "x": 123,
+      "y": 166
+    },
+    {
+      "id": 17,
+      "nom": "PC-070-001",
+      "description": "Poste de test zone 070",
+      "zoneCode": "070",
+      "x": 254,
+      "y": 165
+    },
+    {
+      "id": 18,
+      "nom": "PC-058-001",
+      "description": "Poste de test zone 058",
+      "zoneCode": "058",
+      "x": 307,
+      "y": 161
+    },
+    {
+      "id": 19,
+      "nom": "PC-450-001",
+      "description": "Poste de test zone 450",
+      "zoneCode": "450",
+      "x": 82,
+      "y": 246
+    },
+    {
+      "id": 20,
+      "nom": "PC-450-002",
+      "description": "Poste de test zone 450",
+      "zoneCode": "450",
+      "x": 94,
+      "y": 215
+    },
+    {
+      "id": 21,
+      "nom": "PC-450-003",
+      "description": "Poste de test zone 450",
+      "zoneCode": "450",
+      "x": 84,
+      "y": 215
+    },
+    {
+      "id": 22,
+      "nom": "PC-440-001",
+      "description": "Poste de test zone 440",
+      "zoneCode": "440",
+      "x": 160,
+      "y": 244
+    },
+    {
+      "id": 23,
+      "nom": "PC-440-002",
+      "description": "Poste de test zone 440",
+      "zoneCode": "440",
+      "x": 152,
+      "y": 324
+    },
+    {
+      "id": 24,
+      "nom": "PC-440-003",
+      "description": "Poste de test zone 440",
+      "zoneCode": "440",
+      "x": 158,
+      "y": 296
+    },
+    {
+      "id": 25,
+      "nom": "PC-430-001",
+      "description": "Poste de test zone 430",
+      "zoneCode": "430",
+      "x": 206,
+      "y": 300
+    },
+    {
+      "id": 26,
+      "nom": "PC-430-002",
+      "description": "Poste de test zone 430",
+      "zoneCode": "430",
+      "x": 210,
+      "y": 323
+    },
+    {
+      "id": 27,
+      "nom": "PC-430-003",
+      "description": "Poste de test zone 430",
+      "zoneCode": "430",
+      "x": 207,
+      "y": 329
+    },
+    {
+      "id": 28,
+      "nom": "PC-420-001",
+      "description": "Poste de test zone 420",
+      "zoneCode": "420",
+      "x": 229,
+      "y": 302
+    },
+    {
+      "id": 29,
+      "nom": "PC-420-002",
+      "description": "Poste de test zone 420",
+      "zoneCode": "420",
+      "x": 231,
+      "y": 252
+    },
+    {
+      "id": 30,
+      "nom": "PC-420-003",
+      "description": "Poste de test zone 420",
+      "zoneCode": "420",
+      "x": 235,
+      "y": 327
+    },
+    {
+      "id": 31,
+      "nom": "PC-410-001",
+      "description": "Poste de test zone 410",
+      "zoneCode": "410",
+      "x": 272,
+      "y": 299
+    },
+    {
+      "id": 32,
+      "nom": "PC-410-002",
+      "description": "Poste de test zone 410",
+      "zoneCode": "410",
+      "x": 282,
+      "y": 289
+    },
+    {
+      "id": 33,
+      "nom": "PC-410-003",
+      "description": "Poste de test zone 410",
+      "zoneCode": "410",
+      "x": 269,
+      "y": 290
+    },
+    {
+      "id": 34,
+      "nom": "PC-400-001",
+      "description": "Poste de test zone 400",
+      "zoneCode": "400",
+      "x": 324,
+      "y": 233
+    },
+    {
+      "id": 35,
+      "nom": "PC-400-002",
+      "description": "Poste de test zone 400",
+      "zoneCode": "400",
+      "x": 351,
+      "y": 273
+    },
+    {
+      "id": 36,
+      "nom": "PC-400-003",
+      "description": "Poste de test zone 400",
+      "zoneCode": "400",
+      "x": 360,
+      "y": 329
+    },
+    {
+      "id": 37,
+      "nom": "PC-400-004",
+      "description": "Poste de test zone 400",
+      "zoneCode": "400",
+      "x": 346,
+      "y": 306
+    },
+    {
+      "id": 38,
+      "nom": "PC-MAGNETIQUE-001",
+      "description": "Poste de test zone MAGNETIQUE",
+      "zoneCode": "MAGNETIQUE",
+      "x": 81,
+      "y": 387
+    },
+    {
+      "id": 39,
+      "nom": "PC-300-001",
+      "description": "Poste de test zone 300",
+      "zoneCode": "300",
+      "x": 398,
+      "y": 383
+    },
+    {
+      "id": 40,
+      "nom": "PC-300-002",
+      "description": "Poste de test zone 300",
+      "zoneCode": "300",
+      "x": 382,
+      "y": 378
+    },
+    {
+      "id": 41,
+      "nom": "PC-300-003",
+      "description": "Poste de test zone 300",
+      "zoneCode": "300",
+      "x": 346,
+      "y": 386
+    },
+    {
+      "id": 42,
+      "nom": "PC-300-004",
+      "description": "Poste de test zone 300",
+      "zoneCode": "300",
+      "x": 377,
+      "y": 383
+    },
+    {
+      "id": 43,
+      "nom": "PC-300-005",
+      "description": "Poste de test zone 300",
+      "zoneCode": "300",
+      "x": 203,
+      "y": 399
+    },
+    {
+      "id": 44,
+      "nom": "PC-300-006",
+      "description": "Poste de test zone 300",
+      "zoneCode": "300",
+      "x": 252,
+      "y": 414
+    },
+    {
+      "id": 45,
+      "nom": "PC-300-007",
+      "description": "Poste de test zone 300",
+      "zoneCode": "300",
+      "x": 219,
+      "y": 395
+    },
+    {
+      "id": 46,
+      "nom": "PC-330-001",
+      "description": "Poste de test zone 330",
+      "zoneCode": "330",
+      "x": 85,
+      "y": 455
+    },
+    {
+      "id": 47,
+      "nom": "PC-333-001",
+      "description": "Poste de test zone 333",
+      "zoneCode": "333",
+      "x": 193,
+      "y": 523
+    },
+    {
+      "id": 48,
+      "nom": "PC-333-002",
+      "description": "Poste de test zone 333",
+      "zoneCode": "333",
+      "x": 207,
+      "y": 519
+    },
+    {
+      "id": 49,
+      "nom": "PC-215-001",
+      "description": "Poste de test zone 215",
+      "zoneCode": "215",
+      "x": 685,
+      "y": 159
+    },
+    {
+      "id": 50,
+      "nom": "PC-215-002",
+      "description": "Poste de test zone 215",
+      "zoneCode": "215",
+      "x": 676,
+      "y": 162
+    },
+    {
+      "id": 51,
+      "nom": "PC-120-001",
+      "description": "Poste de test zone 120",
+      "zoneCode": "120",
+      "x": 787,
+      "y": 165
+    },
+    {
+      "id": 52,
+      "nom": "PC-120-002",
+      "description": "Poste de test zone 120",
+      "zoneCode": "120",
+      "x": 772,
+      "y": 167
+    },
+    {
+      "id": 53,
+      "nom": "PC-100-001",
+      "description": "Poste de test zone 100",
+      "zoneCode": "100",
+      "x": 713,
+      "y": 239
+    },
+    {
+      "id": 54,
+      "nom": "PC-100-002",
+      "description": "Poste de test zone 100",
+      "zoneCode": "100",
+      "x": 719,
+      "y": 235
+    },
+    {
+      "id": 55,
+      "nom": "PC-500-001",
+      "description": "Poste de test zone 500",
+      "zoneCode": "500",
+      "x": 800,
+      "y": 265
+    },
+    {
+      "id": 56,
+      "nom": "PC-200-001",
+      "description": "Poste de test zone 200",
+      "zoneCode": "200",
+      "x": 451,
+      "y": 230
+    },
+    {
+      "id": 57,
+      "nom": "PC-200-002",
+      "description": "Poste de test zone 200",
+      "zoneCode": "200",
+      "x": 478,
+      "y": 217
+    },
+    {
+      "id": 58,
+      "nom": "PC-200-003",
+      "description": "Poste de test zone 200",
+      "zoneCode": "200",
+      "x": 482,
+      "y": 209
+    },
+    {
+      "id": 59,
+      "nom": "PC-200-004",
+      "description": "Poste de test zone 200",
+      "zoneCode": "200",
+      "x": 597,
+      "y": 209
+    },
+    {
+      "id": 60,
+      "nom": "PC-200-005",
+      "description": "Poste de test zone 200",
+      "zoneCode": "200",
+      "x": 586,
+      "y": 248
+    },
+    {
+      "id": 61,
+      "nom": "PC-230-001",
+      "description": "Poste de test zone 230",
+      "zoneCode": "230",
+      "x": 551,
+      "y": 211
+    },
+    {
+      "id": 62,
+      "nom": "PC-230-002",
+      "description": "Poste de test zone 230",
+      "zoneCode": "230",
+      "x": 538,
+      "y": 220
+    },
+    {
+      "id": 63,
+      "nom": "PC-210-001",
+      "description": "Poste de test zone 210",
+      "zoneCode": "210",
+      "x": 471,
+      "y": 355
+    },
+    {
+      "id": 64,
+      "nom": "PC-210-002",
+      "description": "Poste de test zone 210",
+      "zoneCode": "210",
+      "x": 486,
+      "y": 373
+    },
+    {
+      "id": 65,
+      "nom": "PC-210-003",
+      "description": "Poste de test zone 210",
+      "zoneCode": "210",
+      "x": 493,
+      "y": 366
+    },
+    {
+      "id": 66,
+      "nom": "PC-220-001",
+      "description": "Poste de test zone 220",
+      "zoneCode": "220",
+      "x": 549,
+      "y": 355
+    },
+    {
+      "id": 67,
+      "nom": "PC-220-002",
+      "description": "Poste de test zone 220",
+      "zoneCode": "220",
+      "x": 536,
+      "y": 369
+    },
+    {
+      "id": 68,
+      "nom": "PC-220-003",
+      "description": "Poste de test zone 220",
+      "zoneCode": "220",
+      "x": 536,
+      "y": 355
+    },
+    {
+      "id": 69,
+      "nom": "PC-590-001",
+      "description": "Poste de test zone 590",
+      "zoneCode": "590",
+      "x": 735,
+      "y": 345
+    },
+    {
+      "id": 70,
+      "nom": "PC-590-002",
+      "description": "Poste de test zone 590",
+      "zoneCode": "590",
+      "x": 712,
+      "y": 333
+    },
+    {
+      "id": 71,
+      "nom": "PC-505-001",
+      "description": "Poste de test zone 505",
+      "zoneCode": "505",
+      "x": 757,
+      "y": 335
+    },
+    {
+      "id": 72,
+      "nom": "PC-110-001",
+      "description": "Poste de test zone 110",
+      "zoneCode": "110",
+      "x": 469,
+      "y": 473
+    },
+    {
+      "id": 73,
+      "nom": "PC-110-002",
+      "description": "Poste de test zone 110",
+      "zoneCode": "110",
+      "x": 482,
+      "y": 486
+    },
+    {
+      "id": 74,
+      "nom": "PC-110-003",
+      "description": "Poste de test zone 110",
+      "zoneCode": "110",
+      "x": 488,
+      "y": 491
+    },
+    {
+      "id": 75,
+      "nom": "PC-MAG-001",
+      "description": "Poste de test zone MAG",
+      "zoneCode": "MAG",
+      "x": 630,
+      "y": 547
+    },
+    {
+      "id": 76,
+      "nom": "PC-MAG-002",
+      "description": "Poste de test zone MAG",
+      "zoneCode": "MAG",
+      "x": 660,
+      "y": 500
+    },
+    {
+      "id": 77,
+      "nom": "PC-MAG-003",
+      "description": "Poste de test zone MAG",
+      "zoneCode": "MAG",
+      "x": 664,
+      "y": 547
+    },
+    {
+      "id": 78,
+      "nom": "PC-MAG-004",
+      "description": "Poste de test zone MAG",
+      "zoneCode": "MAG",
+      "x": 644,
+      "y": 557
+    },
+    {
+      "id": 79,
+      "nom": "PC-MAG-005",
+      "description": "Poste de test zone MAG",
+      "zoneCode": "MAG",
+      "x": 624,
+      "y": 525
+    },
+    {
+      "id": 80,
+      "nom": "PC-MAG-006",
+      "description": "Poste de test zone MAG",
+      "zoneCode": "MAG",
+      "x": 649,
+      "y": 543
+    },
+    {
+      "id": 81,
+      "nom": "PC-MAG-007",
+      "description": "Poste de test zone MAG",
+      "zoneCode": "MAG",
+      "x": 757,
+      "y": 451
+    },
+    {
+      "id": 82,
+      "nom": "PC-MAG-008",
+      "description": "Poste de test zone MAG",
+      "zoneCode": "MAG",
+      "x": 730,
+      "y": 475
+    },
+    {
+      "id": 83,
+      "nom": "PC-MAG-009",
+      "description": "Poste de test zone MAG",
+      "zoneCode": "MAG",
+      "x": 710,
+      "y": 444
+    },
+    {
+      "id": 84,
+      "nom": "PC-MAG-010",
+      "description": "Poste de test zone MAG",
+      "zoneCode": "MAG",
+      "x": 740,
+      "y": 444
+    },
+    {
+      "id": 85,
+      "nom": "PC-MAG-011",
+      "description": "Poste de test zone MAG",
+      "zoneCode": "MAG",
+      "x": 704,
+      "y": 444
+    },
+    {
+      "id": 86,
+      "nom": "PC-MAG-012",
+      "description": "Poste de test zone MAG",
+      "zoneCode": "MAG",
+      "x": 728,
+      "y": 546
+    },
+    {
+      "id": 87,
+      "nom": "PC-MAG-013",
+      "description": "Poste de test zone MAG",
+      "zoneCode": "MAG",
+      "x": 733,
+      "y": 507
+    },
+    {
+      "id": 88,
+      "nom": "PC-MAG-014",
+      "description": "Poste de test zone MAG",
+      "zoneCode": "MAG",
+      "x": 705,
+      "y": 508
+    },
+    {
+      "id": 89,
+      "nom": "PC-MAG-015",
+      "description": "Poste de test zone MAG",
+      "zoneCode": "MAG",
+      "x": 696,
+      "y": 540
+    },
+    {
+      "id": 90,
+      "nom": "PC-MAG-016",
+      "description": "Poste de test zone MAG",
+      "zoneCode": "MAG",
+      "x": 720,
+      "y": 529
+    },
+    {
+      "id": 91,
+      "nom": "PC-320-001",
+      "description": "Poste de test zone 320",
+      "zoneCode": "320",
+      "x": 268,
+      "y": 480
+    },
+    {
+      "id": 92,
+      "nom": "PC-335-001",
+      "description": "Poste de test zone 335",
+      "zoneCode": "335",
+      "x": 315,
+      "y": 513
+    },
+    {
+      "id": 93,
+      "nom": "PC-900-001",
+      "description": "Poste de test zone 900",
+      "zoneCode": "900",
+      "x": 340,
+      "y": 504
+    },
+    {
+      "id": 94,
+      "nom": "PC-350-001",
+      "description": "Poste de test zone 350",
+      "zoneCode": "350",
+      "x": 410,
+      "y": 499
+    },
+    {
+      "id": 95,
+      "nom": "PC-820-001",
+      "description": "Poste de test zone 820",
+      "zoneCode": "820",
+      "x": 139,
+      "y": 569
+    },
+    {
+      "id": 96,
+      "nom": "PC-580-001",
+      "description": "Poste de test zone 580",
+      "zoneCode": "580",
+      "x": 257,
+      "y": 583
+    },
+    {
+      "id": 97,
+      "nom": "PC-870-001",
+      "description": "Poste de test zone 870",
+      "zoneCode": "870",
+      "x": 352,
+      "y": 569
+    },
+    {
+      "id": 98,
+      "nom": "PC-805-001",
+      "description": "Poste de test zone 805",
+      "zoneCode": "805",
+      "x": 408,
+      "y": 589
+    },
+    {
+      "id": 99,
+      "nom": "PC-880-001",
+      "description": "Poste de test zone 880",
+      "zoneCode": "880",
+      "x": 437,
+      "y": 568
+    },
+    {
+      "id": 100,
+      "nom": "PC-750-001",
+      "description": "Poste de test zone 750",
+      "zoneCode": "750",
+      "x": 462,
+      "y": 564
+    }
+  ]
+}

@@ -1,24 +1,51 @@
 import InfrastructureMap from "./components/InfrastructureMap";
+import AppHeader from "./components/AppHeader";
+import MapSection from "./components/MapSection";
+import StatusCard from "./components/StatusCard";
+import useZonesData from "./hooks/useZonesData";
+import "./App.css";
+
+const MAP_CONFIG = {
+  url: "http://localhost:8000/api/map",
+  zonesUrl: "http://localhost:8000/api/zones",
+  width: 884,
+  height: 609,
+};
 
 export default function App() {
-  // Configuration
-  const MAP_CONFIG = {
-    url: "http://localhost:8000/api/map",
-    width: 1000, 
-    height: 1000,
-  };
+  const { zones, loading, error } = useZonesData(MAP_CONFIG.zonesUrl);
+
+  if (loading) {
+    return (
+      <div className="app-shell">
+        <StatusCard title="IT Infrastructure Map" message="Chargement des zones et des points PC..." />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="app-shell">
+        <StatusCard title="IT Infrastructure Map" message={`Erreur: ${error}`} isError />
+      </div>
+    );
+  }
+
+  const points = zones.flatMap((zone) => zone.pcs ?? []);
 
   return (
-    <div style={{ padding: 20, fontFamily: "sans-serif" }}>
-      <h1>IT Infrastructure Map</h1>
-      <p>Vue globale du réseau et des équipements.</p>
+    <div className="app-shell">
+      <AppHeader  />
 
-      {/* Appel du composant */}
-      <InfrastructureMap 
-        imageUrl={MAP_CONFIG.url}
-        imageWidth={MAP_CONFIG.width}
-        imageHeight={MAP_CONFIG.height}
-      />
+      <MapSection>
+        <InfrastructureMap
+          imageUrl={MAP_CONFIG.url}
+          imageWidth={MAP_CONFIG.width}
+          imageHeight={MAP_CONFIG.height}
+          zones={zones}
+          points={points}
+        />
+      </MapSection>
     </div>
   );
 }
