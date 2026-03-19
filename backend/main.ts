@@ -1,22 +1,18 @@
-// api_hono.ts
-import { Hono } from "https://deno.land/x/hono/mod.ts";
-import { cors } from "https://deno.land/x/hono/middleware.ts";
-import { Context } from "node:vm";
+import { Hono } from "https://deno.land/x/hono@v4.3.11/mod.ts";
+import { cors } from "https://deno.land/x/hono@v4.3.11/middleware.ts";
 
 const app = new Hono();
+const mapImagePath = new URL("../assets/map.png", import.meta.url);
 
-// Activer CORS
-app.use('*', cors());
+app.use("*", cors());
 
-// Route principale
-app.get("/", (c : Context) => {
-  return c.text("API IT Map est en ligne 🟢");
+app.get("/", (c) => {
+  return c.text("API IT Map est en ligne.");
 });
 
-// Route pour récupérer l'image
-app.get("/api/map", async (c : Context) => {
+app.get("/api/map", async (c) => {
   try {
-    const image = await Deno.readFile("../assets/map.png");
+    const image = await Deno.readFile(mapImagePath);
 
     return new Response(image, {
       headers: { "Content-Type": "image/png" },
@@ -25,11 +21,10 @@ app.get("/api/map", async (c : Context) => {
     console.error("Erreur lecture image:", error);
     return c.json(
       { error: "Image introuvable", details: String(error) },
-      404
+      404,
     );
   }
 });
 
-// Lancer le serveur
-console.log("Serveur Hono lancé sur http://localhost:8000");
-Deno.serve(app.fetch);
+console.log("Serveur Hono lance sur http://localhost:8000");
+Deno.serve({ port: 8000 }, app.fetch);
