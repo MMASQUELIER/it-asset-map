@@ -1,4 +1,4 @@
-import type { MapZone } from "../../types/layout";
+import type { MapZone } from "../../../types/layout";
 
 interface ZoneLegendProps {
   activeZoneId: number | null;

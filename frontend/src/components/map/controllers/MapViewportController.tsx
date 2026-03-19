@@ -3,17 +3,17 @@ import L from "leaflet";
 import { useMap } from "react-leaflet";
 
 interface MapViewportControllerProps {
-  bounds: L.LatLngBoundsExpression;
+  imageBounds: L.LatLngBoundsExpression;
 }
 
 export default function MapViewportController({
-  bounds,
+  imageBounds,
 }: MapViewportControllerProps) {
-  const map = useMap();
+  const leafletMap = useMap();
 
   useEffect(() => {
-    map.fitBounds(bounds, { padding: [32, 32] });
-  }, [bounds, map]);
+    leafletMap.fitBounds(imageBounds, { padding: [32, 32] });
+  }, [imageBounds, leafletMap]);
 
   return null;
 }

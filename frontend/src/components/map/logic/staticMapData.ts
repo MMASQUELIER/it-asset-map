@@ -1,4 +1,4 @@
-import type { StaticMapData } from "../../types/layout";
+import type { StaticMapData } from "../../../types/layout";
 
 export const STATIC_MAP_DATA: StaticMapData = {
   image: {
