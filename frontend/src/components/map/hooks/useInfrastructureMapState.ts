@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type {
   InteractiveMarker,
   MapZone,
@@ -38,10 +38,12 @@ interface UseInfrastructureMapStateResult {
   clearPendingDrafts: () => void;
   handleCloseInteractionMode: () => void;
   handleDeleteMarker: (markerId: string) => void;
+  handleLeaveZone: () => void;
   handleMoveMarker: (markerId: string, x: number, y: number) => void;
   handleMarkerPlacement: (x: number, y: number) => void;
   handleMarkerDraftSave: () => void;
   handleOpenInteractionMode: () => void;
+  handleHoverZone: (zoneId: number) => void;
   handleSelectTool: (tool: InteractionTool) => void;
   handleZoneInteraction: (zoneId: number) => void;
   handleZoneDraftColorChange: (color: string) => void;
@@ -71,7 +73,6 @@ interface UseInfrastructureMapStateResult {
   pendingMarkerId: string;
   markers: InteractiveMarker[];
   selectedZone: MapZone | null;
-  setHoveredZoneId: (zoneId: number | null) => void;
   setPendingMarkerId: (value: string) => void;
   setPendingZoneId: (value: string) => void;
   pendingZoneDraft: ZoneDraft | null;
@@ -93,6 +94,7 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
   const [zoneDraft, setZoneDraft] = useState<ZoneDraft | null>(null);
   const [zoneDraftId, setZoneDraftId] = useState("");
   const [zoneDraftError, setZoneDraftError] = useState<string | null>(null);
+  const hoveredZoneClearTimeoutRef = useRef<number | null>(null);
 
   const highlightedZoneId = hoveredZoneId ?? selectedZoneId;
   const selectedZone = zones.find((zone) => zone.id === selectedZoneId) ?? null;
@@ -112,6 +114,36 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
     isMarkerCreationToolActive || isZoneCreationToolActive;
   const isDeletionToolActive =
     isMarkerDeletionToolActive || isZoneDeletionToolActive;
+
+  function clearHoveredZoneClearTimeout(): void {
+    if (hoveredZoneClearTimeoutRef.current === null) {
+      return;
+    }
+
+    window.clearTimeout(hoveredZoneClearTimeoutRef.current);
+    hoveredZoneClearTimeoutRef.current = null;
+  }
+
+  function handleHoverZone(zoneId: number): void {
+    clearHoveredZoneClearTimeout();
+    setHoveredZoneId((currentZoneId) =>
+      currentZoneId === zoneId ? currentZoneId : zoneId,
+    );
+  }
+
+  function handleLeaveZone(): void {
+    clearHoveredZoneClearTimeout();
+    hoveredZoneClearTimeoutRef.current = window.setTimeout(() => {
+      setHoveredZoneId(null);
+      hoveredZoneClearTimeoutRef.current = null;
+    }, 40);
+  }
+
+  useEffect(() => {
+    return () => {
+      clearHoveredZoneClearTimeout();
+    };
+  }, []);
 
   function handleZoneInteraction(zoneId: number): void {
     if (!isInteractionMode) {
@@ -367,6 +399,8 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
     clearPendingDrafts,
     handleCloseInteractionMode,
     handleDeleteMarker,
+    handleHoverZone,
+    handleLeaveZone,
     handleMoveMarker,
     handleMarkerDraftSave,
     handleMarkerPlacement,
@@ -395,7 +429,6 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
     pendingZoneDraftError: zoneDraftError,
     pendingZoneId: zoneDraftId,
     selectedZone,
-    setHoveredZoneId,
     setPendingMarkerId: setMarkerDraftId,
     setPendingZoneId: setZoneDraftId,
     zones,

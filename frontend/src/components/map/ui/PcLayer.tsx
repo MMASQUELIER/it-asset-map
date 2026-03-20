@@ -9,6 +9,8 @@ interface PcLayerProps {
   isMoveMode: boolean;
   markers: InteractiveMarker[];
   onDeleteMarker: (markerId: string) => void;
+  onHoverZone: (zoneId: number) => void;
+  onLeaveZone: () => void;
   onMoveMarker: (markerId: string, x: number, y: number) => void;
   zones: MapZone[];
 }
@@ -19,6 +21,8 @@ export default function PcLayer({
   isMoveMode,
   markers,
   onDeleteMarker,
+  onHoverZone,
+  onLeaveZone,
   onMoveMarker,
   zones,
 }: PcLayerProps) {
@@ -48,6 +52,16 @@ export default function PcLayer({
                 }
 
                 event.target.openTooltip();
+              },
+              mouseover: () => {
+                if (marker.zoneId !== null) {
+                  onHoverZone(marker.zoneId);
+                }
+              },
+              mouseout: () => {
+                if (marker.zoneId !== null) {
+                  onLeaveZone();
+                }
               },
               dragend: (event: DragEndEvent) => {
                 if (!isMoveMode) {

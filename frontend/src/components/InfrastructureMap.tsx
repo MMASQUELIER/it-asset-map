@@ -27,6 +27,8 @@ export default function InfrastructureMap({
     clearPendingDrafts,
     handleCloseInteractionMode,
     handleDeleteMarker,
+    handleHoverZone,
+    handleLeaveZone,
     handleMoveMarker,
     handleMarkerDraftSave,
     handleMarkerPlacement,
@@ -54,7 +56,6 @@ export default function InfrastructureMap({
     pendingZoneDraftError,
     pendingZoneId,
     selectedZone,
-    setHoveredZoneId,
     setPendingMarkerId,
     setPendingZoneId,
     zones,
@@ -133,8 +134,8 @@ export default function InfrastructureMap({
           ) : null}
           <ZonesLayer
             activeZoneId={highlightedZoneId}
-            onHoverZone={setHoveredZoneId}
-            onLeaveZone={() => setHoveredZoneId(null)}
+            onHoverZone={handleHoverZone}
+            onLeaveZone={handleLeaveZone}
             onSelectZone={handleZoneInteraction}
             zones={zones}
           />
@@ -150,6 +151,8 @@ export default function InfrastructureMap({
             isMoveMode={isMarkerMoveToolActive}
             markers={markers}
             onDeleteMarker={handleDeleteMarker}
+            onHoverZone={handleHoverZone}
+            onLeaveZone={handleLeaveZone}
             onMoveMarker={handleMoveMarker}
             zones={zones}
           />
