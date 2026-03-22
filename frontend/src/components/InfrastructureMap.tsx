@@ -8,6 +8,7 @@ import useInfrastructureMapState from "./map/hooks/useInfrastructureMapState";
 import { IMAGE_BOUNDS, MAP_STYLE } from "./map/logic/mapConfig";
 import MapDraftPanels from "./map/ui/MapDraftPanels";
 import MapToolbar from "./map/ui/MapToolbar";
+import PcDetailsPanel from "./map/ui/PcDetailsPanel";
 import PcLayer from "./map/ui/PcLayer";
 import ZoneDraftPreview from "./map/ui/ZoneDraftPreview";
 import ZoneLegend from "./map/ui/ZoneLegend";
@@ -26,6 +27,7 @@ export default function InfrastructureMap({
     activeTool,
     clearPendingDrafts,
     handleCloseInteractionMode,
+    handleCloseSelectedMarker,
     handleDeleteMarker,
     handleHoverZone,
     handleLeaveZone,
@@ -33,6 +35,7 @@ export default function InfrastructureMap({
     handleMarkerDraftSave,
     handleMarkerPlacement,
     handleOpenInteractionMode,
+    handleSelectMarker,
     handleSelectTool,
     handleZoneDraftDrag,
     handleZoneDraftColorChange,
@@ -55,6 +58,7 @@ export default function InfrastructureMap({
     pendingZoneDraft,
     pendingZoneDraftError,
     pendingZoneId,
+    selectedMarker,
     selectedZone,
     setPendingMarkerId,
     setPendingZoneId,
@@ -80,7 +84,7 @@ export default function InfrastructureMap({
 
       <div
         className={`map-frame${isCreationToolActive ? " map-frame--add-mode" : ""}${isMarkerMoveToolActive ? " map-frame--move-mode" : ""}${isDeletionToolActive ? " map-frame--delete-mode" : ""}${isInteractionMode ? " map-frame--interaction" : ""}`}
-      >
+        >
         <MapDraftPanels
           markerDraft={pendingMarkerDraft}
           markerDraftError={pendingMarkerDraftError}
@@ -95,6 +99,13 @@ export default function InfrastructureMap({
           zoneDraftError={pendingZoneDraftError}
           zoneDraftId={pendingZoneId}
         />
+        {!isInteractionMode && selectedMarker !== null ? (
+          <PcDetailsPanel
+            marker={selectedMarker}
+            onClose={handleCloseSelectedMarker}
+            zone={zones.find((zone) => zone.id === selectedMarker.zoneId) ?? null}
+          />
+        ) : null}
 
         <MapContainer
           bounds={IMAGE_BOUNDS}
@@ -147,6 +158,7 @@ export default function InfrastructureMap({
           ) : null}
           <PcLayer
             activeZoneId={highlightedZoneId}
+            isConsultationEnabled={!isInteractionMode}
             isDeleteMode={isMarkerDeletionToolActive}
             isMoveMode={isMarkerMoveToolActive}
             markers={markers}
@@ -154,6 +166,8 @@ export default function InfrastructureMap({
             onHoverZone={handleHoverZone}
             onLeaveZone={handleLeaveZone}
             onMoveMarker={handleMoveMarker}
+            onSelectMarker={handleSelectMarker}
+            selectedMarkerId={selectedMarker?.id ?? null}
             zones={zones}
           />
         </MapContainer>

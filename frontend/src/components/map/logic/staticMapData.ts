@@ -1,6 +1,16 @@
-import type { StaticMapData } from "../../../types/layout";
+import type { StaticMapData, TestPc } from "../../../types/layout";
+import { createPcTechnicalDetails } from "./pcTechnicalDetails";
 
-export const STATIC_MAP_DATA: StaticMapData = {
+interface RawStaticMapData {
+  image: StaticMapData["image"];
+  zones: Array<
+    Omit<StaticMapData["zones"][number], "pcs"> & {
+      pcs: Array<Pick<TestPc, "id" | "x" | "y">>;
+    }
+  >;
+}
+
+const RAW_STATIC_MAP_DATA: RawStaticMapData = {
   image: {
     width: 884,
     height: 609,
@@ -108,3 +118,21 @@ export const STATIC_MAP_DATA: StaticMapData = {
     },
   ],
 };
+
+export const STATIC_MAP_DATA: StaticMapData = {
+  image: RAW_STATIC_MAP_DATA.image,
+  zones: RAW_STATIC_MAP_DATA.zones.map((zone) => ({
+    ...zone,
+    pcs: zone.pcs.map((pc) => enrichPcWithTechnicalDetails(pc, zone.id)),
+  })),
+};
+
+function enrichPcWithTechnicalDetails(
+  pc: Pick<TestPc, "id" | "x" | "y">,
+  zoneId: number,
+): TestPc {
+  return {
+    ...pc,
+    technicalDetails: createPcTechnicalDetails(pc.id, zoneId),
+  };
+}

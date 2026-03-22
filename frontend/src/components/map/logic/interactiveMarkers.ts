@@ -5,13 +5,12 @@ import type {
   RectangleBounds,
   StaticMapImage,
 } from "../../../types/layout";
+import { createPcTechnicalDetails } from "./pcTechnicalDetails";
 
 export function buildInitialMarkers(zones: MapZone[]): InteractiveMarker[] {
   return zones.flatMap((zone) =>
     zone.pcs.map((pc) => ({
-      id: pc.id,
-      x: pc.x,
-      y: pc.y,
+      ...pc,
       zoneId: zone.id,
     })),
   );
@@ -145,6 +144,13 @@ export function moveMarkerToCoordinates(
         }
       : marker,
   );
+}
+
+export function createDefaultMarkerTechnicalDetails(
+  markerId: string,
+  zoneId: number | null,
+): InteractiveMarker["technicalDetails"] {
+  return createPcTechnicalDetails(markerId, zoneId);
 }
 
 function normalizeMarkerId(markerId: string): string {

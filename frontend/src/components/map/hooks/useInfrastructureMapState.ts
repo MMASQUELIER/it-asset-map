@@ -7,6 +7,7 @@ import type {
 } from "../../../types/layout";
 import {
   assignMarkersWithinBoundsToZone,
+  createDefaultMarkerTechnicalDetails,
   createMarkerDraft,
   isMarkerIdUnique,
   moveMarkerToCoordinates,
@@ -21,7 +22,9 @@ import {
   createBoundsFromDragPoints,
   createZoneDraft,
   doesZoneOverlap,
+  hasMinimumZoneDimensions,
   isZoneIdUnique,
+  MIN_ZONE_DIMENSION,
   resizeZoneBoundsFromHandle,
   sortZonesById,
 } from "../logic/interactiveZones";
@@ -59,6 +62,8 @@ interface UseInfrastructureMapStateResult {
     x: number,
     y: number,
   ) => void;
+  handleCloseSelectedMarker: () => void;
+  handleSelectMarker: (markerId: string) => void;
   hoveredZoneId: number | null;
   isMarkerCreationToolActive: boolean;
   isMarkerMoveToolActive: boolean;
@@ -72,6 +77,7 @@ interface UseInfrastructureMapStateResult {
   pendingMarkerDraftError: string | null;
   pendingMarkerId: string;
   markers: InteractiveMarker[];
+  selectedMarker: InteractiveMarker | null;
   selectedZone: MapZone | null;
   setPendingMarkerId: (value: string) => void;
   setPendingZoneId: (value: string) => void;
@@ -94,10 +100,13 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
   const [zoneDraft, setZoneDraft] = useState<ZoneDraft | null>(null);
   const [zoneDraftId, setZoneDraftId] = useState("");
   const [zoneDraftError, setZoneDraftError] = useState<string | null>(null);
+  const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
   const hoveredZoneClearTimeoutRef = useRef<number | null>(null);
 
   const highlightedZoneId = hoveredZoneId ?? selectedZoneId;
   const selectedZone = zones.find((zone) => zone.id === selectedZoneId) ?? null;
+  const selectedMarker =
+    markers.find((marker) => marker.id === selectedMarkerId) ?? null;
   const isMarkerCreationToolActive =
     isInteractionMode && activeTool === "add-marker";
   const isMarkerMoveToolActive =
@@ -147,6 +156,7 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
 
   function handleZoneInteraction(zoneId: number): void {
     if (!isInteractionMode) {
+      setSelectedMarkerId(null);
       toggleZoneSelection(zoneId);
       return;
     }
@@ -164,6 +174,7 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
   function handleOpenInteractionMode(): void {
     setIsInteractionMode(true);
     setActiveTool(INITIAL_TOOL);
+    setSelectedMarkerId(null);
     clearPendingDrafts();
   }
 
@@ -175,6 +186,7 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
 
   function handleSelectTool(tool: InteractionTool): void {
     setActiveTool(tool);
+    setSelectedMarkerId(null);
     clearPendingDrafts();
   }
 
@@ -182,6 +194,8 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
     if (!isMarkerCreationToolActive) {
       return;
     }
+
+    setSelectedMarkerId(null);
 
     const nextDraft = createMarkerDraft(zones, markers, x, y);
 
@@ -259,6 +273,10 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
         id: nextMarkerId,
         x: markerDraft.x,
         y: markerDraft.y,
+        technicalDetails: createDefaultMarkerTechnicalDetails(
+          nextMarkerId,
+          markerDraft.zoneId,
+        ),
         zoneId: markerDraft.zoneId,
       },
     ]);
@@ -279,6 +297,13 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
 
     if (!isZoneIdUnique(zones, nextZoneId)) {
       setZoneDraftError("Cet identifiant de zone existe deja.");
+      return;
+    }
+
+    if (!hasMinimumZoneDimensions(zoneDraft.bounds)) {
+      setZoneDraftError(
+        `La zone doit faire au moins ${MIN_ZONE_DIMENSION} x ${MIN_ZONE_DIMENSION} pixels.`,
+      );
       return;
     }
 
@@ -305,9 +330,20 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
   }
 
   function handleDeleteMarker(markerId: string): void {
+    setSelectedMarkerId((currentMarkerId) =>
+      currentMarkerId === markerId ? null : currentMarkerId,
+    );
     setMarkers((currentMarkers) =>
       currentMarkers.filter((marker) => marker.id !== markerId),
     );
+  }
+
+  function handleSelectMarker(markerId: string): void {
+    setSelectedMarkerId(markerId);
+  }
+
+  function handleCloseSelectedMarker(): void {
+    setSelectedMarkerId(null);
   }
 
   function handleZoneResizeDrag(
@@ -398,6 +434,7 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
     activeTool,
     clearPendingDrafts,
     handleCloseInteractionMode,
+    handleCloseSelectedMarker,
     handleDeleteMarker,
     handleHoverZone,
     handleLeaveZone,
@@ -405,6 +442,7 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
     handleMarkerDraftSave,
     handleMarkerPlacement,
     handleOpenInteractionMode,
+    handleSelectMarker,
     handleSelectTool,
     handleZoneDraftDrag,
     handleZoneDraftColorChange,
@@ -428,6 +466,7 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
     pendingZoneDraft: zoneDraft,
     pendingZoneDraftError: zoneDraftError,
     pendingZoneId: zoneDraftId,
+    selectedMarker,
     selectedZone,
     setPendingMarkerId: setMarkerDraftId,
     setPendingZoneId: setZoneDraftId,

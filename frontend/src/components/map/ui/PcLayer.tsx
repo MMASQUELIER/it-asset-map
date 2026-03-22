@@ -5,6 +5,7 @@ import type { InteractiveMarker, MapZone } from "../../../types/layout";
 
 interface PcLayerProps {
   activeZoneId: number | null;
+  isConsultationEnabled: boolean;
   isDeleteMode: boolean;
   isMoveMode: boolean;
   markers: InteractiveMarker[];
@@ -12,11 +13,14 @@ interface PcLayerProps {
   onHoverZone: (zoneId: number) => void;
   onLeaveZone: () => void;
   onMoveMarker: (markerId: string, x: number, y: number) => void;
+  onSelectMarker: (markerId: string) => void;
+  selectedMarkerId: string | null;
   zones: MapZone[];
 }
 
 export default function PcLayer({
   activeZoneId,
+  isConsultationEnabled,
   isDeleteMode,
   isMoveMode,
   markers,
@@ -24,6 +28,8 @@ export default function PcLayer({
   onHoverZone,
   onLeaveZone,
   onMoveMarker,
+  onSelectMarker,
+  selectedMarkerId,
   zones,
 }: PcLayerProps) {
   const zoneColorById = new Map(zones.map((zone) => [zone.id, zone.color]));
@@ -31,12 +37,16 @@ export default function PcLayer({
   return (
     <>
       {markers.map((marker) => {
+        const isSelectedMarker = selectedMarkerId === marker.id;
         const isActiveZone = marker.zoneId !== null && activeZoneId === marker.zoneId;
-        const isDimmed = activeZoneId !== null && marker.zoneId !== activeZoneId;
+        const isDimmed =
+          activeZoneId !== null &&
+          marker.zoneId !== activeZoneId &&
+          !isSelectedMarker;
         const markerColor = marker.zoneId === null
           ? "#64748b"
           : (zoneColorById.get(marker.zoneId) ?? "#64748b");
-        const markerSize = isActiveZone ? 14 : 11;
+        const markerSize = isSelectedMarker ? 16 : (isActiveZone ? 14 : 11);
 
         return (
           <Marker
@@ -51,6 +61,11 @@ export default function PcLayer({
                   return;
                 }
 
+                if (!isConsultationEnabled) {
+                  return;
+                }
+
+                onSelectMarker(marker.id);
                 event.target.openTooltip();
               },
               mouseover: () => {
@@ -78,17 +93,18 @@ export default function PcLayer({
               markerColor,
               markerSize,
               isActiveZone,
+              isSelectedMarker,
               isDimmed,
               isMoveMode,
             )}
             position={[marker.y, marker.x]}
-            zIndexOffset={isActiveZone ? 300 : 0}
+            zIndexOffset={isSelectedMarker ? 450 : (isActiveZone ? 300 : 0)}
           >
             <Tooltip
-              className={`pc-tooltip${isActiveZone ? " pc-tooltip--active" : ""}`}
+              className={`pc-tooltip${isActiveZone ? " pc-tooltip--active" : ""}${isSelectedMarker ? " pc-tooltip--selected" : ""}`}
               direction="top"
               offset={[0, -8]}
-              permanent={isActiveZone}
+              permanent={isActiveZone || isSelectedMarker}
             >
               {marker.id}
             </Tooltip>
@@ -103,10 +119,15 @@ function createMarkerIcon(
   markerColor: string,
   markerSize: number,
   isActiveZone: boolean,
+  isSelectedMarker: boolean,
   isDimmed: boolean,
   isMoveMode: boolean,
 ): L.DivIcon {
   const markerClassNames = ["pc-marker"];
+
+  if (isSelectedMarker) {
+    markerClassNames.push("pc-marker--selected");
+  }
 
   if (isActiveZone) {
     markerClassNames.push("pc-marker--active");

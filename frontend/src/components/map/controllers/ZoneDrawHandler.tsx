@@ -12,16 +12,20 @@ interface ZoneDrawHandlerProps {
   ) => void;
 }
 
+const DRAG_START_THRESHOLD = 4;
+
 export default function ZoneDrawHandler({
   isEnabled,
   onDraftDrag,
 }: ZoneDrawHandlerProps) {
   const leafletMap = useMap();
   const dragStartLatLngRef = useRef<LatLng | null>(null);
+  const hasDraggedRef = useRef(false);
 
   useEffect(() => {
     if (!isEnabled) {
       dragStartLatLngRef.current = null;
+      hasDraggedRef.current = false;
       return;
     }
 
@@ -30,6 +34,7 @@ export default function ZoneDrawHandler({
     return () => {
       leafletMap.dragging.enable();
       dragStartLatLngRef.current = null;
+      hasDraggedRef.current = false;
     };
   }, [isEnabled, leafletMap]);
 
@@ -40,17 +45,21 @@ export default function ZoneDrawHandler({
       }
 
       dragStartLatLngRef.current = mapMouseEvent.latlng;
-      onDraftDrag(
-        mapMouseEvent.latlng.lng,
-        mapMouseEvent.latlng.lat,
-        mapMouseEvent.latlng.lng,
-        mapMouseEvent.latlng.lat,
-      );
+      hasDraggedRef.current = false;
     },
     mousemove(mapMouseEvent) {
       if (!isEnabled || dragStartLatLngRef.current === null) {
         return;
       }
+
+      if (
+        !hasDraggedRef.current &&
+        !hasReachedDragThreshold(dragStartLatLngRef.current, mapMouseEvent.latlng)
+      ) {
+        return;
+      }
+
+      hasDraggedRef.current = true;
 
       onDraftDrag(
         dragStartLatLngRef.current.lng,
@@ -64,15 +73,29 @@ export default function ZoneDrawHandler({
         return;
       }
 
-      onDraftDrag(
-        dragStartLatLngRef.current.lng,
-        dragStartLatLngRef.current.lat,
-        mapMouseEvent.latlng.lng,
-        mapMouseEvent.latlng.lat,
-      );
+      if (
+        hasDraggedRef.current ||
+        hasReachedDragThreshold(dragStartLatLngRef.current, mapMouseEvent.latlng)
+      ) {
+        onDraftDrag(
+          dragStartLatLngRef.current.lng,
+          dragStartLatLngRef.current.lat,
+          mapMouseEvent.latlng.lng,
+          mapMouseEvent.latlng.lat,
+        );
+      }
+
       dragStartLatLngRef.current = null;
+      hasDraggedRef.current = false;
     },
   });
 
   return null;
+}
+
+function hasReachedDragThreshold(start: LatLng, current: LatLng): boolean {
+  return (
+    Math.abs(current.lng - start.lng) >= DRAG_START_THRESHOLD ||
+    Math.abs(current.lat - start.lat) >= DRAG_START_THRESHOLD
+  );
 }

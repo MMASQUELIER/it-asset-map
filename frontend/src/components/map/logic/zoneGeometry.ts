@@ -1,7 +1,7 @@
 import type { RectangleBounds, StaticMapImage } from "../../../types/layout";
 import type { ZoneResizeHandle } from "./interactionTypes";
 
-const MIN_ZONE_DIMENSION = 40;
+export const MIN_ZONE_DIMENSION = 40;
 
 export function createBoundsFromDragPoints(
   image: StaticMapImage,
@@ -10,20 +10,21 @@ export function createBoundsFromDragPoints(
   endX: number,
   endY: number,
 ): RectangleBounds {
-  const left = Math.min(startX, endX);
-  const top = Math.min(startY, endY);
-  const width = Math.abs(endX - startX);
-  const height = Math.abs(endY - startY);
+  const clampedStartX = clampCoordinate(startX, image.width);
+  const clampedStartY = clampCoordinate(startY, image.height);
+  const clampedEndX = clampCoordinate(endX, image.width);
+  const clampedEndY = clampCoordinate(endY, image.height);
+  const left = Math.min(clampedStartX, clampedEndX);
+  const top = Math.min(clampedStartY, clampedEndY);
+  const right = Math.max(clampedStartX, clampedEndX);
+  const bottom = Math.max(clampedStartY, clampedEndY);
 
-  return clampZoneBounds(
-    {
-      x: Math.round(left),
-      y: Math.round(top),
-      width,
-      height,
-    },
-    image,
-  );
+  return {
+    x: left,
+    y: top,
+    width: right - left,
+    height: bottom - top,
+  };
 }
 
 export function clampZoneBounds(
@@ -41,6 +42,12 @@ export function clampZoneBounds(
     width,
     height,
   };
+}
+
+export function hasMinimumZoneDimensions(bounds: RectangleBounds): boolean {
+  return (
+    bounds.width >= MIN_ZONE_DIMENSION && bounds.height >= MIN_ZONE_DIMENSION
+  );
 }
 
 export function resizeZoneBoundsFromHandle(
