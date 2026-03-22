@@ -7,6 +7,7 @@ import ZoneDrawHandler from "./map/controllers/ZoneDrawHandler";
 import useInfrastructureMapState from "./map/hooks/useInfrastructureMapState";
 import { IMAGE_BOUNDS, MAP_STYLE } from "./map/logic/mapConfig";
 import MapDraftPanels from "./map/ui/MapDraftPanels";
+import MapSearchPanel from "./map/ui/MapSearchPanel";
 import MapToolbar from "./map/ui/MapToolbar";
 import PcDetailsPanel from "./map/ui/PcDetailsPanel";
 import PcLayer from "./map/ui/PcLayer";
@@ -59,6 +60,8 @@ export default function InfrastructureMap({
     pendingZoneDraftError,
     pendingZoneId,
     selectedMarker,
+    selectedMarkerFocusToken,
+    selectedMarkerId,
     selectedZone,
     setPendingMarkerId,
     setPendingZoneId,
@@ -78,6 +81,12 @@ export default function InfrastructureMap({
         <ZoneLegend
           activeZoneId={highlightedZoneId}
           onSelectZone={handleZoneInteraction}
+          zones={zones}
+        />
+        <MapSearchPanel
+          markers={markers}
+          onSelectMarker={handleSelectMarker}
+          selectedMarkerId={selectedMarkerId}
           zones={zones}
         />
       </div>
@@ -121,7 +130,12 @@ export default function InfrastructureMap({
           crs={L.CRS.Simple}
           style={MAP_STYLE}
         >
-          <MapViewportController imageBounds={IMAGE_BOUNDS} />
+          <MapViewportController
+            focusToken={selectedMarkerFocusToken}
+            focusX={selectedMarker?.x ?? null}
+            focusY={selectedMarker?.y ?? null}
+            imageBounds={IMAGE_BOUNDS}
+          />
           <MapClickHandler
             isEnabled={isMarkerCreationToolActive}
             onCoordinateClick={handleMarkerPlacement}

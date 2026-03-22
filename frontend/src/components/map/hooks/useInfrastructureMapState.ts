@@ -78,6 +78,8 @@ interface UseInfrastructureMapStateResult {
   pendingMarkerId: string;
   markers: InteractiveMarker[];
   selectedMarker: InteractiveMarker | null;
+  selectedMarkerFocusToken: number;
+  selectedMarkerId: string | null;
   selectedZone: MapZone | null;
   setPendingMarkerId: (value: string) => void;
   setPendingZoneId: (value: string) => void;
@@ -101,12 +103,13 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
   const [zoneDraftId, setZoneDraftId] = useState("");
   const [zoneDraftError, setZoneDraftError] = useState<string | null>(null);
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
+  const [selectedMarkerFocusToken, setSelectedMarkerFocusToken] = useState(0);
   const hoveredZoneClearTimeoutRef = useRef<number | null>(null);
 
-  const highlightedZoneId = hoveredZoneId ?? selectedZoneId;
-  const selectedZone = zones.find((zone) => zone.id === selectedZoneId) ?? null;
   const selectedMarker =
     markers.find((marker) => marker.id === selectedMarkerId) ?? null;
+  const highlightedZoneId = hoveredZoneId ?? selectedMarker?.zoneId ?? selectedZoneId;
+  const selectedZone = zones.find((zone) => zone.id === selectedZoneId) ?? null;
   const isMarkerCreationToolActive =
     isInteractionMode && activeTool === "add-marker";
   const isMarkerMoveToolActive =
@@ -340,6 +343,7 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
 
   function handleSelectMarker(markerId: string): void {
     setSelectedMarkerId(markerId);
+    setSelectedMarkerFocusToken((currentToken) => currentToken + 1);
   }
 
   function handleCloseSelectedMarker(): void {
@@ -467,6 +471,8 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
     pendingZoneDraftError: zoneDraftError,
     pendingZoneId: zoneDraftId,
     selectedMarker,
+    selectedMarkerFocusToken,
+    selectedMarkerId,
     selectedZone,
     setPendingMarkerId: setMarkerDraftId,
     setPendingZoneId: setZoneDraftId,
