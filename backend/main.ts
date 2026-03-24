@@ -1,35 +1,30 @@
-// api_oak.ts
-import { Application, Router, Context } from "jsr:@oak/oak";
-import { oakCors } from "https://deno.land/x/cors/mod.ts";
+import { Hono } from "https://deno.land/x/hono@v4.3.11/mod.ts";
+import { cors } from "https://deno.land/x/hono@v4.3.11/middleware.ts";
 
-const router = new Router();
+const app = new Hono();
+const mapImagePath = new URL("../assets/map.png", import.meta.url);
 
-// routes
-router.get("/", (ctx: Context) => {
-  ctx.response.body = "API IT Map est en ligne 🟢";
+app.use("*", cors());
+
+app.get("/", (c) => {
+  return c.text("API IT Map est en ligne.");
 });
 
-router.get("/api/map", async (ctx: Context) => {
+app.get("/api/map", async (c) => {
   try {
-    const image = await Deno.readFile("../assets/map.png");
-    
-    ctx.response.headers.set("Content-Type", "image/png");
-    ctx.response.body = image;
+    const image = await Deno.readFile(mapImagePath);
+
+    return new Response(image, {
+      headers: { "Content-Type": "image/png" },
+    });
   } catch (error) {
     console.error("Erreur lecture image:", error);
-    ctx.response.status = 404;
-    // En cas d'erreur, renvoyer du JSON
-    ctx.response.body = { error: "Image introuvable", details: String(error) };
+    return c.json(
+      { error: "Image introuvable", details: String(error) },
+      404,
+    );
   }
 });
 
-const app = new Application();
-
-app.use(oakCors());
-
-app.use(router.routes());
-app.use(router.allowedMethods());
-
-console.log("Serveur lancé sur http://localhost:8000");
-
-await app.listen({ port: 8000 });
+console.log("Serveur Hono lance sur http://localhost:8000");
+Deno.serve({ port: 8000 }, app.fetch);
