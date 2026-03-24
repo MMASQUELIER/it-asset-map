@@ -202,7 +202,6 @@ function getIdentificationFields(marker: InteractiveMarker): VisiblePcDetailFiel
         marker.technicalDetails.location,
     },
     { id: "date", label: "Date", value: marker.technicalDetails.lastInventoryDate },
-    { id: "sap", label: "SAP", value: marker.technicalDetails.sap },
   ]);
 }
 
@@ -216,6 +215,7 @@ function getEquipmentFields(
       value: details.assetType,
     },
     { id: "brand", label: "Brand", value: details.manufacturer },
+    { id: "sap", label: "SAP", value: details.sap },
     { id: "serial-number", label: "Serial Number", value: details.serialNumber },
     { id: "hdd", label: "HDD", value: details.storage },
     { id: "os-type", label: "OS Type", value: details.operatingSystem },
