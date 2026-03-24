@@ -22,10 +22,14 @@ export default function ZoneDrawHandler({
   const dragStartLatLngRef = useRef<LatLng | null>(null);
   const hasDraggedRef = useRef(false);
 
+  function resetDragState(): void {
+    dragStartLatLngRef.current = null;
+    hasDraggedRef.current = false;
+  }
+
   useEffect(() => {
     if (!isEnabled) {
-      dragStartLatLngRef.current = null;
-      hasDraggedRef.current = false;
+      resetDragState();
       return;
     }
 
@@ -33,8 +37,7 @@ export default function ZoneDrawHandler({
 
     return () => {
       leafletMap.dragging.enable();
-      dragStartLatLngRef.current = null;
-      hasDraggedRef.current = false;
+      resetDragState();
     };
   }, [isEnabled, leafletMap]);
 
@@ -48,13 +51,15 @@ export default function ZoneDrawHandler({
       hasDraggedRef.current = false;
     },
     mousemove(mapMouseEvent) {
-      if (!isEnabled || dragStartLatLngRef.current === null) {
+      const dragStartLatLng = dragStartLatLngRef.current;
+
+      if (!isEnabled || dragStartLatLng === null) {
         return;
       }
 
       if (
         !hasDraggedRef.current &&
-        !hasReachedDragThreshold(dragStartLatLngRef.current, mapMouseEvent.latlng)
+        !hasReachedDragThreshold(dragStartLatLng, mapMouseEvent.latlng)
       ) {
         return;
       }
@@ -62,31 +67,32 @@ export default function ZoneDrawHandler({
       hasDraggedRef.current = true;
 
       onDraftDrag(
-        dragStartLatLngRef.current.lng,
-        dragStartLatLngRef.current.lat,
+        dragStartLatLng.lng,
+        dragStartLatLng.lat,
         mapMouseEvent.latlng.lng,
         mapMouseEvent.latlng.lat,
       );
     },
     mouseup(mapMouseEvent) {
-      if (!isEnabled || dragStartLatLngRef.current === null) {
+      const dragStartLatLng = dragStartLatLngRef.current;
+
+      if (!isEnabled || dragStartLatLng === null) {
         return;
       }
 
       if (
         hasDraggedRef.current ||
-        hasReachedDragThreshold(dragStartLatLngRef.current, mapMouseEvent.latlng)
+        hasReachedDragThreshold(dragStartLatLng, mapMouseEvent.latlng)
       ) {
         onDraftDrag(
-          dragStartLatLngRef.current.lng,
-          dragStartLatLngRef.current.lat,
+          dragStartLatLng.lng,
+          dragStartLatLng.lat,
           mapMouseEvent.latlng.lng,
           mapMouseEvent.latlng.lat,
         );
       }
 
-      dragStartLatLngRef.current = null;
-      hasDraggedRef.current = false;
+      resetDragState();
     },
   });
 

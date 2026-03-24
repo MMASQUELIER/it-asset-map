@@ -43,10 +43,13 @@ export default function PcLayer({
           activeZoneId !== null &&
           marker.zoneId !== activeZoneId &&
           !isSelectedMarker;
-        const markerColor = marker.zoneId === null
-          ? "#64748b"
-          : (zoneColorById.get(marker.zoneId) ?? "#64748b");
+        const markerColor =
+          marker.zoneId === null
+            ? "#64748b"
+            : (zoneColorById.get(marker.zoneId) ?? "#64748b");
         const markerSize = isSelectedMarker ? 16 : (isActiveZone ? 14 : 11);
+        const tooltipClassName = `pc-tooltip${isActiveZone ? " pc-tooltip--active" : ""}${isSelectedMarker ? " pc-tooltip--selected" : ""}`;
+        const zIndexOffset = isSelectedMarker ? 450 : (isActiveZone ? 300 : 0);
 
         return (
           <Marker
@@ -98,10 +101,10 @@ export default function PcLayer({
               isMoveMode,
             )}
             position={[marker.y, marker.x]}
-            zIndexOffset={isSelectedMarker ? 450 : (isActiveZone ? 300 : 0)}
+            zIndexOffset={zIndexOffset}
           >
             <Tooltip
-              className={`pc-tooltip${isActiveZone ? " pc-tooltip--active" : ""}${isSelectedMarker ? " pc-tooltip--selected" : ""}`}
+              className={tooltipClassName}
               direction="top"
               offset={[0, -8]}
               permanent={isActiveZone || isSelectedMarker}

@@ -96,15 +96,22 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
   const [activeTool, setActiveTool] = useState<InteractionTool>(INITIAL_TOOL);
   const [zones, setZones] = useState<MapZone[]>(() => INITIAL_ZONES);
   const [markers, setMarkers] = useState<InteractiveMarker[]>(() => INITIAL_MARKERS);
-  const [markerDraft, setMarkerDraft] = useState<MarkerDraft | null>(null);
-  const [markerDraftId, setMarkerDraftId] = useState("");
-  const [markerDraftError, setMarkerDraftError] = useState<string | null>(null);
-  const [zoneDraft, setZoneDraft] = useState<ZoneDraft | null>(null);
-  const [zoneDraftId, setZoneDraftId] = useState("");
-  const [zoneDraftError, setZoneDraftError] = useState<string | null>(null);
+  const [pendingMarkerDraft, setPendingMarkerDraft] =
+    useState<MarkerDraft | null>(null);
+  const [pendingMarkerId, setPendingMarkerId] = useState("");
+  const [pendingMarkerDraftError, setPendingMarkerDraftError] = useState<
+    string | null
+  >(null);
+  const [pendingZoneDraft, setPendingZoneDraft] = useState<ZoneDraft | null>(
+    null,
+  );
+  const [pendingZoneId, setPendingZoneId] = useState("");
+  const [pendingZoneDraftError, setPendingZoneDraftError] = useState<
+    string | null
+  >(null);
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
   const [selectedMarkerFocusToken, setSelectedMarkerFocusToken] = useState(0);
-  const hoveredZoneClearTimeoutRef = useRef<number | null>(null);
+  const leaveZoneTimeoutRef = useRef<number | null>(null);
 
   const selectedMarker =
     markers.find((marker) => marker.id === selectedMarkerId) ?? null;
@@ -127,39 +134,68 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
   const isDeletionToolActive =
     isMarkerDeletionToolActive || isZoneDeletionToolActive;
 
-  function clearHoveredZoneClearTimeout(): void {
-    if (hoveredZoneClearTimeoutRef.current === null) {
+  // Selection
+  function clearSelectedMarker(): void {
+    setSelectedMarkerId(null);
+  }
+
+  function focusSelectedMarker(markerId: string): void {
+    setSelectedMarkerId(markerId);
+    setSelectedMarkerFocusToken((currentToken) => currentToken + 1);
+  }
+
+  // Drafts
+  function clearPendingMarkerDraft(): void {
+    setPendingMarkerDraft(null);
+    setPendingMarkerId("");
+    setPendingMarkerDraftError(null);
+  }
+
+  function clearPendingZoneDraft(): void {
+    setPendingZoneDraft(null);
+    setPendingZoneId("");
+    setPendingZoneDraftError(null);
+  }
+
+  function clearPendingDrafts(): void {
+    clearPendingMarkerDraft();
+    clearPendingZoneDraft();
+  }
+
+  // Hover
+  function clearLeaveZoneTimeout(): void {
+    if (leaveZoneTimeoutRef.current === null) {
       return;
     }
 
-    window.clearTimeout(hoveredZoneClearTimeoutRef.current);
-    hoveredZoneClearTimeoutRef.current = null;
+    window.clearTimeout(leaveZoneTimeoutRef.current);
+    leaveZoneTimeoutRef.current = null;
   }
 
   function handleHoverZone(zoneId: number): void {
-    clearHoveredZoneClearTimeout();
+    clearLeaveZoneTimeout();
     setHoveredZoneId((currentZoneId) =>
       currentZoneId === zoneId ? currentZoneId : zoneId,
     );
   }
 
   function handleLeaveZone(): void {
-    clearHoveredZoneClearTimeout();
-    hoveredZoneClearTimeoutRef.current = window.setTimeout(() => {
+    clearLeaveZoneTimeout();
+    leaveZoneTimeoutRef.current = window.setTimeout(() => {
       setHoveredZoneId(null);
-      hoveredZoneClearTimeoutRef.current = null;
+      leaveZoneTimeoutRef.current = null;
     }, 40);
   }
 
   useEffect(() => {
     return () => {
-      clearHoveredZoneClearTimeout();
+      clearLeaveZoneTimeout();
     };
   }, []);
 
   function handleZoneInteraction(zoneId: number): void {
     if (!isInteractionMode) {
-      setSelectedMarkerId(null);
+      clearSelectedMarker();
       toggleZoneSelection(zoneId);
       return;
     }
@@ -177,7 +213,7 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
   function handleOpenInteractionMode(): void {
     setIsInteractionMode(true);
     setActiveTool(INITIAL_TOOL);
-    setSelectedMarkerId(null);
+    clearSelectedMarker();
     clearPendingDrafts();
   }
 
@@ -189,7 +225,7 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
 
   function handleSelectTool(tool: InteractionTool): void {
     setActiveTool(tool);
-    setSelectedMarkerId(null);
+    clearSelectedMarker();
     clearPendingDrafts();
   }
 
@@ -198,13 +234,13 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
       return;
     }
 
-    setSelectedMarkerId(null);
+    clearSelectedMarker();
 
     const nextDraft = createMarkerDraft(zones, markers, x, y);
 
-    setMarkerDraft(nextDraft);
-    setMarkerDraftId(nextDraft.suggestedId);
-    setMarkerDraftError(null);
+    setPendingMarkerDraft(nextDraft);
+    setPendingMarkerId(nextDraft.suggestedId);
+    setPendingMarkerDraftError(null);
   }
 
   function handleMoveMarker(markerId: string, x: number, y: number): void {
@@ -231,12 +267,12 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
       currentY,
     );
 
-    setZoneDraft((currentDraft) => {
+    setPendingZoneDraft((currentDraft) => {
       if (currentDraft === null) {
         const nextDraft = createZoneDraft(MAP_IMAGE, zones, startX, startY);
 
-        if (zoneDraftId.length === 0) {
-          setZoneDraftId(String(nextDraft.suggestedId));
+        if (pendingZoneId.length === 0) {
+          setPendingZoneId(String(nextDraft.suggestedId));
         }
 
         return {
@@ -250,23 +286,23 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
         bounds: nextBounds,
       };
     });
-    setZoneDraftError(null);
+    setPendingZoneDraftError(null);
   }
 
   function handleMarkerDraftSave(): void {
-    if (markerDraft === null) {
+    if (pendingMarkerDraft === null) {
       return;
     }
 
-    const nextMarkerId = markerDraftId.trim();
+    const nextMarkerId = pendingMarkerId.trim();
 
     if (nextMarkerId.length === 0) {
-      setMarkerDraftError("L'identifiant du marqueur est obligatoire.");
+      setPendingMarkerDraftError("L'identifiant du marqueur est obligatoire.");
       return;
     }
 
     if (!isMarkerIdUnique(markers, nextMarkerId)) {
-      setMarkerDraftError("Cet identifiant existe deja dans la session.");
+      setPendingMarkerDraftError("Cet identifiant existe deja dans la session.");
       return;
     }
 
@@ -274,52 +310,54 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
       ...currentMarkers,
       {
         id: nextMarkerId,
-        x: markerDraft.x,
-        y: markerDraft.y,
+        x: pendingMarkerDraft.x,
+        y: pendingMarkerDraft.y,
         technicalDetails: createDefaultMarkerTechnicalDetails(
           nextMarkerId,
-          markerDraft.zoneId,
+          pendingMarkerDraft.zoneId,
         ),
-        zoneId: markerDraft.zoneId,
+        zoneId: pendingMarkerDraft.zoneId,
       },
     ]);
     clearPendingDrafts();
   }
 
   function handleZoneDraftSave(): void {
-    if (zoneDraft === null) {
+    if (pendingZoneDraft === null) {
       return;
     }
 
-    const nextZoneId = Number(zoneDraftId);
+    const nextZoneId = Number(pendingZoneId);
 
     if (!Number.isInteger(nextZoneId) || nextZoneId <= 0) {
-      setZoneDraftError("L'identifiant de zone doit etre un nombre entier positif.");
+      setPendingZoneDraftError(
+        "L'identifiant de zone doit etre un nombre entier positif.",
+      );
       return;
     }
 
     if (!isZoneIdUnique(zones, nextZoneId)) {
-      setZoneDraftError("Cet identifiant de zone existe deja.");
+      setPendingZoneDraftError("Cet identifiant de zone existe deja.");
       return;
     }
 
-    if (!hasMinimumZoneDimensions(zoneDraft.bounds)) {
-      setZoneDraftError(
+    if (!hasMinimumZoneDimensions(pendingZoneDraft.bounds)) {
+      setPendingZoneDraftError(
         `La zone doit faire au moins ${MIN_ZONE_DIMENSION} x ${MIN_ZONE_DIMENSION} pixels.`,
       );
       return;
     }
 
-    const nextBounds = clampZoneBounds(zoneDraft.bounds, MAP_IMAGE);
+    const nextBounds = clampZoneBounds(pendingZoneDraft.bounds, MAP_IMAGE);
 
     if (doesZoneOverlap(zones, nextBounds)) {
-      setZoneDraftError("La nouvelle zone chevauche une zone existante.");
+      setPendingZoneDraftError("La nouvelle zone chevauche une zone existante.");
       return;
     }
 
     const nextZone: MapZone = {
       id: nextZoneId,
-      color: zoneDraft.color,
+      color: pendingZoneDraft.color,
       bounds: nextBounds,
       pcs: [],
     };
@@ -342,12 +380,11 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
   }
 
   function handleSelectMarker(markerId: string): void {
-    setSelectedMarkerId(markerId);
-    setSelectedMarkerFocusToken((currentToken) => currentToken + 1);
+    focusSelectedMarker(markerId);
   }
 
   function handleCloseSelectedMarker(): void {
-    setSelectedMarkerId(null);
+    clearSelectedMarker();
   }
 
   function handleZoneResizeDrag(
@@ -392,7 +429,7 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
   }
 
   function handleZoneDraftColorChange(color: string): void {
-    setZoneDraft((currentDraft) =>
+    setPendingZoneDraft((currentDraft) =>
       currentDraft === null
         ? currentDraft
         : {
@@ -425,15 +462,6 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
     );
   }
 
-  function clearPendingDrafts(): void {
-    setMarkerDraft(null);
-    setMarkerDraftId("");
-    setMarkerDraftError(null);
-    setZoneDraft(null);
-    setZoneDraftId("");
-    setZoneDraftError(null);
-  }
-
   return {
     activeTool,
     clearPendingDrafts,
@@ -464,18 +492,18 @@ export default function useInfrastructureMapState(): UseInfrastructureMapStateRe
     isZoneCreationToolActive,
     isZoneEditToolActive,
     markers,
-    pendingMarkerDraft: markerDraft,
-    pendingMarkerDraftError: markerDraftError,
-    pendingMarkerId: markerDraftId,
-    pendingZoneDraft: zoneDraft,
-    pendingZoneDraftError: zoneDraftError,
-    pendingZoneId: zoneDraftId,
+    pendingMarkerDraft,
+    pendingMarkerDraftError,
+    pendingMarkerId,
+    pendingZoneDraft,
+    pendingZoneDraftError,
+    pendingZoneId,
     selectedMarker,
     selectedMarkerFocusToken,
     selectedMarkerId,
     selectedZone,
-    setPendingMarkerId: setMarkerDraftId,
-    setPendingZoneId: setZoneDraftId,
+    setPendingMarkerId,
+    setPendingZoneId,
     zones,
   };
 }

@@ -80,6 +80,16 @@ export default function MapToolbar({
   onSelectTool,
 }: MapToolbarProps) {
   const activeToolDefinition = getToolDefinition(activeTool);
+  const title = isInteractionMode ? "Mode interaction actif" : "Carte en lecture";
+  const description = isInteractionMode
+    ? "Choisissez un outil puis intervenez directement sur le plan."
+    : "Activez le mode interaction pour modifier les zones et les marqueurs.";
+  const status = isInteractionMode
+    ? `Outil actif : ${activeToolDefinition.label}`
+    : "Navigation libre";
+  const toggleAction = isInteractionMode
+    ? "Fermer le mode interaction"
+    : "Activer le mode interaction";
 
   return (
     <div className="map-toolbar">
@@ -87,23 +97,15 @@ export default function MapToolbar({
         <div className="map-toolbar__top">
           <div className="map-toolbar__intro">
             <p className="map-toolbar__eyebrow">Outils de carte</p>
-            <p className="map-toolbar__title">
-              {isInteractionMode ? "Mode interaction actif" : "Carte en lecture"}
-            </p>
-            <p className="map-toolbar__description">
-              {isInteractionMode
-                ? "Choisissez un outil puis intervenez directement sur le plan."
-                : "Activez le mode interaction pour modifier les zones et les marqueurs."}
-            </p>
+            <p className="map-toolbar__title">{title}</p>
+            <p className="map-toolbar__description">{description}</p>
           </div>
 
           <div className="map-toolbar__actions">
             <span
               className={`map-toolbar__status${isInteractionMode ? " map-toolbar__status--interactive" : ""}`}
             >
-              {isInteractionMode
-                ? `Outil actif : ${activeToolDefinition.label}`
-                : "Navigation libre"}
+              {status}
             </span>
 
             <button
@@ -112,9 +114,7 @@ export default function MapToolbar({
               type="button"
               onClick={isInteractionMode ? onCloseInteractionMode : onOpenInteractionMode}
             >
-              {isInteractionMode
-                ? "Fermer le mode interaction"
-                : "Activer le mode interaction"}
+              {toggleAction}
             </button>
           </div>
         </div>

@@ -22,7 +22,7 @@ export default function MapSearchPanel({
   const selectedMarker =
     selectedMarkerId === null
       ? null
-      : markers.find((marker) => marker.id === selectedMarkerId) ?? null;
+      : (markers.find((marker) => marker.id === selectedMarkerId) ?? null);
   const zoneById = new Map(zones.map((zone) => [zone.id, zone]));
 
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
@@ -83,18 +83,26 @@ export default function MapSearchPanel({
           <div className="map-search__results" role="list">
             {results.length > 0 ? (
               results.map((result) => {
-                const zone = result.marker.zoneId === null
-                  ? null
-                  : (zoneById.get(result.marker.zoneId) ?? null);
-                const isActive = selectedMarkerId === result.marker.id;
-                const secondaryLabel = result.marker.technicalDetails.hostname === result.marker.id
-                  ? result.matchedValue
-                  : (result.marker.technicalDetails.hostname ?? result.matchedValue);
+                const zone =
+                  result.marker.zoneId === null
+                    ? null
+                    : (zoneById.get(result.marker.zoneId) ?? null);
+                const hostname = result.marker.technicalDetails.hostname;
+                const secondaryLabel =
+                  hostname === undefined || hostname === result.marker.id
+                    ? result.matchedValue
+                    : hostname;
+                const zoneStyle =
+                  zone === null
+                    ? undefined
+                    : ({
+                        "--map-search-zone-color": zone.color,
+                      } as CSSProperties);
 
                 return (
                   <button
                     key={result.marker.id}
-                    className={`map-search__result${isActive ? " map-search__result--active" : ""}`}
+                    className={`map-search__result${selectedMarkerId === result.marker.id ? " map-search__result--active" : ""}`}
                     type="button"
                     onClick={() => handleMarkerSelection(result.marker.id)}
                   >
@@ -102,11 +110,7 @@ export default function MapSearchPanel({
                       <strong className="map-search__result-id">{result.marker.id}</strong>
                       <span
                         className="map-search__result-zone"
-                        style={
-                          zone === null
-                            ? undefined
-                            : ({ "--map-search-zone-color": zone.color } as CSSProperties)
-                        }
+                        style={zoneStyle}
                       >
                         {zone === null ? "Hors zone" : `Zone ${zone.id}`}
                       </span>

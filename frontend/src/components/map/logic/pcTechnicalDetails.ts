@@ -84,12 +84,39 @@ export function createPcTechnicalDetails(
 ): PcTechnicalDetails {
   const seed = computeSeed(pcId, zoneId);
   const sequence = extractSequence(pcId);
+  const normalizedId = normalizePcId(pcId);
+  const defaultDetails = buildDefaultPcDetails({
+    normalizedId,
+    seed,
+    sequence,
+    zoneId,
+  });
+
+  return {
+    ...defaultDetails,
+    ...CMDB_PC_DETAILS_BY_ID[normalizedId],
+  };
+}
+
+interface DefaultPcDetailsOptions {
+  normalizedId: string;
+  seed: number;
+  sequence: number;
+  zoneId: number | null;
+}
+
+function buildDefaultPcDetails({
+  normalizedId,
+  seed,
+  sequence,
+  zoneId,
+}: DefaultPcDetailsOptions): PcTechnicalDetails {
   const zoneLabel = zoneId === null ? "TEMP" : String(zoneId);
-  const normalizedId = pcId.replace(/[^A-Z0-9]+/gi, "-").toUpperCase();
   const secondOctet = zoneId === null ? 250 : Math.floor(zoneId / 10) % 256;
   const thirdOctet = zoneId === null ? seed % 256 : zoneId % 10;
   const fourthOctet = 20 + (sequence % 200);
-  const defaultDetails: PcTechnicalDetails = {
+
+  return {
     site: "CLA",
     contact: `Equipe zone ${zoneLabel}`,
     sector: zoneId === null ? "Hors zone" : `Secteur ${zoneId}`,
@@ -118,15 +145,14 @@ export function createPcTechnicalDetails(
     serialNumber: `SN-${zoneLabel}-${String(seed).padStart(4, "0")}-${String(sequence).padStart(2, "0")}`,
     securityStatus: pickBySeed(SECURITY_STATUSES, seed + 4),
   };
-
-  return {
-    ...defaultDetails,
-    ...CMDB_PC_DETAILS_BY_ID[normalizedId],
-  };
 }
 
 function computeSeed(pcId: string, zoneId: number | null): number {
   return pcId.split("").reduce((seed, character) => seed + character.charCodeAt(0), zoneId ?? 0);
+}
+
+function normalizePcId(pcId: string): string {
+  return pcId.replace(/[^A-Z0-9]+/gi, "-").toUpperCase();
 }
 
 function extractSequence(pcId: string): number {

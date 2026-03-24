@@ -32,23 +32,19 @@ export default function ZonesLayer({
     <>
       {zones.map((zone) => {
         const isActive = zone.id === activeZoneId;
-        const eventHandlers: L.LeafletEventHandlerFnMap = {
-          mouseover: () => onHoverZone(zone.id),
-          mouseout: () => onLeaveZone(),
-          click: () => onSelectZone(zone.id),
-        };
+        const eventHandlers = createZoneEventHandlers(
+          zone.id,
+          onHoverZone,
+          onLeaveZone,
+          onSelectZone,
+        );
 
         return (
           <Fragment key={zone.id}>
             <Rectangle
               bounds={toLeafletBounds(zone.bounds)}
               eventHandlers={eventHandlers}
-              pathOptions={{
-                color: zone.color,
-                fillColor: zone.color,
-                fillOpacity: isActive ? 0.24 : 0.1,
-                weight: isActive ? 2.8 : 2,
-              }}
+              pathOptions={createZonePathOptions(zone.color, isActive)}
             />
 
             <Marker
@@ -62,4 +58,29 @@ export default function ZonesLayer({
       })}
     </>
   );
+}
+
+function createZoneEventHandlers(
+  zoneId: number,
+  onHoverZone: (zoneId: number) => void,
+  onLeaveZone: () => void,
+  onSelectZone: (zoneId: number) => void,
+): L.LeafletEventHandlerFnMap {
+  return {
+    mouseover: () => onHoverZone(zoneId),
+    mouseout: onLeaveZone,
+    click: () => onSelectZone(zoneId),
+  };
+}
+
+function createZonePathOptions(
+  color: string,
+  isActive: boolean,
+): L.PathOptions {
+  return {
+    color,
+    fillColor: color,
+    fillOpacity: isActive ? 0.24 : 0.1,
+    weight: isActive ? 2.8 : 2,
+  };
 }

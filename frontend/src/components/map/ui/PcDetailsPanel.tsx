@@ -34,50 +34,14 @@ export default function PcDetailsPanel({
   const [copiedFieldId, setCopiedFieldId] = useState<string | null>(null);
   const details = marker.technicalDetails;
   const zoneLabel = zone === null ? "Hors zone" : `Zone ${zone.id}`;
-  const zoneStyle = zone === null
-    ? undefined
-    : ({
-        "--pc-details-zone-color": zone.color,
-      } as CSSProperties);
+  const zoneStyle = getZoneStyle(zone);
   const subtitle = [details.manufacturer, details.model, details.operatingSystem]
     .filter(isVisibleText)
     .join(" • ");
   const securityTone = getSecurityTone(details.securityStatus);
-  const summaryFields = filterVisibleFields([
-    { id: "zone", label: "Zone", value: zoneLabel, variant: "zone" },
-    { id: "hostname", label: "Hostname", value: details.hostname },
-    { id: "post-name", label: "Nom poste", value: marker.id },
-    { id: "sesi", label: "SESI", value: formatSesiValue(details.directoryAccount) },
-    { id: "ip", label: "Adresse IP", value: details.ipAddress },
-    { id: "serial-number", label: "S/N", value: details.serialNumber },
-  ]);
-  const networkFields = filterVisibleFields([
-    { id: "network-ip", label: "Adresse IP", value: details.ipAddress },
-    { id: "network-mac", label: "Adresse MAC", value: details.macAddress },
-    { id: "network-mask", label: "Masque", value: details.subnetMask },
-    { id: "network-vlan", label: "VLAN", value: details.vlan },
-    { id: "network-scope", label: "Reseau", value: details.networkScope },
-    { id: "network-gateway", label: "Passerelle", value: details.gateway },
-    { id: "network-switch", label: "Switch", value: details.switchName },
-    { id: "network-switch-ip", label: "IP switch", value: details.switchIpAddress },
-    { id: "network-port", label: "Port switch", value: details.switchPort },
-    { id: "network-connection", label: "Connexion", value: details.connectionType },
-  ]);
-  const hardwareFields = filterVisibleFields([
-    { id: "hardware-site", label: "Site", value: details.site },
-    { id: "hardware-location", label: "Emplacement", value: details.location },
-    { id: "hardware-contact", label: "Referent", value: details.contact },
-    { id: "hardware-sector", label: "Secteur", value: details.sector },
-    { id: "hardware-type", label: "Type", value: details.assetType },
-    { id: "hardware-manufacturer", label: "Fabricant", value: details.manufacturer },
-    { id: "hardware-model", label: "Modele", value: details.model },
-    { id: "hardware-os", label: "Systeme", value: details.operatingSystem },
-    { id: "hardware-processor", label: "Processeur", value: details.processor },
-    { id: "hardware-memory", label: "Memoire", value: details.memory },
-    { id: "hardware-storage", label: "Stockage", value: details.storage },
-    { id: "hardware-last-scan", label: "Dernier inventaire", value: formatDateValue(details.lastInventoryDate) },
-    { id: "hardware-comment", label: "Commentaire", value: details.comment },
-  ]);
+  const summaryFields = getSummaryFields(marker, zoneLabel);
+  const networkFields = getNetworkFields(details);
+  const hardwareFields = getHardwareFields(details);
 
   useEffect(() => {
     if (copiedFieldId === null) {
@@ -168,6 +132,75 @@ export default function PcDetailsPanel({
       />
     </aside>
   );
+}
+
+function getZoneStyle(zone: MapZone | null): CSSProperties | undefined {
+  if (zone === null) {
+    return undefined;
+  }
+
+  return {
+    "--pc-details-zone-color": zone.color,
+  } as CSSProperties;
+}
+
+function getSummaryFields(
+  marker: InteractiveMarker,
+  zoneLabel: string,
+): VisiblePcDetailField[] {
+  return filterVisibleFields([
+    { id: "zone", label: "Zone", value: zoneLabel, variant: "zone" },
+    { id: "hostname", label: "Hostname", value: marker.technicalDetails.hostname },
+    { id: "post-name", label: "Nom poste", value: marker.id },
+    {
+      id: "sesi",
+      label: "SESI",
+      value: formatSesiValue(marker.technicalDetails.directoryAccount),
+    },
+    { id: "ip", label: "Adresse IP", value: marker.technicalDetails.ipAddress },
+    { id: "serial-number", label: "S/N", value: marker.technicalDetails.serialNumber },
+  ]);
+}
+
+function getNetworkFields(
+  details: InteractiveMarker["technicalDetails"],
+): VisiblePcDetailField[] {
+  return filterVisibleFields([
+    { id: "network-ip", label: "Adresse IP", value: details.ipAddress },
+    { id: "network-mac", label: "Adresse MAC", value: details.macAddress },
+    { id: "network-mask", label: "Masque", value: details.subnetMask },
+    { id: "network-vlan", label: "VLAN", value: details.vlan },
+    { id: "network-scope", label: "Reseau", value: details.networkScope },
+    { id: "network-gateway", label: "Passerelle", value: details.gateway },
+    { id: "network-switch", label: "Switch", value: details.switchName },
+    { id: "network-switch-ip", label: "IP switch", value: details.switchIpAddress },
+    { id: "network-port", label: "Port switch", value: details.switchPort },
+    { id: "network-connection", label: "Connexion", value: details.connectionType },
+  ]);
+}
+
+function getHardwareFields(
+  details: InteractiveMarker["technicalDetails"],
+): VisiblePcDetailField[] {
+  return filterVisibleFields([
+    { id: "hardware-site", label: "Site", value: details.site },
+    { id: "hardware-location", label: "Emplacement", value: details.location },
+    { id: "hardware-contact", label: "Referent", value: details.contact },
+    { id: "hardware-sector", label: "Secteur", value: details.sector },
+    { id: "hardware-type", label: "Type", value: details.assetType },
+    { id: "hardware-manufacturer", label: "Fabricant", value: details.manufacturer },
+    { id: "hardware-model", label: "Modele", value: details.model },
+    { id: "hardware-os", label: "Systeme", value: details.operatingSystem },
+    { id: "hardware-processor", label: "Processeur", value: details.processor },
+    { id: "hardware-memory", label: "Memoire", value: details.memory },
+    { id: "hardware-storage", label: "Stockage", value: details.storage },
+    {
+      id: "hardware-last-scan",
+      label: "Dernier inventaire",
+      value: formatDateValue(details.lastInventoryDate),
+    },
+    { id: "hardware-comment", label: "Commentaire", value: details.comment },
+  ]);
 }
 
 function PcDetailsSection({

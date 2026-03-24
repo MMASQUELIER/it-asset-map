@@ -6,7 +6,7 @@ export interface MarkerSearchResult {
   matchedValue: string;
 }
 
-interface SearchFieldDefinition {
+interface SearchField {
   getValue: (marker: InteractiveMarker) => string | undefined;
   label: string;
   weight: number;
@@ -16,7 +16,11 @@ interface RankedMarkerSearchResult extends MarkerSearchResult {
   score: number;
 }
 
-const SEARCH_FIELDS: SearchFieldDefinition[] = [
+const EXACT_MATCH_SCORE = 1000;
+const PREFIX_MATCH_SCORE = 700;
+const CONTAINS_MATCH_SCORE = 420;
+
+const SEARCH_FIELDS: SearchField[] = [
   { getValue: (marker) => marker.id, label: "Identifiant", weight: 120 },
   {
     getValue: (marker) => marker.technicalDetails.hostname,
@@ -66,32 +70,32 @@ export function searchMarkers(
   limit = 6,
 ): MarkerSearchResult[] {
   const normalizedQuery = normalizeSearchValue(query);
+  const rankedResults: RankedMarkerSearchResult[] = [];
 
   if (normalizedQuery.length === 0) {
     return [];
   }
 
-  return markers
-    .map((marker) => getBestMarkerMatch(marker, normalizedQuery))
-    .filter(
-      (result): result is RankedMarkerSearchResult => result !== null,
-    )
-    .sort((firstResult, secondResult) => {
-      if (secondResult.score !== firstResult.score) {
-        return secondResult.score - firstResult.score;
-      }
+  for (const marker of markers) {
+    const bestMatch = findBestMarkerMatch(marker, normalizedQuery);
 
-      return firstResult.marker.id.localeCompare(secondResult.marker.id, "fr");
-    })
+    if (bestMatch !== null) {
+      rankedResults.push(bestMatch);
+    }
+  }
+
+  rankedResults.sort(compareSearchResults);
+
+  return rankedResults
     .slice(0, limit)
-    .map(({ marker, matchedFieldLabel, matchedValue }) => ({
-      marker,
-      matchedFieldLabel,
-      matchedValue,
+    .map((result) => ({
+      marker: result.marker,
+      matchedFieldLabel: result.matchedFieldLabel,
+      matchedValue: result.matchedValue,
     }));
 }
 
-function getBestMarkerMatch(
+function findBestMarkerMatch(
   marker: InteractiveMarker,
   normalizedQuery: string,
 ): RankedMarkerSearchResult | null {
@@ -135,11 +139,11 @@ function getSearchScore(
   }
 
   if (normalizedValue === normalizedQuery) {
-    return 1000 + fieldWeight;
+    return EXACT_MATCH_SCORE + fieldWeight;
   }
 
   if (normalizedValue.startsWith(normalizedQuery)) {
-    return 700 + fieldWeight - normalizedValue.length;
+    return PREFIX_MATCH_SCORE + fieldWeight - normalizedValue.length;
   }
 
   const matchingIndex = normalizedValue.indexOf(normalizedQuery);
@@ -148,7 +152,18 @@ function getSearchScore(
     return null;
   }
 
-  return 420 + fieldWeight - matchingIndex;
+  return CONTAINS_MATCH_SCORE + fieldWeight - matchingIndex;
+}
+
+function compareSearchResults(
+  firstResult: RankedMarkerSearchResult,
+  secondResult: RankedMarkerSearchResult,
+): number {
+  if (secondResult.score !== firstResult.score) {
+    return secondResult.score - firstResult.score;
+  }
+
+  return firstResult.marker.id.localeCompare(secondResult.marker.id, "fr");
 }
 
 function isSearchableValue(value: string | undefined): value is string {

@@ -67,6 +67,12 @@ export default function InfrastructureMap({
     setPendingZoneId,
     zones,
   } = useInfrastructureMapState();
+  const mapFrameClassName = `map-frame${isCreationToolActive ? " map-frame--add-mode" : ""}${isMarkerMoveToolActive ? " map-frame--move-mode" : ""}${isDeletionToolActive ? " map-frame--delete-mode" : ""}${isInteractionMode ? " map-frame--interaction" : ""}`;
+  const pendingZoneLabel = pendingZoneId.length > 0 ? pendingZoneId : "Zone";
+  const selectedMarkerZone =
+    selectedMarker === null || selectedMarker.zoneId === null
+      ? null
+      : (zones.find((zone) => zone.id === selectedMarker.zoneId) ?? null);
 
   return (
     <section className="map-card">
@@ -91,9 +97,7 @@ export default function InfrastructureMap({
         />
       </div>
 
-      <div
-        className={`map-frame${isCreationToolActive ? " map-frame--add-mode" : ""}${isMarkerMoveToolActive ? " map-frame--move-mode" : ""}${isDeletionToolActive ? " map-frame--delete-mode" : ""}${isInteractionMode ? " map-frame--interaction" : ""}`}
-        >
+      <div className={mapFrameClassName}>
         <MapDraftPanels
           markerDraft={pendingMarkerDraft}
           markerDraftError={pendingMarkerDraftError}
@@ -112,7 +116,7 @@ export default function InfrastructureMap({
           <PcDetailsPanel
             marker={selectedMarker}
             onClose={handleCloseSelectedMarker}
-            zone={zones.find((zone) => zone.id === selectedMarker.zoneId) ?? null}
+            zone={selectedMarkerZone}
           />
         ) : null}
 
@@ -154,7 +158,7 @@ export default function InfrastructureMap({
             <ZoneDraftPreview
               bounds={pendingZoneDraft.bounds}
               color={pendingZoneDraft.color}
-              label={pendingZoneId.length > 0 ? pendingZoneId : "Zone"}
+              label={pendingZoneLabel}
             />
           ) : null}
           <ZonesLayer
@@ -181,7 +185,7 @@ export default function InfrastructureMap({
             onLeaveZone={handleLeaveZone}
             onMoveMarker={handleMoveMarker}
             onSelectMarker={handleSelectMarker}
-            selectedMarkerId={selectedMarker?.id ?? null}
+            selectedMarkerId={selectedMarkerId}
             zones={zones}
           />
         </MapContainer>

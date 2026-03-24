@@ -10,6 +10,8 @@ interface RawStaticMapData {
   >;
 }
 
+type RawZone = RawStaticMapData["zones"][number];
+
 const RAW_STATIC_MAP_DATA: RawStaticMapData = {
   image: {
     width: 884,
@@ -121,11 +123,15 @@ const RAW_STATIC_MAP_DATA: RawStaticMapData = {
 
 export const STATIC_MAP_DATA: StaticMapData = {
   image: RAW_STATIC_MAP_DATA.image,
-  zones: RAW_STATIC_MAP_DATA.zones.map((zone) => ({
+  zones: RAW_STATIC_MAP_DATA.zones.map(createStaticZone),
+};
+
+function createStaticZone(zone: RawZone): StaticMapData["zones"][number] {
+  return {
     ...zone,
     pcs: zone.pcs.map((pc) => enrichPcWithTechnicalDetails(pc, zone.id)),
-  })),
-};
+  };
+}
 
 function enrichPcWithTechnicalDetails(
   pc: Pick<TestPc, "id" | "x" | "y">,
