@@ -1,52 +1,101 @@
-import { useState } from "react";
 import L from "leaflet";
 import { ImageOverlay, MapContainer, ZoomControl } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
-import MapViewportController from "./map/MapViewportController";
-import PcLayer from "./map/PcLayer";
-import { STATIC_MAP_DATA } from "./map/staticMapData";
-import ZoneLegend from "./map/ZoneLegend";
-import ZonesLayer from "./map/ZonesLayer";
-import "./map/InfrastructureMap.css";
+import MapClickHandler from "./map/controllers/MapClickHandler";
+import MapViewportController from "./map/controllers/MapViewportController";
+import ZoneDrawHandler from "./map/controllers/ZoneDrawHandler";
+import useInfrastructureMapState from "./map/hooks/useInfrastructureMapState";
+import { IMAGE_BOUNDS, MAP_STYLE } from "./map/logic/mapConfig";
+import MapDraftPanels from "./map/ui/MapDraftPanels";
+import MapToolbar from "./map/ui/MapToolbar";
+import PcLayer from "./map/ui/PcLayer";
+import ZoneDraftPreview from "./map/ui/ZoneDraftPreview";
+import ZoneLegend from "./map/ui/ZoneLegend";
+import ZoneResizeHandles from "./map/ui/ZoneResizeHandles";
+import ZonesLayer from "./map/ui/ZonesLayer";
+import "./map/styles/InfrastructureMap.css";
 
 interface InfrastructureMapProps {
   imageUrl: string;
 }
 
-const IMAGE_BOUNDS: L.LatLngBoundsExpression = [
-  [0, 0],
-  [STATIC_MAP_DATA.image.height, STATIC_MAP_DATA.image.width],
-];
-
-const MAP_STYLE = {
-  height: "100%",
-  width: "100%",
-  background: "#d8e1ea",
-};
-
 export default function InfrastructureMap({
   imageUrl,
 }: InfrastructureMapProps) {
-  const [hoveredZoneId, setHoveredZoneId] = useState<number | null>(null);
-  const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
-
-  const activeZoneId = hoveredZoneId ?? selectedZoneId;
-
-  function handleZoneClick(zoneId: number): void {
-    setSelectedZoneId((currentZoneId) =>
-      currentZoneId === zoneId ? null : zoneId,
-    );
-  }
+  const {
+    activeTool,
+    clearPendingDrafts,
+    handleCloseInteractionMode,
+    handleDeleteMarker,
+    handleHoverZone,
+    handleLeaveZone,
+    handleMoveMarker,
+    handleMarkerDraftSave,
+    handleMarkerPlacement,
+    handleOpenInteractionMode,
+    handleSelectTool,
+    handleZoneDraftDrag,
+    handleZoneDraftColorChange,
+    handleZoneDraftSave,
+    handleZoneInteraction,
+    handleZoneResizeDrag,
+    highlightedZoneId,
+    isCreationToolActive,
+    isZoneCreationToolActive,
+    isMarkerCreationToolActive,
+    isMarkerMoveToolActive,
+    isMarkerDeletionToolActive,
+    isDeletionToolActive,
+    isInteractionMode,
+    isZoneEditToolActive,
+    markers,
+    pendingMarkerDraft,
+    pendingMarkerDraftError,
+    pendingMarkerId,
+    pendingZoneDraft,
+    pendingZoneDraftError,
+    pendingZoneId,
+    selectedZone,
+    setPendingMarkerId,
+    setPendingZoneId,
+    zones,
+  } = useInfrastructureMapState();
 
   return (
     <section className="map-card">
-      <ZoneLegend
-        activeZoneId={activeZoneId}
-        onSelectZone={handleZoneClick}
-        zones={STATIC_MAP_DATA.zones}
-      />
+      <div className="map-controls">
+        <MapToolbar
+          activeTool={activeTool}
+          isInteractionMode={isInteractionMode}
+          onCloseInteractionMode={handleCloseInteractionMode}
+          onOpenInteractionMode={handleOpenInteractionMode}
+          onSelectTool={handleSelectTool}
+        />
+        <ZoneLegend
+          activeZoneId={highlightedZoneId}
+          onSelectZone={handleZoneInteraction}
+          zones={zones}
+        />
+      </div>
 
-      <div className="map-frame">
+      <div
+        className={`map-frame${isCreationToolActive ? " map-frame--add-mode" : ""}${isMarkerMoveToolActive ? " map-frame--move-mode" : ""}${isDeletionToolActive ? " map-frame--delete-mode" : ""}${isInteractionMode ? " map-frame--interaction" : ""}`}
+      >
+        <MapDraftPanels
+          markerDraft={pendingMarkerDraft}
+          markerDraftError={pendingMarkerDraftError}
+          markerDraftId={pendingMarkerId}
+          onCancel={clearPendingDrafts}
+          onMarkerIdChange={setPendingMarkerId}
+          onMarkerSubmit={handleMarkerDraftSave}
+          onZoneColorChange={handleZoneDraftColorChange}
+          onZoneIdChange={setPendingZoneId}
+          onZoneSubmit={handleZoneDraftSave}
+          zoneDraft={pendingZoneDraft}
+          zoneDraftError={pendingZoneDraftError}
+          zoneDraftId={pendingZoneId}
+        />
+
         <MapContainer
           bounds={IMAGE_BOUNDS}
           maxBounds={IMAGE_BOUNDS}
@@ -61,23 +110,51 @@ export default function InfrastructureMap({
           crs={L.CRS.Simple}
           style={MAP_STYLE}
         >
-          <MapViewportController bounds={IMAGE_BOUNDS} />
+          <MapViewportController imageBounds={IMAGE_BOUNDS} />
+          <MapClickHandler
+            isEnabled={isMarkerCreationToolActive}
+            onCoordinateClick={handleMarkerPlacement}
+          />
+          <ZoneDrawHandler
+            isEnabled={isZoneCreationToolActive}
+            onDraftDrag={handleZoneDraftDrag}
+          />
           <ZoomControl position="bottomright" />
           <ImageOverlay
             bounds={IMAGE_BOUNDS}
             className="map-image"
             url={imageUrl}
           />
+          {pendingZoneDraft !== null ? (
+            <ZoneDraftPreview
+              bounds={pendingZoneDraft.bounds}
+              color={pendingZoneDraft.color}
+              label={pendingZoneId.length > 0 ? pendingZoneId : "Zone"}
+            />
+          ) : null}
           <ZonesLayer
-            activeZoneId={activeZoneId}
-            onHoverZone={setHoveredZoneId}
-            onLeaveZone={() => setHoveredZoneId(null)}
-            onSelectZone={handleZoneClick}
-            zones={STATIC_MAP_DATA.zones}
+            activeZoneId={highlightedZoneId}
+            onHoverZone={handleHoverZone}
+            onLeaveZone={handleLeaveZone}
+            onSelectZone={handleZoneInteraction}
+            zones={zones}
           />
+          {isZoneEditToolActive && selectedZone !== null ? (
+            <ZoneResizeHandles
+              bounds={selectedZone.bounds}
+              onResize={handleZoneResizeDrag}
+            />
+          ) : null}
           <PcLayer
-            activeZoneId={activeZoneId}
-            zones={STATIC_MAP_DATA.zones}
+            activeZoneId={highlightedZoneId}
+            isDeleteMode={isMarkerDeletionToolActive}
+            isMoveMode={isMarkerMoveToolActive}
+            markers={markers}
+            onDeleteMarker={handleDeleteMarker}
+            onHoverZone={handleHoverZone}
+            onLeaveZone={handleLeaveZone}
+            onMoveMarker={handleMoveMarker}
+            zones={zones}
           />
         </MapContainer>
       </div>

@@ -16,6 +16,26 @@ export interface TestPc {
   y: number;
 }
 
+export interface InteractiveMarker {
+  id: string;
+  x: number;
+  y: number;
+  zoneId: number | null;
+}
+
+export interface MarkerDraft {
+  x: number;
+  y: number;
+  zoneId: number | null;
+  suggestedId: string;
+}
+
+export interface ZoneDraft {
+  bounds: RectangleBounds;
+  color: string;
+  suggestedId: number;
+}
+
 export interface MapZone {
   id: number;
   color: string;

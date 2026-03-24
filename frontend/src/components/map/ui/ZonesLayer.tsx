@@ -1,8 +1,8 @@
 import { Fragment } from "react";
 import L from "leaflet";
 import { Marker, Rectangle } from "react-leaflet";
-import type { MapZone } from "../../types/layout";
-import { getZoneCenter, toLeafletBounds } from "./mapGeometry";
+import type { MapZone } from "../../../types/layout";
+import { getZoneCenter, toLeafletBounds } from "../logic/mapGeometry";
 
 interface ZonesLayerProps {
   activeZoneId: number | null;
@@ -52,6 +52,7 @@ export default function ZonesLayer({
             />
 
             <Marker
+              bubblingMouseEvents={true}
               eventHandlers={eventHandlers}
               icon={createZoneIcon(zone.id, isActive)}
               position={getZoneCenter(zone.bounds)}

@@ -1,5 +1,5 @@
 import L from "leaflet";
-import type { RectangleBounds } from "../../types/layout";
+import type { RectangleBounds } from "../../../types/layout";
 
 export function toLeafletBounds(bounds: RectangleBounds): L.LatLngBoundsExpression {
   return [
