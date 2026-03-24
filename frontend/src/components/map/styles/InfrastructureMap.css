@@ -692,7 +692,7 @@
 .pc-details-card {
   left: 18px;
   right: auto;
-  width: min(480px, calc(100% - 32px));
+  width: min(640px, calc(100% - 32px));
   max-height: calc(100% - 36px);
   overflow: auto;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -799,7 +799,7 @@
 .pc-details-card__summary-grid {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 }
 
 .pc-details-card__section-title {
@@ -813,7 +813,7 @@
 .pc-details-card__section-grid {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
 .pc-details-card__field-card {
@@ -850,8 +850,8 @@
   color: #a7b5af;
   font-size: 0.74rem;
   font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
 }
 
 .pc-details-card__field-value {

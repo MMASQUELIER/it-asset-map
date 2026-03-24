@@ -35,13 +35,22 @@ export default function PcDetailsPanel({
   const details = marker.technicalDetails;
   const zoneLabel = zone === null ? "Hors zone" : `Zone ${zone.id}`;
   const zoneStyle = getZoneStyle(zone);
-  const subtitle = [details.manufacturer, details.model, details.operatingSystem]
+  const subtitle = [
+    details.prodsched,
+    details.manufacturingStationNames,
+    details.model,
+  ]
     .filter(isVisibleText)
     .join(" • ");
-  const securityTone = getSecurityTone(details.securityStatus);
-  const summaryFields = getSummaryFields(marker, zoneLabel);
+  const stateLabel = details.etat ?? details.securityStatus;
+  const connectionLabel =
+    details.wifiOrWiredConnection ?? details.connectionType;
+  const summaryFields = getSummaryFields(marker);
+  const identificationFields = getIdentificationFields(marker);
+  const equipmentFields = getEquipmentFields(details);
   const networkFields = getNetworkFields(details);
-  const hardwareFields = getHardwareFields(details);
+  const switchFields = getSwitchFields(details);
+  const securityTone = getSecurityTone(stateLabel);
 
   useEffect(() => {
     if (copiedFieldId === null) {
@@ -95,11 +104,11 @@ export default function PcDetailsPanel({
         <span
           className={`pc-details-card__badge pc-details-card__badge--status pc-details-card__badge--status-${securityTone}`}
         >
-          {details.securityStatus}
+          {stateLabel}
         </span>
-        {details.connectionType !== undefined ? (
+        {connectionLabel !== undefined ? (
           <span className="pc-details-card__badge pc-details-card__badge--neutral">
-            {details.connectionType}
+            {connectionLabel}
           </span>
         ) : null}
       </div>
@@ -120,15 +129,27 @@ export default function PcDetailsPanel({
 
       <PcDetailsSection
         copiedFieldId={copiedFieldId}
-        items={networkFields}
+        items={identificationFields}
         onCopy={handleCopy}
-        title="Reseau"
+        title="Identification"
       />
       <PcDetailsSection
         copiedFieldId={copiedFieldId}
-        items={hardwareFields}
+        items={equipmentFields}
         onCopy={handleCopy}
-        title="Materiel"
+        title="Equipment"
+      />
+      <PcDetailsSection
+        copiedFieldId={copiedFieldId}
+        items={networkFields}
+        onCopy={handleCopy}
+        title="Network"
+      />
+      <PcDetailsSection
+        copiedFieldId={copiedFieldId}
+        items={switchFields}
+        onCopy={handleCopy}
+        title="Switch / Access"
       />
     </aside>
   );
@@ -146,60 +167,128 @@ function getZoneStyle(zone: MapZone | null): CSSProperties | undefined {
 
 function getSummaryFields(
   marker: InteractiveMarker,
-  zoneLabel: string,
 ): VisiblePcDetailField[] {
-  return filterVisibleFields([
-    { id: "zone", label: "Zone", value: zoneLabel, variant: "zone" },
+  return buildVisibleFields([
     { id: "hostname", label: "Hostname", value: marker.technicalDetails.hostname },
-    { id: "post-name", label: "Nom poste", value: marker.id },
+    { id: "prodsched", label: "Prodsched", value: marker.technicalDetails.prodsched },
+    {
+      id: "manufacturing-station-names",
+      label: "Manufacturing Station names",
+      value: marker.technicalDetails.manufacturingStationNames,
+    },
+    { id: "model", label: "Model", value: marker.technicalDetails.model },
     {
       id: "sesi",
       label: "SESI",
       value: formatSesiValue(marker.technicalDetails.directoryAccount),
     },
-    { id: "ip", label: "Adresse IP", value: marker.technicalDetails.ipAddress },
-    { id: "serial-number", label: "S/N", value: marker.technicalDetails.serialNumber },
+  ]);
+}
+
+function getIdentificationFields(marker: InteractiveMarker): VisiblePcDetailField[] {
+  return buildVisibleFields([
+    {
+      id: "collaborateur",
+      label: "Collaborateur",
+      value: marker.technicalDetails.contact,
+    },
+    { id: "pin", label: "Clé (PIN)", value: marker.technicalDetails.pinKey },
+    {
+      id: "floor-location",
+      label: "Location physical location on floor",
+      value:
+        marker.technicalDetails.floorLocation ??
+        marker.technicalDetails.sector ??
+        marker.technicalDetails.location,
+    },
+    { id: "date", label: "Date", value: marker.technicalDetails.lastInventoryDate },
+    { id: "sap", label: "SAP", value: marker.technicalDetails.sap },
+  ]);
+}
+
+function getEquipmentFields(
+  details: InteractiveMarker["technicalDetails"],
+): VisiblePcDetailField[] {
+  return buildVisibleFields([
+    {
+      id: "equipment-type",
+      label: "Type of equipment (PLC, Sensor, ComXbox)",
+      value: details.assetType,
+    },
+    { id: "brand", label: "Brand", value: details.manufacturer },
+    { id: "serial-number", label: "Serial Number", value: details.serialNumber },
+    { id: "hdd", label: "HDD", value: details.storage },
+    { id: "os-type", label: "OS Type", value: details.operatingSystem },
   ]);
 }
 
 function getNetworkFields(
   details: InteractiveMarker["technicalDetails"],
 ): VisiblePcDetailField[] {
-  return filterVisibleFields([
-    { id: "network-ip", label: "Adresse IP", value: details.ipAddress },
-    { id: "network-mac", label: "Adresse MAC", value: details.macAddress },
-    { id: "network-mask", label: "Masque", value: details.subnetMask },
-    { id: "network-vlan", label: "VLAN", value: details.vlan },
-    { id: "network-scope", label: "Reseau", value: details.networkScope },
-    { id: "network-gateway", label: "Passerelle", value: details.gateway },
-    { id: "network-switch", label: "Switch", value: details.switchName },
-    { id: "network-switch-ip", label: "IP switch", value: details.switchIpAddress },
-    { id: "network-port", label: "Port switch", value: details.switchPort },
-    { id: "network-connection", label: "Connexion", value: details.connectionType },
+  return buildVisibleFields([
+    { id: "mac-address", label: "MAC Address 1", value: details.macAddress },
+    { id: "ip-address", label: "IP address 1", value: details.ipAddress },
+    { id: "subnet", label: "Subnet 1", value: details.subnetMask },
+    { id: "vlan-id-name", label: "VLAN id/name", value: details.vlan },
+    { id: "vlan-name", label: "VLAN Name", value: details.networkScope },
+    {
+      id: "old-ip-address",
+      label: "Old IP address",
+      value: details.oldIpAddress ?? details.gateway,
+    },
+    {
+      id: "new-ip-address",
+      label: "New IP address",
+      value: details.newIpAddress ?? details.ipAddress,
+    },
+    {
+      id: "vlan-new",
+      label: "VLAN New",
+      value: details.vlanNew ?? details.vlan,
+    },
   ]);
 }
 
-function getHardwareFields(
+function getSwitchFields(
   details: InteractiveMarker["technicalDetails"],
 ): VisiblePcDetailField[] {
-  return filterVisibleFields([
-    { id: "hardware-site", label: "Site", value: details.site },
-    { id: "hardware-location", label: "Emplacement", value: details.location },
-    { id: "hardware-contact", label: "Referent", value: details.contact },
-    { id: "hardware-sector", label: "Secteur", value: details.sector },
-    { id: "hardware-type", label: "Type", value: details.assetType },
-    { id: "hardware-manufacturer", label: "Fabricant", value: details.manufacturer },
-    { id: "hardware-model", label: "Modele", value: details.model },
-    { id: "hardware-os", label: "Systeme", value: details.operatingSystem },
-    { id: "hardware-processor", label: "Processeur", value: details.processor },
-    { id: "hardware-memory", label: "Memoire", value: details.memory },
-    { id: "hardware-storage", label: "Stockage", value: details.storage },
+  return buildVisibleFields([
+    { id: "id-port", label: "ID PORT", value: details.idPort ?? details.switchPort },
     {
-      id: "hardware-last-scan",
-      label: "Dernier inventaire",
-      value: formatDateValue(details.lastInventoryDate),
+      id: "new-port-auto",
+      label: "New PORT AUTO",
+      value: details.newPortAuto ?? details.switchPort,
     },
-    { id: "hardware-comment", label: "Commentaire", value: details.comment },
+    { id: "switch-name", label: "NOM SWITCH", value: details.switchName },
+    { id: "switch-ip", label: "IP SWITCH", value: details.switchIpAddress },
+    {
+      id: "ticket-brassage",
+      label: "Ticket Brassage",
+      value: details.ticketBrassage,
+    },
+    { id: "ip-filter", label: "Filtre IP", value: details.ipFilter },
+    { id: "etat", label: "Etat", value: details.etat ?? details.securityStatus },
+    {
+      id: "connected-switch-name",
+      label: "Connected to SWITCH Name",
+      value: details.connectedToSwitchName ?? details.switchName,
+    },
+    {
+      id: "connected-switch-port",
+      label: "Connected to SWITCH Port",
+      value: details.connectedToSwitchPort ?? details.switchPort,
+    },
+    {
+      id: "wifi-wired-connection",
+      label: "Wifi or Wired Connection",
+      value: details.wifiOrWiredConnection ?? details.connectionType,
+    },
+    { id: "login", label: "Login", value: details.directoryAccount },
+    {
+      id: "commentaire2",
+      label: "Commentaire2",
+      value: details.commentaire2 ?? details.comment,
+    },
   ]);
 }
 
@@ -268,14 +357,19 @@ function PcDetailCard({
   );
 }
 
-function filterVisibleFields(fields: PcDetailField[]): VisiblePcDetailField[] {
-  return fields.filter(
-    (field): field is VisiblePcDetailField => isVisibleText(field.value),
-  );
+function buildVisibleFields(fields: PcDetailField[]): VisiblePcDetailField[] {
+  return fields.map((field) => ({
+    ...field,
+    value: getDisplayValue(field.value),
+  }));
 }
 
 function isVisibleText(value: string | undefined): value is string {
   return value !== undefined && value.trim().length > 0;
+}
+
+function getDisplayValue(value: string | undefined): string {
+  return isVisibleText(value) ? value : "N/A";
 }
 
 function formatSesiValue(directoryAccount: string | undefined): string | undefined {
@@ -286,24 +380,6 @@ function formatSesiValue(directoryAccount: string | undefined): string | undefin
   const [, account = directoryAccount] = directoryAccount.split("\\");
 
   return account.trim().length > 0 ? account : directoryAccount;
-}
-
-function formatDateValue(value: string | undefined): string | undefined {
-  if (!isVisibleText(value)) {
-    return undefined;
-  }
-
-  const parsedDate = new Date(value);
-
-  if (Number.isNaN(parsedDate.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat("fr-FR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(parsedDate);
 }
 
 function getSecurityTone(
