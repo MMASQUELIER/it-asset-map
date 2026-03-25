@@ -1,15 +1,29 @@
-import { Hono } from "https://deno.land/x/hono@v4.3.11/mod.ts";
-import { cors } from "https://deno.land/x/hono@v4.3.11/middleware.ts";
+import { Hono } from "hono";
+import { cors } from "hono/cors";
 
-const app = new Hono();
+/** Port used by the local Deno API. */
+const SERVER_PORT = 8000;
+/** Absolute URL to the static plant map image served by the API. */
 const mapImagePath = new URL("../assets/map.png", import.meta.url);
+/** Main HTTP application serving the map image and health endpoint. */
+const app = new Hono();
 
 app.use("*", cors());
 
+/**
+ * Returns a simple health response used to confirm the API is reachable.
+ *
+ * @returns Plain text confirmation message.
+ */
 app.get("/", (c) => {
   return c.text("API IT Map est en ligne.");
 });
 
+/**
+ * Serves the map image consumed by the frontend overlay.
+ *
+ * @returns PNG image response or a JSON 404 payload when the file is missing.
+ */
 app.get("/api/map", async (c) => {
   try {
     const image = await Deno.readFile(mapImagePath);
@@ -26,5 +40,5 @@ app.get("/api/map", async (c) => {
   }
 });
 
-console.log("Serveur Hono lance sur http://localhost:8000");
-Deno.serve({ port: 8000 }, app.fetch);
+console.log(`Serveur Hono lance sur http://localhost:${SERVER_PORT}`);
+Deno.serve({ port: SERVER_PORT }, app.fetch);
