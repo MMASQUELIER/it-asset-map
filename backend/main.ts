@@ -1,44 +1,37 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
+import * as mod from "jsr:@mirror/xlsx";
+import { fileURLToPath } from "node:url";
 
-/** Port used by the local Deno API. */
 const SERVER_PORT = 8000;
-/** Absolute URL to the static plant map image served by the API. */
+
 const mapImagePath = new URL("../assets/map.png", import.meta.url);
-/** Main HTTP application serving the map image and health endpoint. */
+
+const excelUrl = new URL("./data/data.xlsm", import.meta.url);
+const excelPath = fileURLToPath(excelUrl);  // ✅ correct pour Windows
+
 const app = new Hono();
 
 app.use("*", cors());
 
-/**
- * Returns a simple health response used to confirm the API is reachable.
- *
- * @returns Plain text confirmation message.
- */
-app.get("/", (c) => {
-  return c.text("API IT Map est en ligne.");
-});
+app.get("/", (c) => c.text("API IT Map est en ligne."));
 
-/**
- * Serves the map image consumed by the frontend overlay.
- *
- * @returns PNG image response or a JSON 404 payload when the file is missing.
- */
-app.get("/api/map", async (c) => {
+app.get("/api/assets", async (c) => {
   try {
-    const image = await Deno.readFile(mapImagePath);
+    console.log("Excel path:", excelPath);
 
-    return new Response(image, {
-      headers: { "Content-Type": "image/png" },
-    });
-  } catch (error) {
-    console.error("Erreur lecture image:", error);
-    return c.json(
-      { error: "Image introuvable", details: String(error) },
-      404,
-    );
+    const workbook = mod.read(await Deno.readFile(excelPath), { type: "buffer" });
+    const sheet = workbook.Sheets["Asset"];
+    if (!sheet) return c.json({ error: "Onglet 'Asset' introuvable" }, 404);
+
+    const data = mod.utils.sheet_to_json(sheet, { defval: "" });
+    return c.json(data);
+
+  } catch (err) {
+    console.error("Erreur Excel :", err);
+    return c.json({ error: "Impossible de lire le fichier Excel" }, 500);
   }
 });
 
-console.log(`Serveur Hono lance sur http://localhost:${SERVER_PORT}`);
+console.log(`Serveur Hono lancé sur http://localhost:${SERVER_PORT}`);
 Deno.serve({ port: SERVER_PORT }, app.fetch);
