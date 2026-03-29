@@ -2,6 +2,7 @@
   "version": "5",
   "specifiers": {
     "jsr:@hono/hono@*": "4.11.9",
+    "jsr:@hono/hono@4": "4.11.9",
     "jsr:@oak/commons@1": "1.0.1",
     "jsr:@oak/oak@*": "17.2.0",
     "jsr:@std/assert@1": "1.0.18",
@@ -337,9 +338,9 @@
   },
   "workspace": {
     "dependencies": [
+      "jsr:@hono/hono@4",
       "jsr:@std/assert@1",
-      "jsr:@std/path@*",
-      "jsr:deno@latest"
+      "jsr:@std/path@*"
     ]
   }
 }
