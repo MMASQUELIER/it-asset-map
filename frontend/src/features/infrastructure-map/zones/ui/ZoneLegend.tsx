@@ -1,4 +1,5 @@
 import type { MapZone } from "../../shared/types";
+import { getZoneDisplayLabel } from "../logic/zoneAppearance";
 
 /** Props used by the zone legend shown above the map. */
 interface ZoneLegendProps {
@@ -27,6 +28,7 @@ export default function ZoneLegend({
           <button
             key={zone.id}
             className={`zone-chip${isActive ? " zone-chip--active" : ""}`}
+            title={`${zone.sector} • Prodsched ${getZoneDisplayLabel(zone)}`}
             type="button"
             onClick={() => onSelectZone(zone.id)}
           >
@@ -34,7 +36,7 @@ export default function ZoneLegend({
               className="zone-chip__dot"
               style={{ backgroundColor: zone.color }}
             />
-            Zone {zone.id}
+            {getZoneDisplayLabel(zone)}
           </button>
         );
       })}

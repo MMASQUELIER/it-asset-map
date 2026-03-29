@@ -3,6 +3,7 @@ import L from "leaflet";
 import { Marker, Rectangle } from "react-leaflet";
 import type { MapZone } from "../../shared/types";
 import { getZoneCenter, toLeafletBounds } from "../../shared/mapGeometry";
+import { getZoneDisplayLabel } from "../logic/zoneAppearance";
 
 /** Props used to render the interactive zone layer. */
 interface ZonesLayerProps {
@@ -16,16 +17,18 @@ interface ZonesLayerProps {
 /**
  * Builds the zone badge shown at the centre of a rectangle.
  *
- * @param zoneId Zone identifier to display.
+ * @param zoneLabel Zone label to display.
  * @param isActive Whether the zone is highlighted.
  * @returns Leaflet div icon.
  */
-function createZoneIcon(zoneId: number, isActive: boolean): L.DivIcon {
+function createZoneIcon(zoneLabel: string, isActive: boolean): L.DivIcon {
   return L.divIcon({
     className: "zone-badge-wrapper",
-    html: `<span class="zone-badge${isActive ? " zone-badge--active" : ""}">${zoneId}</span>`,
-    iconSize: [64, 32],
-    iconAnchor: [32, 16],
+    html: `<span class="zone-badge${
+      isActive ? " zone-badge--active" : ""
+    }">${zoneLabel}</span>`,
+    iconSize: [84, 32],
+    iconAnchor: [42, 16],
   });
 }
 
@@ -64,7 +67,7 @@ export default function ZonesLayer({
             <Marker
               bubblingMouseEvents={true}
               eventHandlers={eventHandlers}
-              icon={createZoneIcon(zone.id, isActive)}
+              icon={createZoneIcon(getZoneDisplayLabel(zone), isActive)}
               position={getZoneCenter(zone.bounds)}
             />
           </Fragment>

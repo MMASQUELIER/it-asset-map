@@ -6,7 +6,9 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { registerAssetRoutes } from "./routes/assets.routes.ts";
+import { registerLayoutRoutes } from "./routes/layout.routes.ts";
 import { registerMapRoutes } from "./routes/map.routes.ts";
+import { registerSectorRoutes } from "./routes/sectors.routes.ts";
 
 /**
  * @brief Cree l'application HTTP du backend.
@@ -19,7 +21,9 @@ export function createApiApp() {
   apiApp.get("/", (context) => context.text("API IT Map est en ligne."));
 
   registerAssetRoutes(apiApp);
+  registerLayoutRoutes(apiApp);
   registerMapRoutes(apiApp);
+  registerSectorRoutes(apiApp);
 
   return apiApp;
 }

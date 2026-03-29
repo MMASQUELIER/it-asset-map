@@ -2,6 +2,7 @@ import type {
   InteractiveMarker,
   MapZone,
   MarkerDraft,
+  PlacementPcCandidate,
   ZoneDraft,
 } from "../shared/types";
 import type {
@@ -24,8 +25,11 @@ export interface InfrastructureMapState {
   handleHoverZone: (zoneId: number) => void;
   handleSelectTool: (tool: InteractionTool) => void;
   handleZoneInteraction: (zoneId: number) => void;
-  handleZoneDraftColorChange: (color: string) => void;
+  handleZoneDraftProdschedChange: (value: string) => void;
+  handleZoneDraftSectorChange: (value: string) => void;
   handleZoneDraftSave: () => void;
+  handleSelectedZoneProdschedChange: (value: string) => void;
+  handleSelectedZoneSectorChange: (value: string) => void;
   handleZoneDraftDrag: (
     startX: number,
     startY: number,
@@ -50,16 +54,18 @@ export interface InfrastructureMapState {
   pendingMarkerDraft: MarkerDraft | null;
   pendingMarkerDraftError: string | null;
   pendingMarkerId: string;
+  availablePlacementPcCandidates: PlacementPcCandidate[];
+  availableSectors: string[];
   markers: InteractiveMarker[];
   selectedMarker: InteractiveMarker | null;
   selectedMarkerFocusToken: number;
   selectedMarkerId: string | null;
   selectedZone: MapZone | null;
   setPendingMarkerId: (value: string) => void;
-  setPendingZoneId: (value: string) => void;
   pendingZoneDraft: ZoneDraft | null;
   pendingZoneDraftError: string | null;
-  pendingZoneId: string;
+  pendingZoneProdsched: string;
+  pendingZoneSector: string;
   zones: MapZone[];
 }
 
@@ -138,24 +144,24 @@ export function getInteractionModeFlags(
   isInteractionMode: boolean,
   activeTool: InteractionTool,
 ): InteractionModeFlags {
-  const isMarkerCreationToolActive =
-    isInteractionMode && activeTool === "add-marker";
-  const isMarkerMoveToolActive =
-    isInteractionMode && activeTool === "move-marker";
-  const isMarkerDeletionToolActive =
-    isInteractionMode && activeTool === "delete-marker";
-  const isZoneCreationToolActive =
-    isInteractionMode && activeTool === "add-zone";
-  const isZoneDeletionToolActive =
-    isInteractionMode && activeTool === "delete-zone";
-  const isZoneEditToolActive =
-    isInteractionMode && activeTool === "select-zone";
+  const isMarkerCreationToolActive = isInteractionMode &&
+    activeTool === "add-marker";
+  const isMarkerMoveToolActive = isInteractionMode &&
+    activeTool === "move-marker";
+  const isMarkerDeletionToolActive = isInteractionMode &&
+    activeTool === "delete-marker";
+  const isZoneCreationToolActive = isInteractionMode &&
+    activeTool === "add-zone";
+  const isZoneDeletionToolActive = isInteractionMode &&
+    activeTool === "delete-zone";
+  const isZoneEditToolActive = isInteractionMode &&
+    activeTool === "select-zone";
 
   return {
-    isCreationToolActive:
-      isMarkerCreationToolActive || isZoneCreationToolActive,
-    isDeletionToolActive:
-      isMarkerDeletionToolActive || isZoneDeletionToolActive,
+    isCreationToolActive: isMarkerCreationToolActive ||
+      isZoneCreationToolActive,
+    isDeletionToolActive: isMarkerDeletionToolActive ||
+      isZoneDeletionToolActive,
     isMarkerCreationToolActive,
     isMarkerDeletionToolActive,
     isMarkerMoveToolActive,

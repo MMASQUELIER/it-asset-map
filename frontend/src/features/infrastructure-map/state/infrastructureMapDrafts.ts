@@ -1,14 +1,12 @@
 import type {
   InteractiveMarker,
+  MapImageDimensions,
   MapZone,
   MarkerDraft,
-  StaticMapImage,
+  PlacementPcCandidate,
   ZoneDraft,
 } from "../shared/types";
-import {
-  createDefaultMarkerTechnicalDetails,
-  isMarkerIdUnique,
-} from "../markers/logic/interactiveMarkers";
+import { isMarkerIdUnique } from "../markers/logic/interactiveMarkers";
 import {
   clampZoneBounds,
   createBoundsFromDragPoints,
@@ -18,6 +16,9 @@ import {
   isZoneIdUnique,
   MIN_ZONE_DIMENSION,
 } from "../zones/logic/interactiveZones";
+import { syncPcTechnicalDetailsWithZone } from "../pc-details/logic/pcTechnicalDetails";
+import { doesPlacementCandidateMatchSector } from "../markers/logic/backendPlacementCandidates";
+import { getSectorColor } from "../zones/logic/zoneAppearance";
 
 /** Result of a marker draft validation. */
 interface MarkerDraftSaveResult {
@@ -30,7 +31,7 @@ interface ZoneDraftPreviewOptions {
   currentDraft: ZoneDraft | null;
   pendingZoneId: string;
   zones: MapZone[];
-  mapImage: StaticMapImage;
+  mapImage: MapImageDimensions;
   startX: number;
   startY: number;
   currentX: number;
@@ -53,7 +54,7 @@ interface ZoneDraftSaveResult {
  * Builds the current zone draft rectangle from drag coordinates.
  *
  * @param options Dragging context and current draft state.
- * @returns Updated draft and the optional suggested identifier to show.
+ * @returns Updated draft and the optional suggested internal identifier.
  */
 export function buildZoneDraftPreview({
   currentDraft,
@@ -90,8 +91,9 @@ export function buildZoneDraftPreview({
       ...nextDraft,
       bounds: nextBounds,
     },
-    nextPendingZoneId:
-      pendingZoneId.length === 0 ? String(nextDraft.suggestedId) : null,
+    nextPendingZoneId: pendingZoneId.length === 0
+      ? String(nextDraft.suggestedId)
+      : null,
   };
 }
 
@@ -107,6 +109,8 @@ export function validateMarkerDraftSave(
   pendingMarkerDraft: MarkerDraft | null,
   pendingMarkerId: string,
   markers: InteractiveMarker[],
+  zones: MapZone[],
+  placementPcCandidates: PlacementPcCandidate[],
 ): MarkerDraftSaveResult {
   if (pendingMarkerDraft === null) {
     return {
@@ -119,14 +123,43 @@ export function validateMarkerDraftSave(
 
   if (nextMarkerId.length === 0) {
     return {
-      error: "L'identifiant du marqueur est obligatoire.",
+      error: "La selection d'un PC du catalogue est obligatoire.",
+      marker: null,
+    };
+  }
+
+  const selectedPlacementCandidate =
+    placementPcCandidates.find((candidate) =>
+      candidate.markerId === nextMarkerId
+    ) ?? null;
+
+  if (selectedPlacementCandidate === null) {
+    return {
+      error: "Le PC selectionne n'existe pas dans le catalogue charge.",
       marker: null,
     };
   }
 
   if (!isMarkerIdUnique(markers, nextMarkerId)) {
     return {
-      error: "Cet identifiant existe deja dans la session.",
+      error: "Ce PC est deja place sur la carte.",
+      marker: null,
+    };
+  }
+
+  const containingZone = pendingMarkerDraft.zoneId === null
+    ? null
+    : (zones.find((zone) => zone.id === pendingMarkerDraft.zoneId) ?? null);
+
+  if (
+    containingZone !== null &&
+    !doesPlacementCandidateMatchSector(
+      selectedPlacementCandidate,
+      containingZone.sector,
+    )
+  ) {
+    return {
+      error: "Ce PC n'appartient pas au secteur de la zone selectionnee.",
       marker: null,
     };
   }
@@ -137,9 +170,9 @@ export function validateMarkerDraftSave(
       id: nextMarkerId,
       x: pendingMarkerDraft.x,
       y: pendingMarkerDraft.y,
-      technicalDetails: createDefaultMarkerTechnicalDetails(
-        nextMarkerId,
-        pendingMarkerDraft.zoneId,
+      technicalDetails: syncPcTechnicalDetailsWithZone(
+        selectedPlacementCandidate.technicalDetails,
+        containingZone,
       ),
       zoneId: pendingMarkerDraft.zoneId,
     },
@@ -150,7 +183,7 @@ export function validateMarkerDraftSave(
  * Validates a zone draft and builds the final interactive zone when valid.
  *
  * @param pendingZoneDraft Draft being confirmed.
- * @param pendingZoneId Identifier entered by the user.
+ * @param pendingZoneId Internal identifier generated for the new zone.
  * @param zones Existing zones.
  * @param mapImage Current map image metadata.
  * @returns Either a validation error or the zone ready to insert.
@@ -158,8 +191,10 @@ export function validateMarkerDraftSave(
 export function validateZoneDraftSave(
   pendingZoneDraft: ZoneDraft | null,
   pendingZoneId: string,
+  pendingZoneSector: string,
+  pendingZoneProdsched: string,
   zones: MapZone[],
-  mapImage: StaticMapImage,
+  mapImage: MapImageDimensions,
 ): ZoneDraftSaveResult {
   if (pendingZoneDraft === null) {
     return {
@@ -172,21 +207,41 @@ export function validateZoneDraftSave(
 
   if (!Number.isInteger(nextZoneId) || nextZoneId <= 0) {
     return {
-      error: "L'identifiant de zone doit etre un nombre entier positif.",
+      error:
+        "Impossible de generer un identifiant interne valide pour la zone.",
+      zone: null,
+    };
+  }
+
+  const nextZoneSector = pendingZoneSector.trim();
+  const nextZoneProdsched = pendingZoneProdsched.trim();
+
+  if (nextZoneSector.length === 0) {
+    return {
+      error: "Le secteur de zone est obligatoire.",
+      zone: null,
+    };
+  }
+
+  if (nextZoneProdsched.length === 0) {
+    return {
+      error: "Le prodsched de zone est obligatoire.",
       zone: null,
     };
   }
 
   if (!isZoneIdUnique(zones, nextZoneId)) {
     return {
-      error: "Cet identifiant de zone existe deja.",
+      error:
+        "Impossible d'enregistrer la zone car son identifiant interne existe deja.",
       zone: null,
     };
   }
 
   if (!hasMinimumZoneDimensions(pendingZoneDraft.bounds)) {
     return {
-      error: `La zone doit faire au moins ${MIN_ZONE_DIMENSION} x ${MIN_ZONE_DIMENSION} pixels.`,
+      error:
+        `La zone doit faire au moins ${MIN_ZONE_DIMENSION} x ${MIN_ZONE_DIMENSION} pixels.`,
       zone: null,
     };
   }
@@ -204,7 +259,10 @@ export function validateZoneDraftSave(
     error: null,
     zone: {
       id: nextZoneId,
-      color: pendingZoneDraft.color,
+      label: nextZoneProdsched,
+      sector: nextZoneSector,
+      prodsched: nextZoneProdsched,
+      color: getSectorColor(nextZoneSector),
       bounds: nextBounds,
     },
   };

@@ -1,4 +1,4 @@
-import type { RectangleBounds, StaticMapImage } from "../../shared/types";
+import type { MapImageDimensions, RectangleBounds } from "../../shared/types";
 import type { ZoneResizeHandle } from "../../shared/interactionTypes";
 
 /** Minimum allowed width and height for an interactive zone. */
@@ -16,7 +16,7 @@ export const MIN_ZONE_DIMENSION = 40;
  * @returns Normalised rectangle expressed in image coordinates.
  */
 export function createBoundsFromDragPoints(
-  image: StaticMapImage,
+  image: MapImageDimensions,
   startX: number,
   startY: number,
   endX: number,
@@ -48,7 +48,7 @@ export function createBoundsFromDragPoints(
  */
 export function clampZoneBounds(
   bounds: RectangleBounds,
-  image: StaticMapImage,
+  image: MapImageDimensions,
 ): RectangleBounds {
   const width = clampDimension(bounds.width, image.width);
   const height = clampDimension(bounds.height, image.height);
@@ -90,7 +90,7 @@ export function resizeZoneBoundsFromHandle(
   handle: ZoneResizeHandle,
   x: number,
   y: number,
-  image: StaticMapImage,
+  image: MapImageDimensions,
 ): RectangleBounds {
   const roundedX = Math.round(x);
   const roundedY = Math.round(y);

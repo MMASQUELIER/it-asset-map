@@ -20,8 +20,8 @@ function createPreviewIcon(label: string): L.DivIcon {
   return L.divIcon({
     className: "zone-badge-wrapper",
     html: `<span class="zone-badge zone-badge--preview">${label}</span>`,
-    iconSize: [72, 32],
-    iconAnchor: [36, 16],
+    iconSize: [84, 32],
+    iconAnchor: [42, 16],
   });
 }
 

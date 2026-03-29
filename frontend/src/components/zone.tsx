@@ -1,5 +1,5 @@
 // src/components/Zones.tsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Pane, Rectangle, Tooltip } from "react-leaflet";
 import type { PathOptions } from "leaflet";
 
@@ -47,8 +47,9 @@ export default function Zones({
         const parsed = parseZonesResponse(data);
         if (!cancelled) setZones(parsed.zones);
       } catch (e) {
-        if (!cancelled)
+        if (!cancelled) {
           setError(e instanceof Error ? e.message : String(e));
+        }
       }
     })();
     return () => {
@@ -92,8 +93,7 @@ export default function Zones({
           [maxY, maxX], // coin bas-droit
         ];
 
-        const pathOptions =
-          hoveredId === z.id ? overStyle : baseStyle;
+        const pathOptions = hoveredId === z.id ? overStyle : baseStyle;
 
         return (
           <Rectangle
@@ -128,17 +128,26 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 
 function parseZonesResponse(v: unknown): ZonesResponse {
   if (!isRecord(v) || !Array.isArray(v.zones)) {
-    throw new Error('Structure attendue: { zones: Zone[] }');
+    throw new Error("Structure attendue: { zones: Zone[] }");
   }
   const zones: Zone[] = v.zones.map((z, i) => {
     if (!isRecord(z)) throw new Error(`zones[${i}] n'est pas un objet`);
     const id = z.id;
     const nom = z.nom;
     const pos = z.position;
-    if (typeof id !== "number") throw new Error(`zones[${i}].id doit être un nombre`);
-    if (typeof nom !== "string") throw new Error(`zones[${i}].nom doit être une chaîne`);
-    if (!Array.isArray(pos) || pos.length !== 4 || !pos.every((n) => typeof n === "number")) {
-      throw new Error(`zones[${i}].position doit être [number, number, number, number]`);
+    if (typeof id !== "number") {
+      throw new Error(`zones[${i}].id doit être un nombre`);
+    }
+    if (typeof nom !== "string") {
+      throw new Error(`zones[${i}].nom doit être une chaîne`);
+    }
+    if (
+      !Array.isArray(pos) || pos.length !== 4 ||
+      !pos.every((n) => typeof n === "number")
+    ) {
+      throw new Error(
+        `zones[${i}].position doit être [number, number, number, number]`,
+      );
     }
     return { id, nom, position: pos as [number, number, number, number] };
   });

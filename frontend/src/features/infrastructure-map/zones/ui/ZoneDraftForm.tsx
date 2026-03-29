@@ -1,15 +1,19 @@
-import type { FormEvent } from "react";
+import type { CSSProperties, FormEvent } from "react";
 import type { ZoneDraft } from "../../shared/types";
+import { getSectorColor } from "../logic/zoneAppearance";
+import ZoneSectorSelector from "./ZoneSectorSelector";
 
 /** Props used to edit a zone draft before insertion. */
 interface ZoneDraftFormProps {
+  availableSectors: string[];
   draft: ZoneDraft;
   errorMessage: string | null;
   onCancel: () => void;
-  onColorChange: (value: string) => void;
-  onIdChange: (value: string) => void;
+  onProdschedChange: (value: string) => void;
+  onSectorChange: (value: string) => void;
   onSubmit: () => void;
-  zoneId: string;
+  zoneProdsched: string;
+  zoneSector: string;
 }
 
 /**
@@ -19,25 +23,35 @@ interface ZoneDraftFormProps {
  * @returns Zone draft editor UI.
  */
 export default function ZoneDraftForm({
+  availableSectors,
   draft,
   errorMessage,
   onCancel,
-  onColorChange,
-  onIdChange,
+  onProdschedChange,
+  onSectorChange,
   onSubmit,
-  zoneId,
+  zoneProdsched,
+  zoneSector,
 }: ZoneDraftFormProps) {
+  const sectorColor = getSectorColor(zoneSector);
+  const isSubmitDisabled = zoneSector.trim().length === 0 ||
+    zoneProdsched.trim().length === 0;
+
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
     onSubmit();
   }
 
   return (
-    <form className="marker-draft-card" onSubmit={handleSubmit}>
+    <form className="marker-draft-card zone-form" onSubmit={handleSubmit}>
       <div className="marker-draft-card__header">
         <div>
           <p className="marker-draft-card__eyebrow">Nouvelle zone</p>
-          <h2 className="marker-draft-card__title">Ajouter une zone</h2>
+          <h2 className="marker-draft-card__title">Creer une zone</h2>
+          <p className="zone-form__intro">
+            Choisissez le secteur puis saisissez le prodsched pour creer la
+            zone.
+          </p>
         </div>
 
         <button
@@ -49,28 +63,27 @@ export default function ZoneDraftForm({
         </button>
       </div>
 
-      <div className="zone-draft-form__grid">
-        <label className="marker-draft-card__field">
-          <span>Identifiant</span>
-          <input
-            autoFocus
-            className="marker-draft-card__input"
-            type="number"
-            value={zoneId}
-            onChange={(event) => onIdChange(event.target.value)}
-          />
-        </label>
+      <label className="marker-draft-card__field">
+        <span>Secteur</span>
+        <ZoneSectorSelector
+          availableSectors={availableSectors}
+          onSelectSector={onSectorChange}
+          selectedSector={zoneSector}
+        />
+      </label>
 
-        <label className="marker-draft-card__field">
-          <span>Couleur</span>
-          <input
-            className="marker-draft-card__input marker-draft-card__input--color"
-            type="color"
-            value={draft.color}
-            onChange={(event) => onColorChange(event.target.value)}
-          />
-        </label>
-      </div>
+      <label className="marker-draft-card__field">
+        <span>Prodsched</span>
+        <input
+          autoFocus
+          className="marker-draft-card__input"
+          inputMode="numeric"
+          placeholder="Ex. 250"
+          type="text"
+          value={zoneProdsched}
+          onChange={(event) => onProdschedChange(event.target.value)}
+        />
+      </label>
 
       <div className="marker-draft-card__details">
         <div>
@@ -86,15 +99,31 @@ export default function ZoneDraftForm({
             {draft.bounds.width} x {draft.bounds.height}
           </strong>
         </div>
+
+        <div>
+          <span className="marker-draft-card__detail-label">
+            Couleur secteur
+          </span>
+          <strong
+            className="zone-draft-form__sector-color"
+            style={{ "--zone-sector-color": sectorColor } as CSSProperties}
+          >
+            {zoneSector.length > 0 ? zoneSector : "Selectionnez un secteur"}
+          </strong>
+        </div>
       </div>
 
-      {errorMessage !== null ? (
-        <p className="marker-draft-card__error">{errorMessage}</p>
-      ) : null}
+      {errorMessage !== null
+        ? <p className="marker-draft-card__error">{errorMessage}</p>
+        : null}
 
       <div className="marker-draft-card__actions">
-        <button className="marker-draft-card__button marker-draft-card__button--zone" type="submit">
-          Ajouter
+        <button
+          className="marker-draft-card__button marker-draft-card__button--zone"
+          disabled={isSubmitDisabled}
+          type="submit"
+        >
+          Creer la zone
         </button>
         <button
           className="marker-draft-card__button marker-draft-card__button--secondary"

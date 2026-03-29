@@ -7,6 +7,7 @@ import {
   buildPcSummaryFields,
   type VisiblePcDetailField,
 } from "./pcDetailsContent";
+import { getZoneDisplayLabel } from "../../zones/logic/zoneAppearance";
 
 /** Delay used to keep the "copied" feedback visible. */
 const COPIED_FEEDBACK_DELAY_MS = 1400;
@@ -46,12 +47,14 @@ export default function PcDetailsPanel({
 }: PcDetailsPanelProps) {
   const [copiedFieldId, setCopiedFieldId] = useState<string | null>(null);
   const details = marker.technicalDetails;
-  const zoneLabel = zone === null ? "Hors zone" : `Zone ${zone.id}`;
+  const zoneLabel = zone === null
+    ? "Hors zone"
+    : `Prodsched ${getZoneDisplayLabel(zone)}`;
   const zoneStyle = getZoneStyle(zone);
   const subtitle = buildPcSubtitle(marker);
   const stateLabel = details.etat ?? details.securityStatus;
-  const connectionLabel =
-    details.wifiOrWiredConnection ?? details.connectionType;
+  const connectionLabel = details.wifiOrWiredConnection ??
+    details.connectionType;
   const summaryFields = buildPcSummaryFields(marker);
   const detailSections = buildPcDetailSections(marker);
   const securityTone = getSecurityTone(stateLabel);
@@ -84,9 +87,9 @@ export default function PcDetailsPanel({
         <div>
           <p className="marker-draft-card__eyebrow">Fiche PC</p>
           <h2 className="marker-draft-card__title">{marker.id}</h2>
-          {subtitle.length > 0 ? (
-            <p className="pc-details-card__subtitle">{subtitle}</p>
-          ) : null}
+          {subtitle.length > 0
+            ? <p className="pc-details-card__subtitle">{subtitle}</p>
+            : null}
         </div>
 
         <button
@@ -110,11 +113,20 @@ export default function PcDetailsPanel({
         >
           {stateLabel}
         </span>
-        {connectionLabel !== undefined ? (
-          <span className="pc-details-card__badge pc-details-card__badge--neutral">
-            {connectionLabel}
-          </span>
-        ) : null}
+        {connectionLabel !== undefined
+          ? (
+            <span className="pc-details-card__badge pc-details-card__badge--neutral">
+              {connectionLabel}
+            </span>
+          )
+          : null}
+        {zone !== null
+          ? (
+            <span className="pc-details-card__badge pc-details-card__badge--neutral">
+              {zone.sector}
+            </span>
+          )
+          : null}
       </div>
 
       <section className="pc-details-card__panel pc-details-card__panel--summary">
@@ -210,8 +222,12 @@ function PcDetailCard({
       <div className="pc-details-card__field-head">
         <span className="pc-details-card__field-label">{field.label}</span>
         <button
-          aria-label={isCopied ? `${field.label} copie` : `Copier ${field.label}`}
-          className={`pc-details-card__copy-button${isCopied ? " pc-details-card__copy-button--copied" : ""}`}
+          aria-label={isCopied
+            ? `${field.label} copie`
+            : `Copier ${field.label}`}
+          className={`pc-details-card__copy-button${
+            isCopied ? " pc-details-card__copy-button--copied" : ""
+          }`}
           title={isCopied ? "Copie" : "Copier"}
           type="button"
           onClick={() => onCopy(field)}

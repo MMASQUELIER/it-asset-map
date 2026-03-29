@@ -57,13 +57,15 @@ const TOOL_SECTIONS: ToolSection[] = [
       {
         id: "select-zone",
         label: "Editer une zone",
-        description: "Selectionnez une zone puis ajustez ses coins.",
+        description:
+          "Selectionnez une zone pour changer son secteur, son prodsched ou ses coins.",
         className: "map-toolbar__button--zone",
       },
       {
         id: "add-zone",
         label: "Ajouter une zone",
-        description: "Dessinez un rectangle directement sur le plan.",
+        description:
+          "Dessinez un rectangle puis choisissez rapidement secteur et prodsched.",
         className: "map-toolbar__button--zone",
       },
       {
@@ -90,7 +92,9 @@ export default function MapToolbar({
   onSelectTool,
 }: MapToolbarProps) {
   const activeToolDefinition = getToolDefinition(activeTool);
-  const title = isInteractionMode ? "Mode interaction actif" : "Carte en lecture";
+  const title = isInteractionMode
+    ? "Mode interaction actif"
+    : "Carte en lecture";
   const description = isInteractionMode
     ? "Choisissez un outil puis intervenez directement sur le plan."
     : "Activez le mode interaction pour modifier les zones et les marqueurs.";
@@ -113,67 +117,85 @@ export default function MapToolbar({
 
           <div className="map-toolbar__actions">
             <span
-              className={`map-toolbar__status${isInteractionMode ? " map-toolbar__status--interactive" : ""}`}
+              className={`map-toolbar__status${
+                isInteractionMode ? " map-toolbar__status--interactive" : ""
+              }`}
             >
               {status}
             </span>
 
             <button
               aria-pressed={isInteractionMode}
-              className={`map-toolbar__button map-toolbar__button--interaction${isInteractionMode ? " map-toolbar__button--active" : ""}`}
+              className={`map-toolbar__button map-toolbar__button--interaction${
+                isInteractionMode ? " map-toolbar__button--active" : ""
+              }`}
               type="button"
-              onClick={isInteractionMode ? onCloseInteractionMode : onOpenInteractionMode}
+              onClick={isInteractionMode
+                ? onCloseInteractionMode
+                : onOpenInteractionMode}
             >
               {toggleAction}
             </button>
           </div>
         </div>
 
-        {isInteractionMode ? (
-          <>
-            <div className="map-toolbar__active-tool">
-              <div className="map-toolbar__active-tool-copy">
-                <span className="map-toolbar__active-tool-label">Aide rapide</span>
-                <p className="map-toolbar__active-tool-title">
-                  {activeToolDefinition.label}
-                </p>
-                <p className="map-toolbar__active-tool-description">
-                  {activeToolDefinition.description}
-                </p>
+        {isInteractionMode
+          ? (
+            <>
+              <div className="map-toolbar__active-tool">
+                <div className="map-toolbar__active-tool-copy">
+                  <span className="map-toolbar__active-tool-label">
+                    Aide rapide
+                  </span>
+                  <p className="map-toolbar__active-tool-title">
+                    {activeToolDefinition.label}
+                  </p>
+                  <p className="map-toolbar__active-tool-description">
+                    {activeToolDefinition.description}
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <div className="map-toolbar__groups">
-              {TOOL_SECTIONS.map((section) => (
-                <section key={section.title} className="map-toolbar__group">
-                  <div className="map-toolbar__group-header">
-                    <p className="map-toolbar__group-title">{section.title}</p>
-                    <p className="map-toolbar__group-description">
-                      {section.description}
-                    </p>
-                  </div>
+              <div className="map-toolbar__groups">
+                {TOOL_SECTIONS.map((section) => (
+                  <section key={section.title} className="map-toolbar__group">
+                    <div className="map-toolbar__group-header">
+                      <p className="map-toolbar__group-title">
+                        {section.title}
+                      </p>
+                      <p className="map-toolbar__group-description">
+                        {section.description}
+                      </p>
+                    </div>
 
-                  <div className="map-toolbar__tools">
-                    {section.tools.map((tool) => (
-                      <button
-                        key={tool.id}
-                        aria-pressed={activeTool === tool.id}
-                        className={`map-toolbar__tool ${tool.className}${activeTool === tool.id ? " map-toolbar__button--active" : ""}`}
-                        type="button"
-                        onClick={() => onSelectTool(tool.id)}
-                      >
-                        <span className="map-toolbar__tool-label">{tool.label}</span>
-                        <span className="map-toolbar__tool-description">
-                          {tool.description}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </section>
-              ))}
-            </div>
-          </>
-        ) : null}
+                    <div className="map-toolbar__tools">
+                      {section.tools.map((tool) => (
+                        <button
+                          key={tool.id}
+                          aria-pressed={activeTool === tool.id}
+                          className={`map-toolbar__tool ${tool.className}${
+                            activeTool === tool.id
+                              ? " map-toolbar__button--active"
+                              : ""
+                          }`}
+                          type="button"
+                          onClick={() => onSelectTool(tool.id)}
+                        >
+                          <span className="map-toolbar__tool-label">
+                            {tool.label}
+                          </span>
+                          <span className="map-toolbar__tool-description">
+                            {tool.description}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            </>
+          )
+          : null}
       </div>
     </div>
   );
@@ -187,7 +209,9 @@ export default function MapToolbar({
  */
 function getToolDefinition(tool: InteractionTool): ToolDefinition {
   for (const section of TOOL_SECTIONS) {
-    const matchingTool = section.tools.find((candidate) => candidate.id === tool);
+    const matchingTool = section.tools.find((candidate) =>
+      candidate.id === tool
+    );
 
     if (matchingTool !== undefined) {
       return matchingTool;

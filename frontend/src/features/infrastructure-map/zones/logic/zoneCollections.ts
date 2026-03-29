@@ -1,16 +1,38 @@
-import type { MapZone, RectangleBounds, StaticMapZone } from "../../shared/types";
+import type {
+  MapZone,
+  RectangleBounds,
+  StoredMapZone,
+} from "../../shared/types";
+import { getSectorColor } from "./zoneAppearance";
 
 /**
- * Clones the seeded zones into pure interactive zones. Static `pcs` stay in
- * the seed dataset while live markers are managed separately.
+ * Converts persisted backend zones into interactive zones enriched for the UI.
  *
- * @param zones Seed zones from the static dataset.
+ * @param zones Zones loaded from the backend JSON layout.
  * @returns Zones ready to be stored in interactive state.
  */
-export function buildInitialZones(zones: StaticMapZone[]): MapZone[] {
+export function hydrateMapZones(zones: StoredMapZone[]): MapZone[] {
   return zones.map((zone) => ({
     id: zone.id,
-    color: zone.color,
+    label: zone.prodsched,
+    sector: zone.sector,
+    prodsched: zone.prodsched,
+    color: getSectorColor(zone.sector),
+    bounds: { ...zone.bounds },
+  }));
+}
+
+/**
+ * Converts interactive zones back to their persisted JSON representation.
+ *
+ * @param zones Interactive zones currently displayed on the map.
+ * @returns Persistable zone list.
+ */
+export function serializeMapZones(zones: MapZone[]): StoredMapZone[] {
+  return zones.map((zone) => ({
+    id: zone.id,
+    sector: zone.sector,
+    prodsched: zone.prodsched,
     bounds: { ...zone.bounds },
   }));
 }
@@ -52,9 +74,7 @@ export function doesZoneOverlap(
   zones: MapZone[],
   candidateBounds: RectangleBounds,
 ): boolean {
-  return zones.some((zone) =>
-    rectanglesOverlap(zone.bounds, candidateBounds),
-  );
+  return zones.some((zone) => rectanglesOverlap(zone.bounds, candidateBounds));
 }
 
 /**
@@ -64,7 +84,9 @@ export function doesZoneOverlap(
  * @returns Sorted copy of the zone list.
  */
 export function sortZonesById(zones: MapZone[]): MapZone[] {
-  return [...zones].sort((firstZone, secondZone) => firstZone.id - secondZone.id);
+  return [...zones].sort((firstZone, secondZone) =>
+    firstZone.id - secondZone.id
+  );
 }
 
 /**

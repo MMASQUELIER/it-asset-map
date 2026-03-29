@@ -1,7 +1,10 @@
 import type { PcTechnicalDetails } from "../../shared/types";
 
 /** Manual overrides simulating CMDB-enriched records for selected PCs. */
-export const CMDB_PC_DETAILS_BY_ID: Record<string, Partial<PcTechnicalDetails>> = {
+export const CMDB_PC_DETAILS_BY_ID: Record<
+  string,
+  Partial<PcTechnicalDetails>
+> = {
   "PC-110-01": {
     contact: "Matthieu",
     floorLocation: "SECTEUR TETE",
@@ -25,8 +28,7 @@ export const CMDB_PC_DETAILS_BY_ID: Record<string, Partial<PcTechnicalDetails>> 
     switchPort: "GI4/0/16",
     newPortAuto: "GI4/0/16",
     switchName: "FR-IDE-22098-ASW-R12-01.net.schneider-electric.com",
-    connectedToSwitchName:
-      "FR-IDE-22098-ASW-R12-01.net.schneider-electric.com",
+    connectedToSwitchName: "FR-IDE-22098-ASW-R12-01.net.schneider-electric.com",
     switchIpAddress: "10.196.46.15",
     connectedToSwitchPort: "N/A",
     ticketBrassage: "185",
@@ -55,11 +57,40 @@ export const CMDB_PC_DETAILS_BY_ID: Record<string, Partial<PcTechnicalDetails>> 
     switchPort: "GI1/0/10",
     newPortAuto: "GI1/0/10",
     switchName: "FR-IDE-22098-ASW-200-01.net.schneider-electric.com",
-    connectedToSwitchName:
-      "FR-IDE-22098-ASW-200-01.net.schneider-electric.com",
+    connectedToSwitchName: "FR-IDE-22098-ASW-200-01.net.schneider-electric.com",
     switchIpAddress: "10.196.56.15",
     connectedToSwitchPort: "GI1/0/10",
     ticketBrassage: "200",
     directoryAccount: "GAD\\SESI006010",
+  },
+  "WFR-250-01": {
+    contact: "Matthieu",
+    sector: "SECTEUR MANUEL",
+    floorLocation: "SECTEUR MANUEL",
+    location: "WFR",
+    prodsched: "250",
+    manufacturingStationNames: "WFR",
+    hostname: "WFRGMOY2DD",
+    manufacturer: "Lenovo",
+    model: "M75Q",
+    storage: "SSD",
+    serialNumber: "GMOY2DD",
+    operatingSystem: "Windows 11",
+    macAddress: "A4:B1:C1:22:10:4D",
+    ipAddress: "10.196.25.121",
+    oldIpAddress: "10.196.46.201",
+    newIpAddress: "10.196.25.121",
+    vlan: "275",
+    vlanNew: "275",
+    networkScope: "OT_Manuel",
+    idPort: "GI/0/10",
+    switchPort: "GI4/0/19",
+    newPortAuto: "GI4/0/19",
+    switchName: "FR-IDE-22098-ASW-250-01.net.schneider-electric.com",
+    connectedToSwitchName: "FR-IDE-22098-ASW-250-01.net.schneider-electric.com",
+    switchIpAddress: "10.196.52.15",
+    connectedToSwitchPort: "GI4/0/19",
+    ticketBrassage: "321",
+    directoryAccount: "GAD\\SESI250001",
   },
 };

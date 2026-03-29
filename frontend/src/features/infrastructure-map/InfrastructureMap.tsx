@@ -1,12 +1,20 @@
 import L from "leaflet";
 import { ImageOverlay, MapContainer, ZoomControl } from "react-leaflet";
-import type { MapZone } from "./shared/types";
+import type {
+  MapLayoutData,
+  MapZone,
+  PlacementPcCandidate,
+} from "./shared/types";
 import "leaflet/dist/leaflet.css";
 import MapClickHandler from "./editor/controllers/MapClickHandler";
 import MapViewportController from "./editor/controllers/MapViewportController";
 import ZoneDrawHandler from "./editor/controllers/ZoneDrawHandler";
 import useInfrastructureMapState from "./state/useInfrastructureMapState";
-import { IMAGE_BOUNDS, MAP_STYLE } from "./shared/mapConfig";
+import useBackendInfrastructureCatalog from "./state/useBackendInfrastructureCatalog";
+import useBackendMapLayout from "./state/useBackendMapLayout";
+import usePersistedMapLayout from "./state/usePersistedMapLayout";
+import { hydrateInteractiveMapState } from "./state/mapLayoutPersistence";
+import { createImageBounds, MAP_STYLE } from "./shared/mapConfig";
 import MapDraftPanels from "./editor/ui/MapDraftPanels";
 import MapSearchPanel from "./markers/ui/MapSearchPanel";
 import MapToolbar from "./editor/ui/MapToolbar";
@@ -16,11 +24,26 @@ import ZoneDraftPreview from "./zones/ui/ZoneDraftPreview";
 import ZoneLegend from "./zones/ui/ZoneLegend";
 import ZoneResizeHandles from "./zones/ui/ZoneResizeHandles";
 import ZonesLayer from "./zones/ui/ZonesLayer";
+import SelectedZonePanel from "./zones/ui/SelectedZonePanel";
+import { getSectorColor } from "./zones/logic/zoneAppearance";
 import "./styles/InfrastructureMap.css";
 
 /** Props required to render the infrastructure map. */
 interface InfrastructureMapProps {
+  assetsUrl: string;
   imageUrl: string;
+  layoutUrl: string;
+  sectorsUrl: string;
+}
+
+interface LoadedInfrastructureMapProps {
+  availableSectors: string[];
+  imageUrl: string;
+  isSavingLayout: boolean;
+  layoutData: MapLayoutData;
+  onSaveLayout: (layoutData: MapLayoutData) => Promise<void>;
+  placementPcCandidates: PlacementPcCandidate[];
+  saveLayoutErrorMessage: string | null;
 }
 
 /**
@@ -31,10 +54,87 @@ interface InfrastructureMapProps {
  * @returns Full map experience.
  */
 export default function InfrastructureMap({
+  assetsUrl,
   imageUrl,
+  layoutUrl,
+  sectorsUrl,
 }: InfrastructureMapProps) {
   const {
+    availableSectors,
+    errorMessage: backendCatalogError,
+    isLoading: isBackendCatalogLoading,
+    placementPcCandidates,
+  } = useBackendInfrastructureCatalog({
+    assetsUrl,
+    sectorsUrl,
+  });
+  const {
+    errorMessage: backendLayoutError,
+    isLoading: isBackendLayoutLoading,
+    isSaving: isSavingLayout,
+    layoutData,
+    saveErrorMessage: saveLayoutErrorMessage,
+    saveLayout,
+  } = useBackendMapLayout({ layoutUrl });
+
+  if (isBackendCatalogLoading || isBackendLayoutLoading) {
+    return (
+      <MapStatusCard
+        message="Chargement du catalogue Excel et du layout de la carte..."
+        title="Chargement"
+      />
+    );
+  }
+
+  if (backendCatalogError !== null) {
+    return (
+      <MapStatusCard
+        message={backendCatalogError}
+        title="Catalogue indisponible"
+      />
+    );
+  }
+
+  if (backendLayoutError !== null || layoutData === null) {
+    return (
+      <MapStatusCard
+        message={backendLayoutError ??
+          "Impossible de charger le layout de la carte."}
+        title="Layout indisponible"
+      />
+    );
+  }
+
+  return (
+    <LoadedInfrastructureMap
+      availableSectors={availableSectors}
+      imageUrl={imageUrl}
+      isSavingLayout={isSavingLayout}
+      layoutData={layoutData}
+      onSaveLayout={saveLayout}
+      placementPcCandidates={placementPcCandidates}
+      saveLayoutErrorMessage={saveLayoutErrorMessage}
+    />
+  );
+}
+
+function LoadedInfrastructureMap({
+  availableSectors,
+  imageUrl,
+  isSavingLayout,
+  layoutData,
+  onSaveLayout,
+  placementPcCandidates,
+  saveLayoutErrorMessage,
+}: LoadedInfrastructureMapProps) {
+  const hydratedMapState = hydrateInteractiveMapState(
+    layoutData,
+    placementPcCandidates,
+  );
+  const imageBounds = createImageBounds(hydratedMapState.mapImage);
+  const {
     activeTool,
+    availablePlacementPcCandidates,
     clearPendingDrafts,
     handleCloseInteractionMode,
     handleCloseSelectedMarker,
@@ -45,10 +145,13 @@ export default function InfrastructureMap({
     handleMarkerDraftSave,
     handleMarkerPlacement,
     handleOpenInteractionMode,
+    handleSelectedZoneProdschedChange,
+    handleSelectedZoneSectorChange,
     handleSelectMarker,
     handleSelectTool,
     handleZoneDraftDrag,
-    handleZoneDraftColorChange,
+    handleZoneDraftProdschedChange,
+    handleZoneDraftSectorChange,
     handleZoneDraftSave,
     handleZoneInteraction,
     handleZoneResizeDrag,
@@ -67,23 +170,42 @@ export default function InfrastructureMap({
     pendingMarkerId,
     pendingZoneDraft,
     pendingZoneDraftError,
-    pendingZoneId,
+    pendingZoneProdsched,
+    pendingZoneSector,
     selectedMarker,
     selectedMarkerFocusToken,
     selectedMarkerId,
     selectedZone,
     setPendingMarkerId,
-    setPendingZoneId,
     zones,
-  } = useInfrastructureMapState();
+  } = useInfrastructureMapState({
+    availableSectors,
+    initialMapImage: hydratedMapState.mapImage,
+    initialMarkers: hydratedMapState.markers,
+    initialZones: hydratedMapState.zones,
+    placementPcCandidates,
+  });
   const mapFrameClassName = getMapFrameClassName({
     isCreationToolActive,
     isDeletionToolActive,
     isInteractionMode,
     isMarkerMoveToolActive,
   });
-  const pendingZoneLabel = pendingZoneId.length > 0 ? pendingZoneId : "Zone";
-  const selectedMarkerZone = findMarkerZone(selectedMarker?.zoneId ?? null, zones);
+  const pendingZonePreviewLabel = pendingZoneProdsched.length > 0
+    ? pendingZoneProdsched
+    : "Zone";
+  const pendingZonePreviewColor = getSectorColor(pendingZoneSector);
+  const selectedMarkerZone = findMarkerZone(
+    selectedMarker?.zoneId ?? null,
+    zones,
+  );
+
+  usePersistedMapLayout({
+    mapImage: hydratedMapState.mapImage,
+    markers,
+    onSaveLayout,
+    zones,
+  });
 
   return (
     <section className="map-card">
@@ -106,6 +228,19 @@ export default function InfrastructureMap({
           selectedMarkerId={selectedMarkerId}
           zones={zones}
         />
+        {isSavingLayout || saveLayoutErrorMessage !== null
+          ? (
+            <p
+              className={`map-layout-status${
+                saveLayoutErrorMessage !== null
+                  ? " map-layout-status--error"
+                  : ""
+              }`}
+            >
+              {saveLayoutErrorMessage ?? "Sauvegarde du layout en cours..."}
+            </p>
+          )
+          : null}
       </div>
 
       <div className={mapFrameClassName}>
@@ -113,27 +248,46 @@ export default function InfrastructureMap({
           markerDraft={pendingMarkerDraft}
           markerDraftError={pendingMarkerDraftError}
           markerDraftId={pendingMarkerId}
+          markerPlacementCatalogError={null}
+          markerPlacementCandidates={availablePlacementPcCandidates}
+          markerPlacementCatalogLoading={false}
           onCancel={clearPendingDrafts}
           onMarkerIdChange={setPendingMarkerId}
           onMarkerSubmit={handleMarkerDraftSave}
-          onZoneColorChange={handleZoneDraftColorChange}
-          onZoneIdChange={setPendingZoneId}
+          availableSectors={availableSectors}
+          onZoneProdschedChange={handleZoneDraftProdschedChange}
+          onZoneSectorChange={handleZoneDraftSectorChange}
           onZoneSubmit={handleZoneDraftSave}
           zoneDraft={pendingZoneDraft}
           zoneDraftError={pendingZoneDraftError}
-          zoneDraftId={pendingZoneId}
+          zoneDraftProdsched={pendingZoneProdsched}
+          zoneDraftSector={pendingZoneSector}
         />
-        {!isInteractionMode && selectedMarker !== null ? (
-          <PcDetailsPanel
-            marker={selectedMarker}
-            onClose={handleCloseSelectedMarker}
-            zone={selectedMarkerZone}
-          />
-        ) : null}
+        {isInteractionMode && isZoneEditToolActive && selectedZone !== null &&
+            pendingMarkerDraft === null && pendingZoneDraft === null
+          ? (
+            <SelectedZonePanel
+              availableSectors={availableSectors}
+              onClose={() => handleZoneInteraction(selectedZone.id)}
+              onProdschedChange={handleSelectedZoneProdschedChange}
+              onSectorChange={handleSelectedZoneSectorChange}
+              zone={selectedZone}
+            />
+          )
+          : null}
+        {!isInteractionMode && selectedMarker !== null
+          ? (
+            <PcDetailsPanel
+              marker={selectedMarker}
+              onClose={handleCloseSelectedMarker}
+              zone={selectedMarkerZone}
+            />
+          )
+          : null}
 
         <MapContainer
-          bounds={IMAGE_BOUNDS}
-          maxBounds={IMAGE_BOUNDS}
+          bounds={imageBounds}
+          maxBounds={imageBounds}
           maxBoundsViscosity={1}
           minZoom={-0.25}
           maxZoom={4}
@@ -149,7 +303,7 @@ export default function InfrastructureMap({
             focusToken={selectedMarkerFocusToken}
             focusX={selectedMarker?.x ?? null}
             focusY={selectedMarker?.y ?? null}
-            imageBounds={IMAGE_BOUNDS}
+            imageBounds={imageBounds}
           />
           <MapClickHandler
             isEnabled={isMarkerCreationToolActive}
@@ -161,17 +315,19 @@ export default function InfrastructureMap({
           />
           <ZoomControl position="bottomright" />
           <ImageOverlay
-            bounds={IMAGE_BOUNDS}
+            bounds={imageBounds}
             className="map-image"
             url={imageUrl}
           />
-          {pendingZoneDraft !== null ? (
-            <ZoneDraftPreview
-              bounds={pendingZoneDraft.bounds}
-              color={pendingZoneDraft.color}
-              label={pendingZoneLabel}
-            />
-          ) : null}
+          {pendingZoneDraft !== null
+            ? (
+              <ZoneDraftPreview
+                bounds={pendingZoneDraft.bounds}
+                color={pendingZonePreviewColor}
+                label={pendingZonePreviewLabel}
+              />
+            )
+            : null}
           <ZonesLayer
             activeZoneId={highlightedZoneId}
             onHoverZone={handleHoverZone}
@@ -179,12 +335,14 @@ export default function InfrastructureMap({
             onSelectZone={handleZoneInteraction}
             zones={zones}
           />
-          {isZoneEditToolActive && selectedZone !== null ? (
-            <ZoneResizeHandles
-              bounds={selectedZone.bounds}
-              onResize={handleZoneResizeDrag}
-            />
-          ) : null}
+          {isZoneEditToolActive && selectedZone !== null
+            ? (
+              <ZoneResizeHandles
+                bounds={selectedZone.bounds}
+                onResize={handleZoneResizeDrag}
+              />
+            )
+            : null}
           <PcLayer
             activeZoneId={highlightedZoneId}
             isConsultationEnabled={!isInteractionMode}
@@ -205,11 +363,30 @@ export default function InfrastructureMap({
   );
 }
 
+interface MapStatusCardProps {
+  message: string;
+  title: string;
+}
+
 interface MapFrameClassNameOptions {
   isCreationToolActive: boolean;
   isDeletionToolActive: boolean;
   isInteractionMode: boolean;
   isMarkerMoveToolActive: boolean;
+}
+
+function MapStatusCard({ message, title }: MapStatusCardProps) {
+  return (
+    <section className="map-card">
+      <div className="map-controls">
+        <div className="map-status-card">
+          <p className="map-toolbar__eyebrow">{title}</p>
+          <h2 className="map-toolbar__title">Infrastructure map</h2>
+          <p className="map-toolbar__description">{message}</p>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 /**
@@ -242,7 +419,10 @@ function getMapFrameClassName({
  * @param zones Available zones.
  * @returns Matching zone or `null`.
  */
-function findMarkerZone(zoneId: number | null, zones: MapZone[]): MapZone | null {
+function findMarkerZone(
+  zoneId: number | null,
+  zones: MapZone[],
+): MapZone | null {
   if (zoneId === null) {
     return null;
   }

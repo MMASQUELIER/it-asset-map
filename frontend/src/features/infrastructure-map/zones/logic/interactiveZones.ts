@@ -5,8 +5,8 @@
  * leaking low-level implementation file names across the UI.
  */
 export {
-  buildInitialZones,
   doesZoneOverlap,
+  hydrateMapZones,
   isZoneIdUnique,
   sortZonesById,
 } from "./zoneCollections";

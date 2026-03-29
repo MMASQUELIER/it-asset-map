@@ -3,13 +3,18 @@
  * @brief Lecture et resolution de la configuration backend.
  */
 
+import { isAbsolute, resolve } from "@std/path";
 import { fileURLToPath } from "node:url";
 
 const BACKEND_ROOT_URL = new URL("../../", import.meta.url);
+const BACKEND_ROOT_PATH = fileURLToPath(BACKEND_ROOT_URL);
 const DEFAULT_API_PORT = 8000;
 const DEFAULT_EXCEL_ASSET_SHEET_NAME = "Asset";
 const DEFAULT_EXCEL_FILE_PATH = "./data/data.xlsm";
 const DEFAULT_MAP_FILE_PATH = "../assets/map.png";
+const DEFAULT_LAYOUT_FILE_PATH = "./data/map-layout.json";
+const DEFAULT_MAP_IMAGE_WIDTH = 884;
+const DEFAULT_MAP_IMAGE_HEIGHT = 609;
 const DEFAULT_ASSET_SECTOR_COLUMN_NAME = "Location\nphysical location on floor";
 const DEFAULT_SECTORS = [
   "SECTEUR CORPS",
@@ -32,6 +37,17 @@ export const backendConfig = {
   ),
   mapFilePath: resolveBackendFilePath(
     readStringEnv("MAP_FILE_PATH", DEFAULT_MAP_FILE_PATH),
+  ),
+  layoutFilePath: resolveBackendFilePath(
+    readStringEnv("LAYOUT_FILE_PATH", DEFAULT_LAYOUT_FILE_PATH),
+  ),
+  mapImageWidth: readPositiveNumberEnv(
+    "MAP_IMAGE_WIDTH",
+    DEFAULT_MAP_IMAGE_WIDTH,
+  ),
+  mapImageHeight: readPositiveNumberEnv(
+    "MAP_IMAGE_HEIGHT",
+    DEFAULT_MAP_IMAGE_HEIGHT,
   ),
   assetSectorColumnName: readMultilineEnv(
     "ASSET_SECTOR_COLUMN_NAME",
@@ -69,7 +85,9 @@ function readNumberEnv(variableName: string, fallbackValue: number): number {
  * @returns Chemin absolu utilisable par Deno.readFile.
  */
 function resolveBackendFilePath(relativeFilePath: string): string {
-  return fileURLToPath(new URL(relativeFilePath, BACKEND_ROOT_URL));
+  return isAbsolute(relativeFilePath)
+    ? relativeFilePath
+    : resolve(BACKEND_ROOT_PATH, relativeFilePath);
 }
 
 /**
@@ -103,4 +121,18 @@ function readArrayEnv(variableName: string, fallbackValue: string[]): string[] {
     );
     return fallbackValue;
   }
+}
+
+/**
+ * @brief Lit une variable d'environnement numerique strictement positive.
+ * @param variableName Nom de la variable d'environnement.
+ * @param fallbackValue Valeur par defaut si la variable est absente ou invalide.
+ * @returns Valeur numerique positive finale.
+ */
+function readPositiveNumberEnv(
+  variableName: string,
+  fallbackValue: number,
+): number {
+  const parsedValue = readNumberEnv(variableName, fallbackValue);
+  return parsedValue > 0 ? parsedValue : fallbackValue;
 }

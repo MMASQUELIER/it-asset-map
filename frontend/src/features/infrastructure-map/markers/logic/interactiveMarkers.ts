@@ -1,26 +1,80 @@
 import type {
   InteractiveMarker,
+  MapImageDimensions,
   MapZone,
-  StaticMapZone,
   MarkerDraft,
+  PlacementPcCandidate,
   RectangleBounds,
-  StaticMapImage,
+  StoredMarkerPlacement,
 } from "../../shared/types";
-import { createPcTechnicalDetails } from "../../pc-details/logic/pcTechnicalDetails";
+import { syncPcTechnicalDetailsWithZone } from "../../pc-details/logic/pcTechnicalDetails";
 
 /**
- * Flattens the zone seed data into a dedicated interactive marker collection.
+ * Rebuilds interactive markers from the persisted JSON layout and the Excel catalog.
  *
- * @param zones Seed zones containing their initial PCs.
- * @returns Marker list used by the interactive map state.
+ * @param markerPlacements Persisted marker positions.
+ * @param placementPcCandidates Placement candidates loaded from the backend.
+ * @param zones Interactive zones currently loaded on the map.
+ * @returns Marker list reconstructed from persisted positions.
  */
-export function buildInitialMarkers(zones: StaticMapZone[]): InteractiveMarker[] {
-  return zones.flatMap((zone) =>
-    zone.pcs.map((pc) => ({
-      ...pc,
-      zoneId: zone.id,
-    })),
+export function hydratePlacedMarkers(
+  markerPlacements: StoredMarkerPlacement[],
+  placementPcCandidates: PlacementPcCandidate[],
+  zones: MapZone[],
+): InteractiveMarker[] {
+  const zoneById = new Map(zones.map((zone) => [zone.id, zone]));
+  const candidateByMarkerId = new Map(
+    placementPcCandidates.map((candidate) => [candidate.markerId, candidate]),
   );
+
+  return markerPlacements.flatMap((markerPlacement) => {
+    const placementCandidate = candidateByMarkerId.get(
+      markerPlacement.markerId,
+    );
+
+    if (placementCandidate === undefined) {
+      console.warn(
+        `Le PC ${markerPlacement.markerId} n'existe plus dans le catalogue Excel et ne peut pas etre recharge.`,
+      );
+      return [];
+    }
+
+    const assignedZone = markerPlacement.zoneId === null
+      ? null
+      : (zoneById.get(markerPlacement.zoneId) ?? null);
+    const resolvedZone = assignedZone !== null &&
+        doesPlacementCandidateMatchZoneSector(placementCandidate, assignedZone)
+      ? assignedZone
+      : null;
+
+    return [{
+      id: placementCandidate.markerId,
+      x: Math.round(markerPlacement.x),
+      y: Math.round(markerPlacement.y),
+      zoneId: resolvedZone?.id ?? null,
+      technicalDetails: syncPcTechnicalDetailsWithZone(
+        placementCandidate.technicalDetails,
+        resolvedZone,
+      ),
+    }];
+  });
+}
+
+/**
+ * Converts interactive markers to their persisted JSON representation.
+ *
+ * @param markers Interactive markers currently displayed on the map.
+ * @returns Persistable marker positions.
+ */
+export function serializeMarkerPlacements(
+  markers: InteractiveMarker[],
+): StoredMarkerPlacement[] {
+  return markers.map((marker) => ({
+    markerId: marker.id,
+    x: marker.x,
+    y: marker.y,
+    zoneId: marker.zoneId,
+  }));
 }
 
 /**
@@ -67,6 +121,22 @@ export function findContainingZoneId(
   x: number,
   y: number,
 ): number | null {
+  return findContainingZone(availableZones, x, y)?.id ?? null;
+}
+
+/**
+ * Finds the zone containing a given point.
+ *
+ * @param availableZones Zones to inspect.
+ * @param x X coordinate in image space.
+ * @param y Y coordinate in image space.
+ * @returns Containing zone or `null` when the point is outside all zones.
+ */
+export function findContainingZone(
+  availableZones: MapZone[],
+  x: number,
+  y: number,
+): MapZone | null {
   const containingZone = availableZones.find(({ bounds }) => {
     const isInsideX = x >= bounds.x && x <= bounds.x + bounds.width;
     const isInsideY = y >= bounds.y && y <= bounds.y + bounds.height;
@@ -74,7 +144,7 @@ export function findContainingZoneId(
     return isInsideX && isInsideY;
   });
 
-  return containingZone?.id ?? null;
+  return containingZone ?? null;
 }
 
 /**
@@ -103,7 +173,9 @@ export function generateSuggestedMarkerId(
     return Math.max(maxIndex, Number.parseInt(match[1], 10));
   }, 0);
 
-  return `${markerIdPrefix}-${String(highestExistingIndex + 1).padStart(2, "0")}`;
+  return `${markerIdPrefix}-${
+    String(highestExistingIndex + 1).padStart(2, "0")
+  }`;
 }
 
 /**
@@ -138,13 +210,21 @@ export function isMarkerIdUnique(
  */
 export function assignMarkersWithinBoundsToZone(
   markers: InteractiveMarker[],
-  zoneId: number,
+  zone: MapZone,
   bounds: RectangleBounds,
 ): InteractiveMarker[] {
   return markers.map((marker) =>
-    isPointWithinBounds(marker.x, marker.y, bounds)
-      ? { ...marker, zoneId }
-      : marker,
+    isPointWithinBounds(marker.x, marker.y, bounds) &&
+      isMarkerCompatibleWithZone(marker, zone)
+      ? {
+        ...marker,
+        zoneId: zone.id,
+        technicalDetails: syncPcTechnicalDetailsWithZone(
+          marker.technicalDetails,
+          zone,
+        ),
+      }
+      : marker
   );
 }
 
@@ -158,18 +238,33 @@ export function assignMarkersWithinBoundsToZone(
  */
 export function reconcileMarkersWithZoneBounds(
   markers: InteractiveMarker[],
-  zoneId: number,
+  zone: MapZone,
   bounds: RectangleBounds,
 ): InteractiveMarker[] {
   return markers.map((marker) => {
     const isInsideZoneBounds = isPointWithinBounds(marker.x, marker.y, bounds);
+    const isCompatibleWithZone = isMarkerCompatibleWithZone(marker, zone);
 
-    if (isInsideZoneBounds) {
-      return { ...marker, zoneId };
+    if (isInsideZoneBounds && isCompatibleWithZone) {
+      return {
+        ...marker,
+        zoneId: zone.id,
+        technicalDetails: syncPcTechnicalDetailsWithZone(
+          marker.technicalDetails,
+          zone,
+        ),
+      };
     }
 
-    if (marker.zoneId === zoneId) {
-      return { ...marker, zoneId: null };
+    if (marker.zoneId === zone.id) {
+      return {
+        ...marker,
+        zoneId: null,
+        technicalDetails: syncPcTechnicalDetailsWithZone(
+          marker.technicalDetails,
+          null,
+        ),
+      };
     }
 
     return marker;
@@ -193,36 +288,31 @@ export function moveMarkerToCoordinates(
   markerId: string,
   x: number,
   y: number,
-  image: StaticMapImage,
+  image: MapImageDimensions,
 ): InteractiveMarker[] {
   const nextX = clampMarkerCoordinate(x, image.width);
   const nextY = clampMarkerCoordinate(y, image.height);
-  const nextZoneId = findContainingZoneId(availableZones, nextX, nextY);
+  const nextZone = findContainingZone(availableZones, nextX, nextY);
 
   return existingMarkers.map((marker) =>
     marker.id === markerId
       ? {
-          ...marker,
-          x: nextX,
-          y: nextY,
-          zoneId: nextZoneId,
-        }
-      : marker,
+        ...marker,
+        x: nextX,
+        y: nextY,
+        zoneId:
+          nextZone !== null && isMarkerCompatibleWithZone(marker, nextZone)
+            ? nextZone.id
+            : null,
+        technicalDetails: syncPcTechnicalDetailsWithZone(
+          marker.technicalDetails,
+          nextZone !== null && isMarkerCompatibleWithZone(marker, nextZone)
+            ? nextZone
+            : null,
+        ),
+      }
+      : marker
   );
-}
-
-/**
- * Creates default technical details for a user-created marker.
- *
- * @param markerId Marker identifier.
- * @param zoneId Zone currently containing the marker.
- * @returns Generated technical details.
- */
-export function createDefaultMarkerTechnicalDetails(
-  markerId: string,
-  zoneId: number | null,
-): InteractiveMarker["technicalDetails"] {
-  return createPcTechnicalDetails(markerId, zoneId);
 }
 
 /**
@@ -275,4 +365,29 @@ function isPointWithinBounds(
     y >= bounds.y &&
     y <= bounds.y + bounds.height
   );
+}
+
+function isMarkerCompatibleWithZone(
+  marker: InteractiveMarker,
+  zone: MapZone,
+): boolean {
+  const markerSector = normalizeSectorName(
+    marker.technicalDetails.floorLocation ?? marker.technicalDetails.sector,
+  );
+  const zoneSector = normalizeSectorName(zone.sector);
+
+  return markerSector.length === 0 || zoneSector.length === 0 ||
+    markerSector === zoneSector;
+}
+
+function normalizeSectorName(value: string | undefined): string {
+  return value?.trim().toUpperCase() ?? "";
+}
+
+function doesPlacementCandidateMatchZoneSector(
+  candidate: PlacementPcCandidate,
+  zone: MapZone,
+): boolean {
+  return normalizeSectorName(candidate.sector) ===
+    normalizeSectorName(zone.sector);
 }

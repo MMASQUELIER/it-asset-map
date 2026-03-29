@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type {
   InteractiveMarker,
+  MapImageDimensions,
   MapZone,
   MarkerDraft,
+  PlacementPcCandidate,
   ZoneDraft,
 } from "../shared/types";
 import {
@@ -11,6 +13,7 @@ import {
   moveMarkerToCoordinates,
   reconcileMarkersWithZoneBounds,
 } from "../markers/logic/interactiveMarkers";
+import { doesPlacementCandidateMatchSector } from "../markers/logic/backendPlacementCandidates";
 import type {
   InteractionTool,
   ZoneResizeHandle,
@@ -20,12 +23,7 @@ import {
   resizeZoneBoundsFromHandle,
   sortZonesById,
 } from "../zones/logic/interactiveZones";
-import {
-  INITIAL_MARKERS,
-  INITIAL_TOOL,
-  INITIAL_ZONES,
-  MAP_IMAGE,
-} from "../shared/mapConfig";
+import { INITIAL_TOOL } from "../shared/mapConfig";
 import {
   findSelectedMarker,
   findSelectedZone,
@@ -39,6 +37,16 @@ import {
   validateZoneDraftSave,
 } from "./infrastructureMapDrafts";
 import { useZoneHoverState } from "./useZoneHoverState";
+import { syncPcTechnicalDetailsWithZone } from "../pc-details/logic/pcTechnicalDetails";
+import { getSectorColor } from "../zones/logic/zoneAppearance";
+
+interface UseInfrastructureMapStateOptions {
+  availableSectors: string[];
+  initialMapImage: MapImageDimensions;
+  initialMarkers: InteractiveMarker[];
+  initialZones: MapZone[];
+  placementPcCandidates: PlacementPcCandidate[];
+}
 
 /**
  * Centralises the full interactive state of the map and the callbacks used by
@@ -46,14 +54,23 @@ import { useZoneHoverState } from "./useZoneHoverState";
  *
  * @returns Current map state and all interaction handlers.
  */
-export default function useInfrastructureMapState(): InfrastructureMapState {
+export default function useInfrastructureMapState({
+  availableSectors,
+  initialMapImage,
+  initialMarkers,
+  initialZones,
+  placementPcCandidates,
+}: UseInfrastructureMapStateOptions): InfrastructureMapState {
   const [selectedZoneId, setSelectedZoneId] = useState<number | null>(null);
   const [isInteractionMode, setIsInteractionMode] = useState(false);
   const [activeTool, setActiveTool] = useState<InteractionTool>(INITIAL_TOOL);
-  const [zones, setZones] = useState<MapZone[]>(() => INITIAL_ZONES);
-  const [markers, setMarkers] = useState<InteractiveMarker[]>(() => INITIAL_MARKERS);
-  const [pendingMarkerDraft, setPendingMarkerDraft] =
-    useState<MarkerDraft | null>(null);
+  const [zones, setZones] = useState<MapZone[]>(() => initialZones);
+  const [markers, setMarkers] = useState<InteractiveMarker[]>(() =>
+    initialMarkers
+  );
+  const [pendingMarkerDraft, setPendingMarkerDraft] = useState<
+    MarkerDraft | null
+  >(null);
   const [pendingMarkerId, setPendingMarkerId] = useState("");
   const [pendingMarkerDraftError, setPendingMarkerDraftError] = useState<
     string | null
@@ -62,6 +79,8 @@ export default function useInfrastructureMapState(): InfrastructureMapState {
     null,
   );
   const [pendingZoneId, setPendingZoneId] = useState("");
+  const [pendingZoneSector, setPendingZoneSector] = useState("");
+  const [pendingZoneProdsched, setPendingZoneProdsched] = useState("");
   const [pendingZoneDraftError, setPendingZoneDraftError] = useState<
     string | null
   >(null);
@@ -76,6 +95,30 @@ export default function useInfrastructureMapState(): InfrastructureMapState {
 
   const selectedMarker = findSelectedMarker(markers, selectedMarkerId);
   const selectedZone = findSelectedZone(zones, selectedZoneId);
+  const pendingMarkerZone = pendingMarkerDraft?.zoneId === null ||
+      pendingMarkerDraft?.zoneId === undefined
+    ? null
+    : (zones.find((zone) => zone.id === pendingMarkerDraft.zoneId) ?? null);
+  const availablePlacementPcCandidates = placementPcCandidates.filter(
+    (candidate) => {
+      const isAlreadyPlaced = markers.some((marker) =>
+        marker.id === candidate.markerId
+      );
+
+      if (isAlreadyPlaced) {
+        return false;
+      }
+
+      if (pendingMarkerZone === null) {
+        return true;
+      }
+
+      return doesPlacementCandidateMatchSector(
+        candidate,
+        pendingMarkerZone.sector,
+      );
+    },
+  );
   const highlightedZoneId = getHighlightedZoneId(
     hoveredZoneId,
     selectedMarker?.zoneId ?? null,
@@ -91,6 +134,16 @@ export default function useInfrastructureMapState(): InfrastructureMapState {
     isZoneDeletionToolActive,
     isZoneEditToolActive,
   } = getInteractionModeFlags(isInteractionMode, activeTool);
+
+  useEffect(() => {
+    if (
+      pendingZoneDraft !== null &&
+      pendingZoneSector.length === 0 &&
+      availableSectors.length > 0
+    ) {
+      setPendingZoneSector(availableSectors[0]);
+    }
+  }, [availableSectors, pendingZoneDraft, pendingZoneSector]);
 
   /**
    * Clears the currently selected marker.
@@ -124,6 +177,8 @@ export default function useInfrastructureMapState(): InfrastructureMapState {
   function clearPendingZoneDraft(): void {
     setPendingZoneDraft(null);
     setPendingZoneId("");
+    setPendingZoneSector("");
+    setPendingZoneProdsched("");
     setPendingZoneDraftError(null);
   }
 
@@ -209,7 +264,7 @@ export default function useInfrastructureMapState(): InfrastructureMapState {
     const nextDraft = createMarkerDraft(zones, markers, x, y);
 
     setPendingMarkerDraft(nextDraft);
-    setPendingMarkerId(nextDraft.suggestedId);
+    setPendingMarkerId("");
     setPendingMarkerDraftError(null);
   }
 
@@ -226,7 +281,14 @@ export default function useInfrastructureMapState(): InfrastructureMapState {
     }
 
     setMarkers((currentMarkers) =>
-      moveMarkerToCoordinates(currentMarkers, zones, markerId, x, y, MAP_IMAGE),
+      moveMarkerToCoordinates(
+        currentMarkers,
+        zones,
+        markerId,
+        x,
+        y,
+        initialMapImage,
+      )
     );
   }
 
@@ -248,7 +310,7 @@ export default function useInfrastructureMapState(): InfrastructureMapState {
       currentDraft: pendingZoneDraft,
       pendingZoneId,
       zones,
-      mapImage: MAP_IMAGE,
+      mapImage: initialMapImage,
       startX,
       startY,
       currentX,
@@ -258,7 +320,12 @@ export default function useInfrastructureMapState(): InfrastructureMapState {
     setPendingZoneDraft(nextDraftPreview.draft);
 
     if (nextDraftPreview.nextPendingZoneId !== null) {
-      setPendingZoneId(nextDraftPreview.nextPendingZoneId);
+      const suggestedZoneId = nextDraftPreview.nextPendingZoneId;
+
+      setPendingZoneId(suggestedZoneId);
+      setPendingZoneSector((currentSector) =>
+        currentSector.length > 0 ? currentSector : (availableSectors[0] ?? "")
+      );
     }
 
     setPendingZoneDraftError(null);
@@ -272,6 +339,8 @@ export default function useInfrastructureMapState(): InfrastructureMapState {
       pendingMarkerDraft,
       pendingMarkerId,
       markers,
+      zones,
+      availablePlacementPcCandidates,
     );
 
     if (markerDraftSaveResult.error !== null) {
@@ -299,8 +368,10 @@ export default function useInfrastructureMapState(): InfrastructureMapState {
     const zoneDraftSaveResult = validateZoneDraftSave(
       pendingZoneDraft,
       pendingZoneId,
+      pendingZoneSector,
+      pendingZoneProdsched,
       zones,
-      MAP_IMAGE,
+      initialMapImage,
     );
 
     if (zoneDraftSaveResult.error !== null) {
@@ -314,15 +385,13 @@ export default function useInfrastructureMapState(): InfrastructureMapState {
 
     const nextZone = zoneDraftSaveResult.zone;
 
-    setZones((currentZones) =>
-      sortZonesById([...currentZones, nextZone]),
-    );
+    setZones((currentZones) => sortZonesById([...currentZones, nextZone]));
     setMarkers((currentMarkers) =>
       assignMarkersWithinBoundsToZone(
         currentMarkers,
-        nextZone.id,
+        nextZone,
         nextZone.bounds,
-      ),
+      )
     );
     setSelectedZoneId(nextZone.id);
     clearPendingDrafts();
@@ -335,10 +404,10 @@ export default function useInfrastructureMapState(): InfrastructureMapState {
    */
   function handleDeleteMarker(markerId: string): void {
     setSelectedMarkerId((currentMarkerId) =>
-      currentMarkerId === markerId ? null : currentMarkerId,
+      currentMarkerId === markerId ? null : currentMarkerId
     );
     setMarkers((currentMarkers) =>
-      currentMarkers.filter((marker) => marker.id !== markerId),
+      currentMarkers.filter((marker) => marker.id !== markerId)
     );
   }
 
@@ -379,7 +448,7 @@ export default function useInfrastructureMapState(): InfrastructureMapState {
       handle,
       x,
       y,
-      MAP_IMAGE,
+      initialMapImage,
     );
     const otherZones = zones.filter((zone) => zone.id !== selectedZone.id);
 
@@ -391,34 +460,113 @@ export default function useInfrastructureMapState(): InfrastructureMapState {
       currentZones.map((zone) =>
         zone.id === selectedZone.id
           ? {
-              ...zone,
-              bounds: resizedBounds,
-            }
-          : zone,
-      ),
+            ...zone,
+            bounds: resizedBounds,
+          }
+          : zone
+      )
     );
     setMarkers((currentMarkers) =>
       reconcileMarkersWithZoneBounds(
         currentMarkers,
-        selectedZone.id,
+        selectedZone,
         resizedBounds,
-      ),
+      )
     );
   }
 
   /**
-   * Updates the color of the current zone draft.
+   * Updates the business sector of the current zone draft.
    *
-   * @param color Selected hexadecimal color.
+   * @param sector User-entered sector name.
    */
-  function handleZoneDraftColorChange(color: string): void {
-    setPendingZoneDraft((currentDraft) =>
-      currentDraft === null
-        ? currentDraft
-        : {
-            ...currentDraft,
-            color,
-          },
+  function handleZoneDraftSectorChange(sector: string): void {
+    setPendingZoneSector(sector);
+  }
+
+  /**
+   * Updates the prodsched attached to the current zone draft.
+   *
+   * @param prodsched User-entered prodsched value.
+   */
+  function handleZoneDraftProdschedChange(prodsched: string): void {
+    setPendingZoneProdsched(prodsched);
+  }
+
+  /**
+   * Updates the sector metadata of the currently selected zone.
+   *
+   * Incompatible markers are detached, while compatible markers inside the zone
+   * keep their assignment.
+   *
+   * @param sector Newly selected sector.
+   */
+  function handleSelectedZoneSectorChange(sector: string): void {
+    if (selectedZone === null) {
+      return;
+    }
+
+    const nextSector = sector.trim();
+    const nextZone = {
+      ...selectedZone,
+      color: getSectorColor(nextSector),
+      label: selectedZone.prodsched,
+      sector: nextSector,
+    };
+
+    setZones((currentZones) =>
+      currentZones.map((zone) => zone.id === nextZone.id ? nextZone : zone)
+    );
+    setMarkers((currentMarkers) => {
+      const detachedIncompatibleMarkers = currentMarkers.map((marker) => {
+        if (marker.zoneId !== nextZone.id) {
+          return marker;
+        }
+
+        if (doesMarkerMatchZoneSector(marker, nextZone)) {
+          return marker;
+        }
+
+        return {
+          ...marker,
+          zoneId: null,
+          technicalDetails: syncPcTechnicalDetailsWithZone(
+            marker.technicalDetails,
+            null,
+          ),
+        };
+      });
+
+      return assignMarkersWithinBoundsToZone(
+        detachedIncompatibleMarkers,
+        nextZone,
+        nextZone.bounds,
+      );
+    });
+  }
+
+  /**
+   * Updates the prodsched metadata of the currently selected zone.
+   *
+   * @param prodsched Newly entered prodsched.
+   */
+  function handleSelectedZoneProdschedChange(prodsched: string): void {
+    if (selectedZone === null) {
+      return;
+    }
+
+    const nextProdsched = prodsched.trimStart();
+    const nextZone = {
+      ...selectedZone,
+      label: nextProdsched,
+      prodsched: nextProdsched,
+    };
+
+    setZones((currentZones) =>
+      currentZones.map((zone) => zone.id === nextZone.id ? nextZone : zone)
+    );
+    setMarkers((currentMarkers) =>
+      assignMarkersWithinBoundsToZone(currentMarkers, nextZone, nextZone.bounds)
     );
   }
 
@@ -429,16 +577,25 @@ export default function useInfrastructureMapState(): InfrastructureMapState {
    */
   function handleDeleteZone(zoneId: number): void {
     setZones((currentZones) =>
-      currentZones.filter((zone) => zone.id !== zoneId),
+      currentZones.filter((zone) => zone.id !== zoneId)
     );
     setMarkers((currentMarkers) =>
       currentMarkers.map((marker) =>
-        marker.zoneId === zoneId ? { ...marker, zoneId: null } : marker,
-      ),
+        marker.zoneId === zoneId
+          ? {
+            ...marker,
+            zoneId: null,
+            technicalDetails: syncPcTechnicalDetailsWithZone(
+              marker.technicalDetails,
+              null,
+            ),
+          }
+          : marker
+      )
     );
     clearHoveredZoneIfMatches(zoneId);
     setSelectedZoneId((currentZoneId) =>
-      currentZoneId === zoneId ? null : currentZoneId,
+      currentZoneId === zoneId ? null : currentZoneId
     );
   }
 
@@ -449,7 +606,7 @@ export default function useInfrastructureMapState(): InfrastructureMapState {
    */
   function toggleZoneSelection(zoneId: number): void {
     setSelectedZoneId((currentZoneId) =>
-      currentZoneId === zoneId ? null : zoneId,
+      currentZoneId === zoneId ? null : zoneId
     );
   }
 
@@ -465,10 +622,13 @@ export default function useInfrastructureMapState(): InfrastructureMapState {
     handleMarkerDraftSave,
     handleMarkerPlacement,
     handleOpenInteractionMode,
+    handleSelectedZoneProdschedChange,
+    handleSelectedZoneSectorChange,
     handleSelectMarker,
     handleSelectTool,
     handleZoneDraftDrag,
-    handleZoneDraftColorChange,
+    handleZoneDraftProdschedChange,
+    handleZoneDraftSectorChange,
     handleZoneDraftSave,
     handleZoneInteraction,
     handleZoneResizeDrag,
@@ -485,15 +645,34 @@ export default function useInfrastructureMapState(): InfrastructureMapState {
     pendingMarkerDraft,
     pendingMarkerDraftError,
     pendingMarkerId,
+    availablePlacementPcCandidates,
+    availableSectors,
     pendingZoneDraft,
     pendingZoneDraftError,
-    pendingZoneId,
+    pendingZoneProdsched,
+    pendingZoneSector,
     selectedMarker,
     selectedMarkerFocusToken,
     selectedMarkerId,
     selectedZone,
     setPendingMarkerId,
-    setPendingZoneId,
     zones,
   };
+}
+
+function doesMarkerMatchZoneSector(
+  marker: InteractiveMarker,
+  zone: MapZone,
+): boolean {
+  const markerSector = normalizeSectorName(
+    marker.technicalDetails.floorLocation ?? marker.technicalDetails.sector,
+  );
+  const zoneSector = normalizeSectorName(zone.sector);
+
+  return markerSector.length === 0 || zoneSector.length === 0 ||
+    markerSector === zoneSector;
+}
+
+function normalizeSectorName(value: string | undefined): string {
+  return value?.trim().toUpperCase() ?? "";
 }

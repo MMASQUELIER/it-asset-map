@@ -55,6 +55,22 @@ const SEARCH_FIELDS: SearchField[] = [
     weight: 82,
   },
   {
+    getValue: (marker) => marker.technicalDetails.prodsched,
+    label: "Prodsched",
+    weight: 80,
+  },
+  {
+    getValue: (marker) =>
+      marker.technicalDetails.floorLocation ?? marker.technicalDetails.sector,
+    label: "Secteur",
+    weight: 78,
+  },
+  {
+    getValue: (marker) => marker.technicalDetails.manufacturingStationNames,
+    label: "Zone",
+    weight: 77,
+  },
+  {
     getValue: (marker) => marker.technicalDetails.location,
     label: "Emplacement",
     weight: 76,

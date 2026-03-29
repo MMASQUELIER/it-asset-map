@@ -1,5 +1,5 @@
 /** Dimensions of the image used as the background map. */
-export interface StaticMapImage {
+export interface MapImageDimensions {
   width: number;
   height: number;
 }
@@ -60,6 +60,13 @@ export interface RectangleBounds {
   height: number;
 }
 
+/** Business metadata attached to one production zone. */
+export interface ZoneMetadata {
+  label: string;
+  sector: string;
+  prodsched: string;
+}
+
 /** Immutable PC definition used across the map domain. */
 export interface MapPc {
   id: string;
@@ -81,27 +88,50 @@ export interface MarkerDraft {
   suggestedId: string;
 }
 
+/** Searchable PC candidate loaded from the backend CMDB export. */
+export interface PlacementPcCandidate {
+  id: string;
+  markerId: string;
+  hostname: string;
+  label: string;
+  prodsched: string;
+  sector: string;
+  stationName: string;
+  technicalDetails: PcTechnicalDetails;
+}
+
 /** Temporary zone state built while the user draws a new zone. */
 export interface ZoneDraft {
   bounds: RectangleBounds;
-  color: string;
   suggestedId: number;
 }
 
 /** Zone displayed and edited on top of the map image. */
-export interface MapZone {
+export interface MapZone extends ZoneMetadata {
   id: number;
   color: string;
   bounds: RectangleBounds;
 }
 
-/** Seed zone used only to bootstrap the interactive state. */
-export interface StaticMapZone extends MapZone {
-  pcs: MapPc[];
+/** Zone persisted in the backend JSON layout. */
+export interface StoredMapZone {
+  id: number;
+  sector: string;
+  prodsched: string;
+  bounds: RectangleBounds;
 }
 
-/** Complete static dataset used to initialise the map. */
-export interface StaticMapData {
-  image: StaticMapImage;
-  zones: StaticMapZone[];
+/** Marker placement persisted in the backend JSON layout. */
+export interface StoredMarkerPlacement {
+  markerId: string;
+  x: number;
+  y: number;
+  zoneId: number | null;
+}
+
+/** Complete layout persisted in the backend JSON file. */
+export interface MapLayoutData {
+  mapImage: MapImageDimensions;
+  zones: StoredMapZone[];
+  markerPlacements: StoredMarkerPlacement[];
 }

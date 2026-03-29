@@ -1,18 +1,20 @@
-import type { PcTechnicalDetails } from "../../shared/types";
+import type { MapZone, PcTechnicalDetails } from "../../shared/types";
 import {
   DEVICE_PROFILES,
+  type DeviceProfile,
   TEMP_ZONE_PROFILE,
   ZONE_PROFILES,
-  type DeviceProfile,
   type ZoneProfile,
 } from "../data/pcTechnicalProfiles";
 import { CMDB_PC_DETAILS_BY_ID } from "../data/pcTechnicalOverrides";
+
+type ZoneContext = Pick<MapZone, "id" | "label" | "prodsched" | "sector">;
 
 /** Input used to generate default PC details. */
 interface DefaultPcDetailsOptions {
   normalizedId: string;
   sequence: number;
-  zoneId: number | null;
+  zone: ZoneContext | null;
 }
 
 /**
@@ -22,12 +24,12 @@ interface DefaultPcDetailsOptions {
  * profiles, then applies any manual overrides that exist for that identifier.
  *
  * @param pcId PC identifier.
- * @param zoneId Zone currently containing the marker.
+ * @param zone Zone currently containing the marker.
  * @returns Complete technical details for the marker.
  */
 export function createPcTechnicalDetails(
   pcId: string,
-  zoneId: number | null,
+  zone: ZoneContext | null,
 ): PcTechnicalDetails {
   const sequence = extractSequence(pcId);
   const normalizedId = normalizePcId(pcId);
@@ -36,9 +38,37 @@ export function createPcTechnicalDetails(
     ...buildDefaultPcDetails({
       normalizedId,
       sequence,
-      zoneId,
+      zone,
     }),
     ...CMDB_PC_DETAILS_BY_ID[normalizedId],
+  };
+}
+
+/**
+ * Synchronises the zone-related fields of one PC with its current zone.
+ *
+ * @param technicalDetails Current PC details.
+ * @param zone Current containing zone.
+ * @returns Updated details with zone metadata applied.
+ */
+export function syncPcTechnicalDetailsWithZone(
+  technicalDetails: PcTechnicalDetails,
+  zone: ZoneContext | null,
+): PcTechnicalDetails {
+  const zoneProfile = getZoneProfile(zone?.id ?? null);
+
+  return {
+    ...technicalDetails,
+    sector: getVisibleText(technicalDetails.sector) ?? getZoneSector(zone, zoneProfile),
+    floorLocation:
+      getVisibleText(technicalDetails.floorLocation) ??
+      getZoneSector(zone, zoneProfile),
+    prodsched:
+      getVisibleText(technicalDetails.prodsched) ??
+      getZoneProdsched(zone, zoneProfile),
+    manufacturingStationNames:
+      getVisibleText(technicalDetails.manufacturingStationNames) ??
+      getZoneLabel(zone, zoneProfile),
   };
 }
 
@@ -51,11 +81,14 @@ export function createPcTechnicalDetails(
 function buildDefaultPcDetails({
   normalizedId,
   sequence,
-  zoneId,
+  zone,
 }: DefaultPcDetailsOptions): PcTechnicalDetails {
-  const zoneProfile = getZoneProfile(zoneId);
+  const zoneProfile = getZoneProfile(zone?.id ?? null);
   const deviceProfile = DEVICE_PROFILES[zoneProfile.deviceProfileId];
-  const hostname = createHostname(zoneProfile, deviceProfile, sequence);
+  const zoneLabel = getZoneLabel(zone, zoneProfile);
+  const zoneSector = getZoneSector(zone, zoneProfile);
+  const zoneProdsched = getZoneProdsched(zone, zoneProfile);
+  const hostname = createHostname(zoneProdsched, deviceProfile, sequence);
   const ipAddress = createIpAddress(
     zoneProfile.newIpNetwork,
     zoneProfile.newIpHostBase,
@@ -81,11 +114,11 @@ function buildDefaultPcDetails({
     site: zoneProfile.site,
     contact: zoneProfile.contact,
     pinKey: zoneProfile.pinKey,
-    sector: zoneProfile.floorLocation,
-    floorLocation: zoneProfile.floorLocation,
-    location: `${zoneProfile.locationPrefix}${String(sequence).padStart(2, "0")}`,
-    prodsched: zoneProfile.prodsched,
-    manufacturingStationNames: zoneProfile.manufacturingStationNames,
+    sector: zoneSector,
+    floorLocation: zoneSector,
+    location: createLocation(zone, zoneProfile, sequence),
+    prodsched: zoneProdsched,
+    manufacturingStationNames: zoneLabel,
     lastInventoryDate: zoneProfile.lastInventoryDate,
     assetType: zoneProfile.assetType,
     manufacturer: deviceProfile.manufacturer,
@@ -100,7 +133,7 @@ function buildDefaultPcDetails({
     oldIpAddress,
     newIpAddress: ipAddress,
     subnetMask: zoneProfile.subnetMask,
-    macAddress: createMacAddress(zoneId, sequence),
+    macAddress: createMacAddress(zone?.id ?? null, sequence),
     vlan: zoneProfile.vlan,
     vlanNew: zoneProfile.vlan,
     networkScope: zoneProfile.vlanName,
@@ -116,14 +149,10 @@ function buildDefaultPcDetails({
     wifiOrWiredConnection: zoneProfile.wifiOrWiredConnection,
     ticketBrassage: String(zoneProfile.ticketBrassageBase + sequence),
     ipFilter: zoneProfile.ipFilter,
-    directoryAccount: createSesiAccount(zoneProfile.prodsched, sequence),
+    directoryAccount: createSesiAccount(zoneProdsched, sequence),
     comment: `Inventaire coherent genere pour ${normalizedId}`,
     commentaire2: "N/A",
-    serialNumber: createSerialNumber(
-      deviceProfile,
-      zoneProfile.prodsched,
-      sequence,
-    ),
+    serialNumber: createSerialNumber(deviceProfile, zoneProdsched, sequence),
     etat: zoneProfile.etat,
     securityStatus: "Conforme",
   };
@@ -141,6 +170,70 @@ function getZoneProfile(zoneId: number | null): ZoneProfile {
   }
 
   return ZONE_PROFILES[zoneId] ?? TEMP_ZONE_PROFILE;
+}
+
+/**
+ * Resolves the business label of one zone.
+ *
+ * @param zone Current zone or `null`.
+ * @param zoneProfile Fallback profile resolved from the zone identifier.
+ * @returns Display label for the zone.
+ */
+function getZoneLabel(
+  zone: ZoneContext | null,
+  zoneProfile: ZoneProfile,
+): string {
+  return zone?.label.trim().length
+    ? zone.label
+    : zoneProfile.manufacturingStationNames;
+}
+
+/**
+ * Resolves the sector attached to one zone.
+ *
+ * @param zone Current zone or `null`.
+ * @param zoneProfile Fallback profile resolved from the zone identifier.
+ * @returns Sector name used by the PC details.
+ */
+function getZoneSector(
+  zone: ZoneContext | null,
+  zoneProfile: ZoneProfile,
+): string {
+  return zone?.sector.trim().length ? zone.sector : zoneProfile.floorLocation;
+}
+
+/**
+ * Resolves the production schedule attached to one zone.
+ *
+ * @param zone Current zone or `null`.
+ * @param zoneProfile Fallback profile resolved from the zone identifier.
+ * @returns Prodsched label used by the PC details.
+ */
+function getZoneProdsched(
+  zone: ZoneContext | null,
+  zoneProfile: ZoneProfile,
+): string {
+  return zone?.prodsched.trim().length ? zone.prodsched : zoneProfile.prodsched;
+}
+
+/**
+ * Builds a location value that stays coherent with the current zone.
+ *
+ * @param zone Current zone or `null`.
+ * @param zoneProfile Fallback profile resolved from the zone identifier.
+ * @param sequence PC sequence inside the zone.
+ * @returns Generated location string.
+ */
+function createLocation(
+  zone: ZoneContext | null,
+  zoneProfile: ZoneProfile,
+  sequence: number,
+): string {
+  if (zone?.label.trim().length) {
+    return `${zone.label}-${String(sequence).padStart(2, "0")}`;
+  }
+
+  return `${zoneProfile.locationPrefix}${String(sequence).padStart(2, "0")}`;
 }
 
 /**
@@ -168,19 +261,21 @@ function extractSequence(pcId: string): number {
 /**
  * Generates a hostname from the zone and hardware profiles.
  *
- * @param zoneProfile Zone profile.
+ * @param prodsched Zone production schedule label.
  * @param deviceProfile Hardware profile.
  * @param sequence PC sequence inside the zone.
  * @returns Generated hostname.
  */
 function createHostname(
-  zoneProfile: ZoneProfile,
+  prodsched: string,
   deviceProfile: DeviceProfile,
   sequence: number,
 ): string {
-  const zoneLabel = normalizeNumericZoneLabel(zoneProfile.prodsched);
+  const zoneLabel = normalizeNumericZoneLabel(prodsched);
 
-  return `CLA${zoneLabel}${deviceProfile.hostnamePrefix}${String(sequence).padStart(2, "0")}`;
+  return `CLA${zoneLabel}${deviceProfile.hostnamePrefix}${
+    String(sequence).padStart(2, "0")
+  }`;
 }
 
 /**
@@ -198,7 +293,9 @@ function createSerialNumber(
 ): string {
   const zoneLabel = normalizeNumericZoneLabel(prodsched);
 
-  return `${deviceProfile.serialPrefix}${zoneLabel}${String(sequence).padStart(3, "0")}`;
+  return `${deviceProfile.serialPrefix}${zoneLabel}${
+    String(sequence).padStart(3, "0")
+  }`;
 }
 
 /**
@@ -287,6 +384,14 @@ function createMacAddress(zoneId: number | null, sequence: number): string {
   ];
 
   return bytes.map(formatMacByte).join(":");
+}
+
+function getVisibleText(value: string | undefined): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  return value.trim().length > 0 ? value : undefined;
 }
 
 /**
