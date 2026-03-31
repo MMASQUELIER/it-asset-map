@@ -1,10 +1,5 @@
-/**
- * @file main.ts
- * @brief Point d'entree du backend Deno.
- */
-
-import { createApiApp } from "./src/app.ts";
-import { backendConfig } from "./src/config/env.ts";
+import { createApiApp } from "@/app/createApiApp.ts";
+import { backendConfig } from "@/config/env.ts";
 
 const apiApp = createApiApp();
 

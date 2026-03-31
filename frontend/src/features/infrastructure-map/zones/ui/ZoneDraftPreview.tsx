@@ -1,7 +1,7 @@
 import L from "leaflet";
 import { Marker, Rectangle } from "react-leaflet";
-import type { RectangleBounds } from "../../shared/types";
-import { getZoneCenter, toLeafletBounds } from "../../shared/mapGeometry";
+import type { RectangleBounds } from "@/features/infrastructure-map/model/types";
+import { getZoneCenter, toLeafletBounds } from "@/features/infrastructure-map/shared/mapGeometry";
 
 /** Props used to render a temporary zone preview. */
 interface ZoneDraftPreviewProps {
@@ -18,8 +18,9 @@ interface ZoneDraftPreviewProps {
  */
 function createPreviewIcon(label: string): L.DivIcon {
   return L.divIcon({
-    className: "zone-badge-wrapper",
-    html: `<span class="zone-badge zone-badge--preview">${label}</span>`,
+    className: "border-0 bg-transparent",
+    html:
+      `<span class="inline-flex min-w-[56px] max-w-[96px] items-center justify-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full border border-dashed border-sky-400/50 bg-white/98 px-3 py-1.5 text-[0.82rem] font-black tracking-[0.02em] text-sky-800 shadow-[0_10px_22px_rgba(22,67,39,0.12)]">${label}</span>`,
     iconSize: [84, 32],
     iconAnchor: [42, 16],
   });

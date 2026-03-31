@@ -1,9 +1,20 @@
 import type { CSSProperties } from "react";
-import type { MapZone } from "../../shared/types";
-import { getSectorColor } from "../logic/zoneAppearance";
-import ZoneSectorSelector from "./ZoneSectorSelector";
+import type { MapZone } from "@/features/infrastructure-map/model/types";
+import {
+  closeButtonClassName,
+  detailLabelTextClassName,
+  detailsGridClassName,
+  eyebrowTextClassName,
+  fieldGroupClassName,
+  panelDescriptionTextClassName,
+  panelTitleTextClassName,
+  scrollableFloatingPanelClassName,
+  textInputClassName,
+} from "@/features/infrastructure-map/ui/uiClassNames";
+import { getSectorColor } from "@/features/infrastructure-map/zones/logic/zoneAppearance";
+import ZoneSectorSelector from "@/features/infrastructure-map/zones/ui/ZoneSectorSelector";
 
-/** Props used by the quick editor shown for the currently selected zone. */
+/** Props du panneau d'edition rapide de la zone selectionnee. */
 interface SelectedZonePanelProps {
   availableSectors: string[];
   onClose: () => void;
@@ -12,12 +23,7 @@ interface SelectedZonePanelProps {
   zone: MapZone;
 }
 
-/**
- * Displays a lightweight editor for the currently selected zone.
- *
- * @param props Selected zone and update callbacks.
- * @returns Quick zone editor UI.
- */
+/** Affiche un editeur compact pour la zone actuellement selectionnee. */
 export default function SelectedZonePanel({
   availableSectors,
   onClose,
@@ -25,31 +31,12 @@ export default function SelectedZonePanel({
   onSectorChange,
   zone,
 }: SelectedZonePanelProps) {
-  const sectorColor = getSectorColor(zone.sector);
-
   return (
-    <aside className="marker-draft-card zone-editor-panel">
-      <div className="marker-draft-card__header">
-        <div>
-          <p className="marker-draft-card__eyebrow">Zone selectionnee</p>
-          <h2 className="marker-draft-card__title">Edition rapide</h2>
-          <p className="zone-form__intro">
-            Changez le secteur ou le prodsched, puis ajustez les coins
-            directement sur la carte si besoin.
-          </p>
-        </div>
+    <aside className={`${scrollableFloatingPanelClassName} grid gap-4`}>
+      {renderSelectedZoneHeader(onClose)}
 
-        <button
-          className="marker-draft-card__close"
-          type="button"
-          onClick={onClose}
-        >
-          Fermer
-        </button>
-      </div>
-
-      <label className="marker-draft-card__field">
-        <span>Secteur</span>
+      <label className={fieldGroupClassName}>
+        <span className="text-sm font-bold text-schneider-900">Secteur</span>
         <ZoneSectorSelector
           availableSectors={availableSectors}
           onSelectSector={onSectorChange}
@@ -57,11 +44,11 @@ export default function SelectedZonePanel({
         />
       </label>
 
-      <label className="marker-draft-card__field">
-        <span>Prodsched</span>
+      <label className={fieldGroupClassName}>
+        <span className="text-sm font-bold text-schneider-900">Prodsched</span>
         <input
           autoFocus
-          className="marker-draft-card__input"
+          className={textInputClassName}
           inputMode="numeric"
           placeholder="Ex. 250"
           type="text"
@@ -70,33 +57,65 @@ export default function SelectedZonePanel({
         />
       </label>
 
-      <div className="marker-draft-card__details">
+      <div className={detailsGridClassName}>
         <div>
-          <span className="marker-draft-card__detail-label">Position</span>
+          <span className={detailLabelTextClassName}>Position</span>
           <strong>
             X {zone.bounds.x} / Y {zone.bounds.y}
           </strong>
         </div>
 
         <div>
-          <span className="marker-draft-card__detail-label">Dimensions</span>
+          <span className={detailLabelTextClassName}>Dimensions</span>
           <strong>
             {zone.bounds.width} x {zone.bounds.height}
           </strong>
         </div>
 
         <div>
-          <span className="marker-draft-card__detail-label">
-            Couleur secteur
-          </span>
-          <strong
-            className="zone-draft-form__sector-color"
-            style={{ "--zone-sector-color": sectorColor } as CSSProperties}
-          >
-            {zone.sector}
-          </strong>
+          <span className={detailLabelTextClassName}>Couleur secteur</span>
+          {renderSelectedZoneBadge(zone.sector)}
         </div>
       </div>
     </aside>
   );
+}
+
+function renderSelectedZoneHeader(onClose: () => void) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <p className={eyebrowTextClassName}>Zone selectionnee</p>
+        <h2 className={panelTitleTextClassName}>Edition rapide</h2>
+        <p className={panelDescriptionTextClassName}>
+          Changez le secteur ou le prodsched, puis ajustez les coins
+          directement sur la carte si besoin.
+        </p>
+      </div>
+
+      <button className={closeButtonClassName} type="button" onClick={onClose}>
+        Fermer
+      </button>
+    </div>
+  );
+}
+
+function renderSelectedZoneBadge(zoneSector: string) {
+  return (
+    <strong
+      className="inline-flex min-h-10 items-center rounded-full border px-4 text-sm font-bold text-schneider-900"
+      style={getSelectedZoneBadgeStyle(zoneSector)}
+    >
+      {zoneSector}
+    </strong>
+  );
+}
+
+function getSelectedZoneBadgeStyle(zoneSector: string): CSSProperties {
+  const sectorAccentColor = getSectorColor(zoneSector);
+
+  return {
+    borderColor: `color-mix(in srgb, ${sectorAccentColor} 40%, rgba(16,38,26,0.1))`,
+    background: `color-mix(in srgb, ${sectorAccentColor} 18%, white)`,
+  } as CSSProperties;
 }

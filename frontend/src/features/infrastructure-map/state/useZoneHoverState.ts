@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 
-/** Delay used before clearing the hovered zone to avoid flicker. */
+/** Petit delai avant de retirer le survol, pour eviter le scintillement. */
 const LEAVE_ZONE_DELAY_MS = 40;
 
-/** State and handlers used to manage transient zone hover highlighting. */
+/** Etat et handlers du survol de zone. */
 interface ZoneHoverState {
   hoveredZoneId: number | null;
   handleHoverZone: (zoneId: number) => void;
@@ -12,18 +12,13 @@ interface ZoneHoverState {
 }
 
 /**
- * Encapsulates the hovered zone lifecycle, including the delayed leave logic
- * that prevents flicker when the pointer moves between adjacent overlays.
- *
- * @returns Hovered zone state and the handlers consumed by the main map hook.
+ * Gere le cycle de vie du survol de zone, y compris le delai de sortie
+ * necessaire pour eviter les effets de flicker entre overlays voisins.
  */
 export function useZoneHoverState(): ZoneHoverState {
   const [hoveredZoneId, setHoveredZoneId] = useState<number | null>(null);
   const leaveZoneTimeoutRef = useRef<number | null>(null);
 
-  /**
-   * Cancels the delayed zone leave timeout if one exists.
-   */
   function clearLeaveZoneTimeout(): void {
     if (leaveZoneTimeoutRef.current === null) {
       return;
@@ -33,38 +28,27 @@ export function useZoneHoverState(): ZoneHoverState {
     leaveZoneTimeoutRef.current = null;
   }
 
-  /**
-   * Highlights a zone immediately when the pointer enters it.
-   *
-   * @param zoneId Zone being hovered.
-   */
   function handleHoverZone(zoneId: number): void {
     clearLeaveZoneTimeout();
-    setHoveredZoneId((currentZoneId) =>
-      currentZoneId === zoneId ? currentZoneId : zoneId,
-    );
+    setHoveredZoneId(zoneId);
   }
 
-  /**
-   * Clears the hovered zone with a tiny delay to avoid hover flicker.
-   */
   function handleLeaveZone(): void {
     clearLeaveZoneTimeout();
-    leaveZoneTimeoutRef.current = window.setTimeout(() => {
+    leaveZoneTimeoutRef.current = window.setTimeout(function clearHoveredZone() {
       setHoveredZoneId(null);
       leaveZoneTimeoutRef.current = null;
     }, LEAVE_ZONE_DELAY_MS);
   }
 
-  /**
-   * Clears the hover highlight when a deleted zone was still highlighted.
-   *
-   * @param zoneId Zone identifier that may no longer exist.
-   */
   function clearHoveredZoneIfMatches(zoneId: number): void {
-    setHoveredZoneId((currentZoneId) =>
-      currentZoneId === zoneId ? null : currentZoneId,
-    );
+    setHoveredZoneId(function clearHoveredZone(currentZoneId) {
+      if (currentZoneId !== zoneId) {
+        return currentZoneId;
+      }
+
+      return null;
+    });
   }
 
   useEffect(() => {

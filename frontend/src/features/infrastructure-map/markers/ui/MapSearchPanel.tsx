@@ -1,8 +1,22 @@
 import { useState } from "react";
-import type { CSSProperties, FormEvent } from "react";
-import type { InteractiveMarker, MapZone } from "../../shared/types";
-import { searchMarkers } from "../logic/markerSearch";
-import { getZoneDisplayLabel } from "../../zones/logic/zoneAppearance";
+import type { FormEvent } from "react";
+import type {
+  InteractiveMarker,
+  MapZone,
+} from "@/features/infrastructure-map/model/types";
+import { searchMarkers } from "@/features/infrastructure-map/markers/logic/markerSearch";
+import { MapSearchResultCard } from "@/features/infrastructure-map/markers/ui/map-search/MapSearchResultCard";
+import {
+  eyebrowTextClassName,
+  infoBadgeClassName,
+  joinClassNames,
+  panelDescriptionTextClassName,
+  panelTitleTextClassName,
+  primaryButtonClassName,
+  secondaryButtonClassName,
+  surfacePanelClassName,
+  textInputClassName,
+} from "@/features/infrastructure-map/ui/uiClassNames";
 
 /** Props used by the equipment search panel. */
 interface MapSearchPanelProps {
@@ -24,150 +38,156 @@ export default function MapSearchPanel({
   selectedMarkerId,
   zones,
 }: MapSearchPanelProps) {
-  const [query, setQuery] = useState("");
-  const trimmedQuery = query.trim();
-  const results = trimmedQuery.length === 0
+  const [searchQuery, setSearchQuery] = useState("");
+  const trimmedSearchQuery = searchQuery.trim();
+  const searchResults = trimmedSearchQuery.length === 0
     ? []
-    : searchMarkers(markers, query);
-  const selectedMarker = selectedMarkerId === null
-    ? null
-    : (markers.find((marker) => marker.id === selectedMarkerId) ?? null);
-  const zoneById = new Map(zones.map((zone) => [zone.id, zone]));
+    : searchMarkers(markers, searchQuery);
+  const selectedMarker = findSelectedMarker(markers, selectedMarkerId);
+  const zonesById = new Map(zones.map((zone) => [zone.id, zone]));
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>): void {
+  function handleSearchSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
 
-    if (results.length === 0) {
+    if (searchResults.length === 0) {
       return;
     }
 
-    handleMarkerSelection(results[0].marker.id);
+    handleSearchResultSelection(searchResults[0].marker.id);
   }
 
-  function handleMarkerSelection(markerId: string): void {
-    setQuery(markerId);
+  function handleSearchResultSelection(markerId: string): void {
+    setSearchQuery(markerId);
     onSelectMarker(markerId);
   }
 
-  return (
-    <section className="map-search">
-      <form className="map-search__panel" onSubmit={handleSubmit}>
-        <div className="map-search__intro">
-          <p className="map-search__eyebrow">Recherche equipement</p>
-          <h2 className="map-search__title">Localiser un poste specifique</h2>
-          <p className="map-search__description">
-            Recherchez par identifiant, hostname, prodsched, secteur, IP, MAC ou
-            emplacement.
+  function renderSearchResults() {
+    if (trimmedSearchQuery.length > 0) {
+      if (searchResults.length === 0) {
+        return (
+          <p className="rounded-[22px] border border-schneider-900/8 bg-schneider-100/58 px-4 py-3 text-sm text-schneider-800/75">
+            Aucun equipement correspondant a cette recherche.
           </p>
+        );
+      }
+
+      return (
+        <div className="grid gap-2" role="list">
+          {searchResults.map(function renderSearchResult(result) {
+            const zone = getMarkerZone(result.marker.zoneId, zonesById);
+
+            return (
+              <MapSearchResultCard
+                key={result.marker.id}
+                isSelected={selectedMarkerId === result.marker.id}
+                result={result}
+                zone={zone}
+                onSelect={handleSearchResultSelection}
+              />
+            );
+          })}
+        </div>
+      );
+    }
+
+    if (selectedMarker !== null) {
+      return (
+        <p className="rounded-[22px] border border-schneider-900/8 bg-schneider-100/58 px-4 py-3 text-sm text-schneider-800/75">
+          Equipement selectionne : <strong>{selectedMarker.id}</strong>
+        </p>
+      );
+    }
+
+    return (
+      <p className="rounded-[22px] border border-schneider-900/8 bg-schneider-100/58 px-4 py-3 text-sm text-schneider-800/75">
+        Saisissez un critere puis validez pour centrer la carte sur le premier
+        resultat.
+      </p>
+    );
+  }
+
+  return (
+    <section className="min-w-0">
+      <form
+        className={`${surfacePanelClassName} relative overflow-hidden grid gap-4 p-5`}
+        onSubmit={handleSearchSubmit}
+      >
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-[linear-gradient(180deg,rgba(15,122,70,0.08),transparent)]" />
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="grid gap-1.5">
+            <p className={eyebrowTextClassName}>Recherche equipement</p>
+            <h2 className={panelTitleTextClassName}>Localiser un poste specifique</h2>
+            <p className={panelDescriptionTextClassName}>
+              Recherchez par identifiant, nom machine, prodsched, secteur,
+              poste de fabrication, IP ou MAC.
+            </p>
+          </div>
+
+          <span
+            className={joinClassNames(
+              infoBadgeClassName,
+              trimmedSearchQuery.length > 0
+                ? "border-schneider-500/18 bg-schneider-500/10 text-schneider-700"
+                : "bg-schneider-100/70 text-schneider-800/72",
+            )}
+          >
+            {trimmedSearchQuery.length > 0
+              ? `${searchResults.length} resultat(s)`
+              : "Recherche multi-criteres"}
+          </span>
         </div>
 
-        <div className="map-search__controls">
+        <div className="grid gap-3 rounded-[24px] border border-schneider-900/8 bg-schneider-100/58 p-3 md:grid-cols-[minmax(0,1fr)_auto_auto]">
           <input
             aria-label="Rechercher un equipement"
             autoComplete="off"
-            className="map-search__input"
+            className={textInputClassName}
             placeholder="Ex. WFRGMOY2DD, 250, SECTEUR MANUEL, 10.20.4.12..."
             type="search"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
           />
           <button
-            className="map-search__button map-search__button--primary"
-            disabled={results.length === 0}
+            className={primaryButtonClassName}
+            disabled={searchResults.length === 0}
             type="submit"
           >
             Localiser
           </button>
           <button
-            className="map-search__button map-search__button--secondary"
-            disabled={trimmedQuery.length === 0}
+            className={secondaryButtonClassName}
+            disabled={trimmedSearchQuery.length === 0}
             type="button"
-            onClick={() => setQuery("")}
+            onClick={() => setSearchQuery("")}
           >
             Effacer
           </button>
         </div>
 
-        {trimmedQuery.length > 0
-          ? (
-            <div className="map-search__results" role="list">
-              {results.length > 0
-                ? (
-                  results.map((result) => {
-                    const zone = result.marker.zoneId === null
-                      ? null
-                      : (zoneById.get(result.marker.zoneId) ?? null);
-                    const hostname = result.marker.technicalDetails.hostname;
-                    const secondaryLabel =
-                      hostname === undefined || hostname === result.marker.id
-                        ? result.matchedValue
-                        : hostname;
-                    const zoneLabel = zone === null
-                      ? "Hors zone"
-                      : `Prodsched ${getZoneDisplayLabel(zone)}`;
-                    const zoneStyle = zone === null ? undefined : ({
-                      "--map-search-zone-color": zone.color,
-                    } as CSSProperties);
-
-                    return (
-                      <button
-                        key={result.marker.id}
-                        className={`map-search__result${
-                          selectedMarkerId === result.marker.id
-                            ? " map-search__result--active"
-                            : ""
-                        }`}
-                        type="button"
-                        onClick={() => handleMarkerSelection(result.marker.id)}
-                      >
-                        <span className="map-search__result-head">
-                          <strong className="map-search__result-id">
-                            {result.marker.id}
-                          </strong>
-                          <span
-                            className="map-search__result-zone"
-                            style={zoneStyle}
-                          >
-                            {zoneLabel}
-                          </span>
-                        </span>
-                        <span className="map-search__result-meta">
-                          {secondaryLabel}
-                        </span>
-                        {zone !== null
-                          ? (
-                            <span className="map-search__result-match">
-                              Secteur : {zone.sector}
-                            </span>
-                          )
-                          : null}
-                        <span className="map-search__result-match">
-                          {result.matchedFieldLabel} : {result.matchedValue}
-                        </span>
-                      </button>
-                    );
-                  })
-                )
-                : (
-                  <p className="map-search__empty">
-                    Aucun equipement correspondant a cette recherche.
-                  </p>
-                )}
-            </div>
-          )
-          : selectedMarker !== null
-          ? (
-            <p className="map-search__hint">
-              Equipement selectionne : <strong>{selectedMarker.id}</strong>
-            </p>
-          )
-          : (
-            <p className="map-search__hint">
-              Saisissez un critere puis validez pour centrer la carte sur le
-              premier resultat.
-            </p>
-          )}
+        {renderSearchResults()}
       </form>
     </section>
   );
+}
+
+function findSelectedMarker(
+  markers: InteractiveMarker[],
+  selectedMarkerId: string | null,
+): InteractiveMarker | null {
+  if (selectedMarkerId === null) {
+    return null;
+  }
+
+  return markers.find((marker) => marker.id === selectedMarkerId) ?? null;
+}
+
+function getMarkerZone(
+  zoneId: number | null,
+  zonesById: Map<number, MapZone>,
+): MapZone | null {
+  if (zoneId === null) {
+    return null;
+  }
+
+  return zonesById.get(zoneId) ?? null;
 }

@@ -1,11 +1,7 @@
 import type L from "leaflet";
-import type { MapImageDimensions } from "./types";
-import type { InteractionTool } from "./interactionTypes";
+import type { MapImageDimensions } from "@/features/infrastructure-map/model/types";
 
-/** Tool automatically selected when interaction mode opens. */
-export const INITIAL_TOOL: InteractionTool = "select-zone";
-
-/** Inline map container style used by React Leaflet. */
+/** Style inline du conteneur React Leaflet. */
 export const MAP_STYLE = {
   height: "100%",
   width: "100%",
@@ -13,10 +9,7 @@ export const MAP_STYLE = {
 };
 
 /**
- * Builds fixed Leaflet bounds matching the image size.
- *
- * @param mapImage Map image dimensions loaded from the backend layout.
- * @returns Bounds compatible with React Leaflet.
+ * Construit les bornes Leaflet fixes correspondant a la taille de l'image.
  */
 export function createImageBounds(
   mapImage: MapImageDimensions,

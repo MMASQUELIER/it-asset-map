@@ -2,9 +2,9 @@ import type {
   MapImageDimensions,
   MapZone,
   ZoneDraft,
-} from "../../shared/types";
-import { clampZoneBounds } from "./zoneGeometry";
-import { generateSuggestedZoneId } from "./zoneCollections";
+} from "@/features/infrastructure-map/model/types";
+import { clampZoneBounds } from "@/features/infrastructure-map/zones/logic/zoneGeometry";
+import { generateSuggestedZoneId } from "@/features/infrastructure-map/zones/logic/zoneCollections";
 
 /** Default width applied to a newly created zone draft. */
 const DEFAULT_ZONE_WIDTH = 160;

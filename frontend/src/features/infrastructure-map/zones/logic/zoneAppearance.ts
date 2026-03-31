@@ -1,17 +1,8 @@
-import type { MapZone } from "../../shared/types";
+import type { MapZone } from "@/features/infrastructure-map/model/types";
 
 type ZoneDisplaySource = Pick<MapZone, "label" | "prodsched">;
 
-/** Default color used when a sector name does not match a known palette entry. */
-const DEFAULT_SECTOR_COLOR = "#64748b";
-
-/** Maps normalized sector names to one stable color per sector. */
-const SECTOR_COLOR_BY_NAME: Record<string, string> = {
-  "SECTEUR CORPS": "#d65252",
-  "SECTEUR FABRICATION": "#2f7edb",
-  "SECTEUR MANUEL": "#d48806",
-  "SECTEUR TETE": "#199473",
-};
+const DEFAULT_SECTOR_COLOR = "hsl(212 13% 45%)";
 
 /**
  * Resolves the display label shown for one zone on the map.
@@ -37,8 +28,14 @@ export function getZoneDisplayLabel(zone: ZoneDisplaySource): string {
  * @returns Hexadecimal color associated with that sector.
  */
 export function getSectorColor(sectorName: string): string {
-  return SECTOR_COLOR_BY_NAME[normalizeSectorName(sectorName)] ??
-    DEFAULT_SECTOR_COLOR;
+  const normalizedSectorName = normalizeSectorName(sectorName);
+
+  if (normalizedSectorName.length === 0) {
+    return DEFAULT_SECTOR_COLOR;
+  }
+
+  const hue = hashText(normalizedSectorName) % 360;
+  return `hsl(${hue} 58% 46%)`;
 }
 
 /**
@@ -53,4 +50,14 @@ function normalizeSectorName(sectorName: string): string {
     .replace(/\p{Diacritic}+/gu, "")
     .trim()
     .toUpperCase();
+}
+
+function hashText(value: string): number {
+  let hash = 0;
+
+  for (const character of value) {
+    hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
+  }
+
+  return hash;
 }

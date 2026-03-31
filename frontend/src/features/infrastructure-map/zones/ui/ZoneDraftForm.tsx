@@ -1,9 +1,23 @@
 import type { CSSProperties, FormEvent } from "react";
-import type { ZoneDraft } from "../../shared/types";
-import { getSectorColor } from "../logic/zoneAppearance";
-import ZoneSectorSelector from "./ZoneSectorSelector";
+import type { ZoneDraft } from "@/features/infrastructure-map/model/types";
+import {
+  closeButtonClassName,
+  detailLabelTextClassName,
+  detailsGridClassName,
+  eyebrowTextClassName,
+  fieldGroupClassName,
+  panelActionRowClassName,
+  panelDescriptionTextClassName,
+  panelTitleTextClassName,
+  primaryButtonClassName,
+  scrollableFloatingPanelClassName,
+  secondaryButtonClassName,
+  textInputClassName,
+} from "@/features/infrastructure-map/ui/uiClassNames";
+import { getSectorColor } from "@/features/infrastructure-map/zones/logic/zoneAppearance";
+import ZoneSectorSelector from "@/features/infrastructure-map/zones/ui/ZoneSectorSelector";
 
-/** Props used to edit a zone draft before insertion. */
+/** Props du formulaire de creation de zone. */
 interface ZoneDraftFormProps {
   availableSectors: string[];
   draft: ZoneDraft;
@@ -16,12 +30,7 @@ interface ZoneDraftFormProps {
   zoneSector: string;
 }
 
-/**
- * Form used to confirm the creation of a new zone.
- *
- * @param props Draft values and save callbacks.
- * @returns Zone draft editor UI.
- */
+/** Formulaire de confirmation pour la creation d'une nouvelle zone. */
 export default function ZoneDraftForm({
   availableSectors,
   draft,
@@ -33,7 +42,6 @@ export default function ZoneDraftForm({
   zoneProdsched,
   zoneSector,
 }: ZoneDraftFormProps) {
-  const sectorColor = getSectorColor(zoneSector);
   const isSubmitDisabled = zoneSector.trim().length === 0 ||
     zoneProdsched.trim().length === 0;
 
@@ -43,28 +51,14 @@ export default function ZoneDraftForm({
   }
 
   return (
-    <form className="marker-draft-card zone-form" onSubmit={handleSubmit}>
-      <div className="marker-draft-card__header">
-        <div>
-          <p className="marker-draft-card__eyebrow">Nouvelle zone</p>
-          <h2 className="marker-draft-card__title">Creer une zone</h2>
-          <p className="zone-form__intro">
-            Choisissez le secteur puis saisissez le prodsched pour creer la
-            zone.
-          </p>
-        </div>
+    <form
+      className={`${scrollableFloatingPanelClassName} grid gap-4`}
+      onSubmit={handleSubmit}
+    >
+      {renderZoneDraftHeader(onCancel)}
 
-        <button
-          className="marker-draft-card__close"
-          type="button"
-          onClick={onCancel}
-        >
-          Fermer
-        </button>
-      </div>
-
-      <label className="marker-draft-card__field">
-        <span>Secteur</span>
+      <label className={fieldGroupClassName}>
+        <span className="text-sm font-bold text-schneider-900">Secteur</span>
         <ZoneSectorSelector
           availableSectors={availableSectors}
           onSelectSector={onSectorChange}
@@ -72,11 +66,11 @@ export default function ZoneDraftForm({
         />
       </label>
 
-      <label className="marker-draft-card__field">
-        <span>Prodsched</span>
+      <label className={fieldGroupClassName}>
+        <span className="text-sm font-bold text-schneider-900">Prodsched</span>
         <input
           autoFocus
-          className="marker-draft-card__input"
+          className={textInputClassName}
           inputMode="numeric"
           placeholder="Ex. 250"
           type="text"
@@ -85,48 +79,39 @@ export default function ZoneDraftForm({
         />
       </label>
 
-      <div className="marker-draft-card__details">
+      <div className={detailsGridClassName}>
         <div>
-          <span className="marker-draft-card__detail-label">Position</span>
+          <span className={detailLabelTextClassName}>Position</span>
           <strong>
             X {draft.bounds.x} / Y {draft.bounds.y}
           </strong>
         </div>
 
         <div>
-          <span className="marker-draft-card__detail-label">Dimensions</span>
+          <span className={detailLabelTextClassName}>Dimensions</span>
           <strong>
             {draft.bounds.width} x {draft.bounds.height}
           </strong>
         </div>
 
         <div>
-          <span className="marker-draft-card__detail-label">
-            Couleur secteur
-          </span>
-          <strong
-            className="zone-draft-form__sector-color"
-            style={{ "--zone-sector-color": sectorColor } as CSSProperties}
-          >
-            {zoneSector.length > 0 ? zoneSector : "Selectionnez un secteur"}
-          </strong>
+          <span className={detailLabelTextClassName}>Couleur secteur</span>
+          {renderZoneSectorBadge(zoneSector)}
         </div>
       </div>
 
-      {errorMessage !== null
-        ? <p className="marker-draft-card__error">{errorMessage}</p>
-        : null}
+      {renderZoneDraftError(errorMessage)}
 
-      <div className="marker-draft-card__actions">
+      <div className={panelActionRowClassName}>
         <button
-          className="marker-draft-card__button marker-draft-card__button--zone"
+          className={primaryButtonClassName}
           disabled={isSubmitDisabled}
           type="submit"
         >
           Creer la zone
         </button>
         <button
-          className="marker-draft-card__button marker-draft-card__button--secondary"
+          className={secondaryButtonClassName}
           type="button"
           onClick={onCancel}
         >
@@ -135,4 +120,54 @@ export default function ZoneDraftForm({
       </div>
     </form>
   );
+}
+
+function renderZoneDraftHeader(onCancel: () => void) {
+  return (
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <p className={eyebrowTextClassName}>Nouvelle zone</p>
+        <h2 className={panelTitleTextClassName}>Creer une zone</h2>
+        <p className={panelDescriptionTextClassName}>
+          Choisissez le secteur puis saisissez le prodsched pour creer la zone.
+        </p>
+      </div>
+
+      <button className={closeButtonClassName} type="button" onClick={onCancel}>
+        Fermer
+      </button>
+    </div>
+  );
+}
+
+function renderZoneSectorBadge(zoneSector: string) {
+  return (
+    <strong
+      className="inline-flex min-h-10 items-center rounded-full border px-4 text-sm font-bold text-schneider-900"
+      style={getZoneSectorBadgeStyle(zoneSector)}
+    >
+      {zoneSector.length > 0 ? zoneSector : "Selectionnez un secteur"}
+    </strong>
+  );
+}
+
+function renderZoneDraftError(errorMessage: string | null) {
+  if (errorMessage === null) {
+    return null;
+  }
+
+  return (
+    <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+      {errorMessage}
+    </p>
+  );
+}
+
+function getZoneSectorBadgeStyle(zoneSector: string): CSSProperties {
+  const sectorAccentColor = getSectorColor(zoneSector);
+
+  return {
+    borderColor: `color-mix(in srgb, ${sectorAccentColor} 40%, rgba(16,38,26,0.1))`,
+    background: `color-mix(in srgb, ${sectorAccentColor} 18%, white)`,
+  } as CSSProperties;
 }

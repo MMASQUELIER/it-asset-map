@@ -1,7 +1,13 @@
-import L from "leaflet";
 import type { DragEndEvent } from "leaflet";
 import { Marker, Tooltip } from "react-leaflet";
-import type { InteractiveMarker, MapZone } from "../../shared/types";
+import type {
+  InteractiveMarker,
+  MapZone,
+} from "@/features/infrastructure-map/model/types";
+import {
+  buildPcMarkerIcon,
+  buildPcMarkerTooltipClassName,
+} from "@/features/infrastructure-map/markers/ui/pcMarkerPresentation";
 
 /** Props used to render the PC marker layer. */
 interface PcLayerProps {
@@ -55,7 +61,10 @@ export default function PcLayer({
             ? "#64748b"
             : (zoneColorById.get(marker.zoneId) ?? "#64748b");
         const markerSize = isSelectedMarker ? 16 : (isActiveZone ? 14 : 11);
-        const tooltipClassName = `pc-tooltip${isActiveZone ? " pc-tooltip--active" : ""}${isSelectedMarker ? " pc-tooltip--selected" : ""}`;
+        const tooltipClassName = buildPcMarkerTooltipClassName(
+          isActiveZone,
+          isSelectedMarker,
+        );
         const zIndexOffset = isSelectedMarker ? 450 : (isActiveZone ? 300 : 0);
 
         return (
@@ -99,7 +108,7 @@ export default function PcLayer({
                 event.target.openTooltip();
               },
             }}
-            icon={createMarkerIcon(
+            icon={buildPcMarkerIcon(
               markerColor,
               markerSize,
               isActiveZone,
@@ -123,49 +132,4 @@ export default function PcLayer({
       })}
     </>
   );
-}
-
-/**
- * Builds a Leaflet icon matching the visual state of a marker.
- *
- * @param markerColor Marker color.
- * @param markerSize Marker diameter.
- * @param isActiveZone Whether the marker belongs to the highlighted zone.
- * @param isSelectedMarker Whether the marker is selected.
- * @param isDimmed Whether the marker should be visually muted.
- * @param isMoveMode Whether move mode is active.
- * @returns Leaflet div icon.
- */
-function createMarkerIcon(
-  markerColor: string,
-  markerSize: number,
-  isActiveZone: boolean,
-  isSelectedMarker: boolean,
-  isDimmed: boolean,
-  isMoveMode: boolean,
-): L.DivIcon {
-  const markerClassNames = ["pc-marker"];
-
-  if (isSelectedMarker) {
-    markerClassNames.push("pc-marker--selected");
-  }
-
-  if (isActiveZone) {
-    markerClassNames.push("pc-marker--active");
-  }
-
-  if (isDimmed) {
-    markerClassNames.push("pc-marker--dimmed");
-  }
-
-  if (isMoveMode) {
-    markerClassNames.push("pc-marker--move");
-  }
-
-  return L.divIcon({
-    className: "pc-marker-wrapper",
-    html: `<span class="${markerClassNames.join(" ")}" style="--pc-marker-color: ${markerColor}; width: ${markerSize}px; height: ${markerSize}px;"></span>`,
-    iconSize: [markerSize, markerSize],
-    iconAnchor: [markerSize / 2, markerSize / 2],
-  });
 }

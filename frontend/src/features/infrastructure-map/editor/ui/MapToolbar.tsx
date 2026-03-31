@@ -1,6 +1,11 @@
-import type { InteractionTool } from "../../shared/interactionTypes";
+import type { InteractionTool } from "@/features/infrastructure-map/shared/interactionTypes";
+import { MapToolbarHeader } from "@/features/infrastructure-map/editor/ui/map-toolbar/MapToolbarHeader";
+import {
+  getToolDefinition,
+} from "@/features/infrastructure-map/editor/ui/map-toolbar/mapToolbarDefinitions";
+import { MapToolbarSections } from "@/features/infrastructure-map/editor/ui/map-toolbar/MapToolbarSections";
+import { surfacePanelClassName } from "@/features/infrastructure-map/ui/uiClassNames";
 
-/** Props used to control the map interaction toolbar. */
 interface MapToolbarProps {
   activeTool: InteractionTool;
   isInteractionMode: boolean;
@@ -9,81 +14,6 @@ interface MapToolbarProps {
   onSelectTool: (tool: InteractionTool) => void;
 }
 
-/** One interactive tool exposed by the toolbar. */
-interface ToolDefinition {
-  className: string;
-  description: string;
-  id: InteractionTool;
-  label: string;
-}
-
-/** Group of tools displayed inside the toolbar. */
-interface ToolSection {
-  description: string;
-  title: string;
-  tools: ToolDefinition[];
-}
-
-/** Toolbar sections displayed while interaction mode is active. */
-const TOOL_SECTIONS: ToolSection[] = [
-  {
-    title: "Marqueurs",
-    description: "Agir sur les PC affiches sur le plan.",
-    tools: [
-      {
-        id: "add-marker",
-        label: "Ajouter un marqueur",
-        description: "Cliquez sur la carte pour preparer un nouveau PC.",
-        className: "map-toolbar__button--primary",
-      },
-      {
-        id: "move-marker",
-        label: "Deplacer un marqueur",
-        description: "Glissez un PC vers sa nouvelle position.",
-        className: "map-toolbar__button--move",
-      },
-      {
-        id: "delete-marker",
-        label: "Supprimer un marqueur",
-        description: "Cliquez sur un PC pour le retirer.",
-        className: "map-toolbar__button--danger",
-      },
-    ],
-  },
-  {
-    title: "Zones",
-    description: "Mettre a jour les zones et leur contour.",
-    tools: [
-      {
-        id: "select-zone",
-        label: "Editer une zone",
-        description:
-          "Selectionnez une zone pour changer son secteur, son prodsched ou ses coins.",
-        className: "map-toolbar__button--zone",
-      },
-      {
-        id: "add-zone",
-        label: "Ajouter une zone",
-        description:
-          "Dessinez un rectangle puis choisissez rapidement secteur et prodsched.",
-        className: "map-toolbar__button--zone",
-      },
-      {
-        id: "delete-zone",
-        label: "Supprimer une zone",
-        description: "Cliquez sur une zone pour retirer son contour.",
-        className: "map-toolbar__button--danger",
-      },
-    ],
-  },
-];
-
-/**
- * Displays the interaction mode toggle and the available editing tools.
- *
- * @param props Current toolbar state and callbacks.
- * @returns Toolbar UI.
- */
 export default function MapToolbar({
   activeTool,
   isInteractionMode,
@@ -92,131 +22,27 @@ export default function MapToolbar({
   onSelectTool,
 }: MapToolbarProps) {
   const activeToolDefinition = getToolDefinition(activeTool);
-  const title = isInteractionMode
-    ? "Mode interaction actif"
-    : "Carte en lecture";
-  const description = isInteractionMode
-    ? "Choisissez un outil puis intervenez directement sur le plan."
-    : "Activez le mode interaction pour modifier les zones et les marqueurs.";
-  const status = isInteractionMode
-    ? `Outil actif : ${activeToolDefinition.label}`
-    : "Navigation libre";
-  const toggleAction = isInteractionMode
-    ? "Fermer le mode interaction"
-    : "Activer le mode interaction";
 
   return (
-    <div className="map-toolbar">
-      <div className="map-toolbar__panel">
-        <div className="map-toolbar__top">
-          <div className="map-toolbar__intro">
-            <p className="map-toolbar__eyebrow">Outils de carte</p>
-            <p className="map-toolbar__title">{title}</p>
-            <p className="map-toolbar__description">{description}</p>
-          </div>
-
-          <div className="map-toolbar__actions">
-            <span
-              className={`map-toolbar__status${
-                isInteractionMode ? " map-toolbar__status--interactive" : ""
-              }`}
-            >
-              {status}
-            </span>
-
-            <button
-              aria-pressed={isInteractionMode}
-              className={`map-toolbar__button map-toolbar__button--interaction${
-                isInteractionMode ? " map-toolbar__button--active" : ""
-              }`}
-              type="button"
-              onClick={isInteractionMode
-                ? onCloseInteractionMode
-                : onOpenInteractionMode}
-            >
-              {toggleAction}
-            </button>
-          </div>
-        </div>
-
+    <div className="min-w-0">
+      <div className={`${surfacePanelClassName} relative overflow-hidden grid gap-4 p-5`}>
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-[linear-gradient(180deg,rgba(15,122,70,0.08),transparent)]" />
+        <MapToolbarHeader
+          activeToolDefinition={activeToolDefinition}
+          isInteractionMode={isInteractionMode}
+          onCloseInteractionMode={onCloseInteractionMode}
+          onOpenInteractionMode={onOpenInteractionMode}
+        />
         {isInteractionMode
           ? (
-            <>
-              <div className="map-toolbar__active-tool">
-                <div className="map-toolbar__active-tool-copy">
-                  <span className="map-toolbar__active-tool-label">
-                    Aide rapide
-                  </span>
-                  <p className="map-toolbar__active-tool-title">
-                    {activeToolDefinition.label}
-                  </p>
-                  <p className="map-toolbar__active-tool-description">
-                    {activeToolDefinition.description}
-                  </p>
-                </div>
-              </div>
-
-              <div className="map-toolbar__groups">
-                {TOOL_SECTIONS.map((section) => (
-                  <section key={section.title} className="map-toolbar__group">
-                    <div className="map-toolbar__group-header">
-                      <p className="map-toolbar__group-title">
-                        {section.title}
-                      </p>
-                      <p className="map-toolbar__group-description">
-                        {section.description}
-                      </p>
-                    </div>
-
-                    <div className="map-toolbar__tools">
-                      {section.tools.map((tool) => (
-                        <button
-                          key={tool.id}
-                          aria-pressed={activeTool === tool.id}
-                          className={`map-toolbar__tool ${tool.className}${
-                            activeTool === tool.id
-                              ? " map-toolbar__button--active"
-                              : ""
-                          }`}
-                          type="button"
-                          onClick={() => onSelectTool(tool.id)}
-                        >
-                          <span className="map-toolbar__tool-label">
-                            {tool.label}
-                          </span>
-                          <span className="map-toolbar__tool-description">
-                            {tool.description}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </section>
-                ))}
-              </div>
-            </>
+            <MapToolbarSections
+              activeTool={activeTool}
+              activeToolDefinition={activeToolDefinition}
+              onSelectTool={onSelectTool}
+            />
           )
           : null}
       </div>
     </div>
   );
-}
-
-/**
- * Returns the metadata associated with one interaction tool.
- *
- * @param tool Tool identifier.
- * @returns Matching tool definition.
- */
-function getToolDefinition(tool: InteractionTool): ToolDefinition {
-  for (const section of TOOL_SECTIONS) {
-    const matchingTool = section.tools.find((candidate) =>
-      candidate.id === tool
-    );
-
-    if (matchingTool !== undefined) {
-      return matchingTool;
-    }
-  }
-
-  return TOOL_SECTIONS[0].tools[0];
 }

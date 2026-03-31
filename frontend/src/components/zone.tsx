@@ -1,29 +1,28 @@
-// src/components/Zones.tsx
 import { useEffect, useState } from "react";
 import { Pane, Rectangle, Tooltip } from "react-leaflet";
 import type { PathOptions } from "leaflet";
 
-export type Zone = {
+export interface Zone {
   id: number;
   nom: string;
   /** [x1, x2, y1, y2] en coordonnées image (CRS.Simple) */
   position: [number, number, number, number];
-};
+}
 
-export type ZonesResponse = {
+export interface ZonesResponse {
   zones: Zone[];
-};
+}
 
-type ZonesProps = {
-  /** ex: "http://localhost:8000/api/zones" */
+interface ZonesProps {
+  /** Exemple : `http://localhost:8000/api/zones`. */
   apiUrl: string;
-  /** callback clic sur une zone */
+  /** Callback declenche au clic sur une zone. */
   onSelect?: (zone: Zone) => void;
-  /** style par défaut des rectangles */
+  /** Style applique aux rectangles hors survol. */
   style?: PathOptions;
-  /** style au survol */
+  /** Style applique au survol. */
   hoverStyle?: PathOptions;
-};
+}
 
 export default function Zones({
   apiUrl,
@@ -32,42 +31,44 @@ export default function Zones({
   hoverStyle,
 }: ZonesProps) {
   const [zones, setZones] = useState<Zone[]>([]);
-  const [hoveredId, setHoveredId] = useState<number | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [hoveredZoneId, setHoveredZoneId] = useState<number | null>(null);
 
-  // Chargement des zones
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
+    let isCancelled = false;
+
+    async function loadZones(): Promise<void> {
       try {
-        setError(null);
-        const res = await fetch(apiUrl);
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data: unknown = await res.json();
-        const parsed = parseZonesResponse(data);
-        if (!cancelled) setZones(parsed.zones);
-      } catch (e) {
-        if (!cancelled) {
-          setError(e instanceof Error ? e.message : String(e));
+        const response = await fetch(apiUrl);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        const parsedResponse = parseZonesResponse(await response.json() as unknown);
+
+        if (!isCancelled) {
+          setZones(parsedResponse.zones);
+        }
+      } catch {
+        if (!isCancelled) {
+          setZones([]);
         }
       }
-    })();
+    }
+
+    void loadZones();
+
     return () => {
-      cancelled = true;
+      isCancelled = true;
     };
   }, [apiUrl]);
 
-  if (error) {
-    console.error("Erreur de chargement des zones:", error);
-  }
-
-  // Styles par défaut
   const baseStyle: PathOptions = {
     color: "#0099ff",
     weight: 1.5,
     fillColor: "#0099ff",
     fillOpacity: 0.25,
-    pane: "zones-pane", // dans le Pane ci-dessous
+    pane: "zones-pane",
     ...style,
   };
   const overStyle: PathOptions = {
@@ -78,41 +79,37 @@ export default function Zones({
   };
 
   return (
-    // Pane au-dessus de l'ImageOverlay
     <Pane name="zones-pane" style={{ zIndex: 450 }}>
-      {zones.map((z) => {
-        const [x1, x2, y1, y2] = z.position;
+      {zones.map(function renderZone(zone) {
+        const [x1, x2, y1, y2] = zone.position;
         const minX = Math.min(x1, x2);
         const maxX = Math.max(x1, x2);
         const minY = Math.min(y1, y2);
         const maxY = Math.max(y1, y2);
-
-        // Leaflet (CRS.Simple) attend des LatLng: [lat, lng] = [y, x]
         const bounds: [[number, number], [number, number]] = [
-          [minY, minX], // coin haut-gauche
-          [maxY, maxX], // coin bas-droit
+          [minY, minX],
+          [maxY, maxX],
         ];
-
-        const pathOptions = hoveredId === z.id ? overStyle : baseStyle;
 
         return (
           <Rectangle
-            key={z.id}
+            key={zone.id}
             bounds={bounds}
-            pathOptions={pathOptions}
+            pathOptions={hoveredZoneId === zone.id ? overStyle : baseStyle}
             eventHandlers={{
-              click: () => onSelect?.(z),
-              mouseover: () => setHoveredId(z.id),
-              mouseout: () => setHoveredId(null),
+              click: function handleZoneClick() {
+                onSelect?.(zone);
+              },
+              mouseover: function handleZoneMouseOver() {
+                setHoveredZoneId(zone.id);
+              },
+              mouseout: function handleZoneMouseOut() {
+                setHoveredZoneId(null);
+              },
             }}
           >
-            <Tooltip
-              direction="top"
-              sticky
-              opacity={0.9}
-              offset={[0, -8]}
-            >
-              {z.nom}
+            <Tooltip direction="top" sticky opacity={0.9} offset={[0, -8]}>
+              {zone.nom}
             </Tooltip>
           </Rectangle>
         );
@@ -121,35 +118,49 @@ export default function Zones({
   );
 }
 
-/* --------- Validation côté client --------- */
-function isRecord(v: unknown): v is Record<string, unknown> {
-  return typeof v === "object" && v !== null;
+/** Verifie qu'une valeur inconnue est bien un objet indexable. */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }
 
-function parseZonesResponse(v: unknown): ZonesResponse {
-  if (!isRecord(v) || !Array.isArray(v.zones)) {
+/** Valide la forme minimale de la reponse zones cote navigateur. */
+function parseZonesResponse(value: unknown): ZonesResponse {
+  if (!isRecord(value) || !Array.isArray(value.zones)) {
     throw new Error("Structure attendue: { zones: Zone[] }");
   }
-  const zones: Zone[] = v.zones.map((z, i) => {
-    if (!isRecord(z)) throw new Error(`zones[${i}] n'est pas un objet`);
-    const id = z.id;
-    const nom = z.nom;
-    const pos = z.position;
+
+  const zones = value.zones.map(function parseZone(zone, index): Zone {
+    if (!isRecord(zone)) {
+      throw new Error(`zones[${index}] n'est pas un objet`);
+    }
+
+    const id = zone.id;
+    const nom = zone.nom;
+    const position = zone.position;
+
     if (typeof id !== "number") {
-      throw new Error(`zones[${i}].id doit être un nombre`);
+      throw new Error(`zones[${index}].id doit etre un nombre`);
     }
+
     if (typeof nom !== "string") {
-      throw new Error(`zones[${i}].nom doit être une chaîne`);
+      throw new Error(`zones[${index}].nom doit etre une chaine`);
     }
+
     if (
-      !Array.isArray(pos) || pos.length !== 4 ||
-      !pos.every((n) => typeof n === "number")
+      !Array.isArray(position) || position.length !== 4 ||
+      !position.every((coordinate) => typeof coordinate === "number")
     ) {
       throw new Error(
-        `zones[${i}].position doit être [number, number, number, number]`,
+        `zones[${index}].position doit etre [number, number, number, number]`,
       );
     }
-    return { id, nom, position: pos as [number, number, number, number] };
+
+    return {
+      id,
+      nom,
+      position: position as [number, number, number, number],
+    };
   });
+
   return { zones };
 }

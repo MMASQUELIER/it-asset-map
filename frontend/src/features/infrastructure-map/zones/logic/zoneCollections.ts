@@ -2,8 +2,8 @@ import type {
   MapZone,
   RectangleBounds,
   StoredMapZone,
-} from "../../shared/types";
-import { getSectorColor } from "./zoneAppearance";
+} from "@/features/infrastructure-map/model/types";
+import { getSectorColor } from "@/features/infrastructure-map/zones/logic/zoneAppearance";
 
 /**
  * Converts persisted backend zones into interactive zones enriched for the UI.

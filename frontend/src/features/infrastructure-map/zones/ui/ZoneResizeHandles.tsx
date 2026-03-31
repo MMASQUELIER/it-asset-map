@@ -1,7 +1,7 @@
 import L from "leaflet";
 import { Marker } from "react-leaflet";
-import type { RectangleBounds } from "../../shared/types";
-import type { ZoneResizeHandle } from "../../shared/interactionTypes";
+import type { RectangleBounds } from "@/features/infrastructure-map/model/types";
+import type { ZoneResizeHandle } from "@/features/infrastructure-map/shared/interactionTypes";
 
 /** Props used to resize the currently selected zone. */
 interface ZoneResizeHandlesProps {
@@ -19,8 +19,9 @@ const HANDLE_POSITIONS: ZoneResizeHandle[] = [
 
 /** Shared icon used by every resize handle. */
 const HANDLE_ICON = L.divIcon({
-  className: "zone-resize-handle-wrapper",
-  html: '<span class="zone-resize-handle"></span>',
+  className: "bg-transparent border-0",
+  html:
+    '<span class="inline-flex h-4 w-4 rounded-[5px] border-2 border-[#12311f] bg-white shadow-[0_6px_16px_rgba(20,54,34,0.22)]"></span>',
   iconSize: [16, 16],
   iconAnchor: [8, 8],
 });

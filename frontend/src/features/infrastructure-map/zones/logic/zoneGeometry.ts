@@ -1,5 +1,8 @@
-import type { MapImageDimensions, RectangleBounds } from "../../shared/types";
-import type { ZoneResizeHandle } from "../../shared/interactionTypes";
+import type {
+  MapImageDimensions,
+  RectangleBounds,
+} from "@/features/infrastructure-map/model/types";
+import type { ZoneResizeHandle } from "@/features/infrastructure-map/shared/interactionTypes";
 
 /** Minimum allowed width and height for an interactive zone. */
 export const MIN_ZONE_DIMENSION = 40;

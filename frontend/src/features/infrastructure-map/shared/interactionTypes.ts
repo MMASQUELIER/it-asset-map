@@ -1,4 +1,4 @@
-/** Tools available when the map enters interaction mode. */
+/** Outils disponibles quand la carte passe en mode interaction. */
 export type InteractionTool =
   | "select-zone"
   | "add-marker"
@@ -7,7 +7,7 @@ export type InteractionTool =
   | "add-zone"
   | "delete-zone";
 
-/** Supported drag handles used to resize a rectangular zone. */
+/** Poignees de redimensionnement supportees pour une zone rectangulaire. */
 export type ZoneResizeHandle =
   | "top-left"
   | "top-right"

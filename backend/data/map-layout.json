@@ -9,121 +9,90 @@
       "sector": "SECTEUR FABRICATION",
       "prodsched": "80",
       "bounds": {
-        "x": 64,
-        "y": 472,
-        "width": 65,
-        "height": 103
+        "x": 61,
+        "y": 440,
+        "width": 224,
+        "height": 129
       }
     },
     {
       "id": 20,
-      "sector": "SECTEUR FABRICATION",
-      "prodsched": "90",
+      "sector": "SECTEUR MAGASIN",
+      "prodsched": "9040",
       "bounds": {
-        "x": 130,
-        "y": 461,
-        "width": 439,
-        "height": 110
-      }
-    },
-    {
-      "id": 30,
-      "sector": "SECTEUR FABRICATION",
-      "prodsched": "80",
-      "bounds": {
-        "x": 59,
-        "y": 409,
-        "width": 237,
-        "height": 52
-      }
-    },
-    {
-      "id": 40,
-      "sector": "SECTEUR CORPS",
-      "prodsched": "440",
-      "bounds": {
-        "x": 56,
-        "y": 279,
-        "width": 316,
-        "height": 115
-      }
-    },
-    {
-      "id": 50,
-      "sector": "SECTEUR TETE",
-      "prodsched": "330",
-      "bounds": {
-        "x": 62,
-        "y": 164,
-        "width": 364,
-        "height": 97
-      }
-    },
-    {
-      "id": 60,
-      "sector": "SECTEUR FABRICATION",
-      "prodsched": "150",
-      "bounds": {
-        "x": 312,
-        "y": 405,
-        "width": 341,
-        "height": 50
-      }
-    },
-    {
-      "id": 70,
-      "sector": "SECTEUR MANUEL",
-      "prodsched": "870",
-      "bounds": {
-        "x": 452,
-        "y": 163,
-        "width": 222,
-        "height": 219
+        "x": 54,
+        "y": 285,
+        "width": 315,
+        "height": 108
       }
     }
   ],
   "markerPlacements": [
     {
-      "markerId": "WFRGM0YQ6DWD",
-      "x": 79,
-      "y": 451,
-      "zoneId": 30
-    },
-    {
-      "markerId": "WFREM00WADFD",
-      "x": 260,
-      "y": 538,
-      "zoneId": 20
-    },
-    {
-      "markerId": "WFRPC2KFPJKD",
-      "x": 87,
-      "y": 556,
-      "zoneId": 10
-    },
-    {
       "markerId": "WTFRLVSE248076D",
       "x": 115,
       "y": 224,
-      "zoneId": 50
-    },
-    {
-      "markerId": "WFRGM0YQ6EXD",
-      "x": 529,
-      "y": 338,
-      "zoneId": 70
+      "zoneId": null
     },
     {
       "markerId": "WFRPC2JM4SDD",
       "x": 639,
       "y": 199,
-      "zoneId": 70
+      "zoneId": null
     },
     {
       "markerId": "WFRGM0YQ6ESD",
       "x": 523,
       "y": 198,
-      "zoneId": 70
+      "zoneId": null
+    },
+    {
+      "markerId": "WFRGM0YQ6DXD",
+      "x": 294,
+      "y": 222,
+      "zoneId": null
+    },
+    {
+      "markerId": "WFRGM0YQ6EMD",
+      "x": 346,
+      "y": 196,
+      "zoneId": null
+    },
+    {
+      "markerId": "WFREM00WAD2D",
+      "x": 200,
+      "y": 566,
+      "zoneId": null
+    },
+    {
+      "markerId": "WFRGM0VZMV0D",
+      "x": 75,
+      "y": 522,
+      "zoneId": 10
+    },
+    {
+      "markerId": "WFRGM0YQ6END",
+      "x": 81,
+      "y": 360,
+      "zoneId": null
+    },
+    {
+      "markerId": "WTFRLVSE211144D",
+      "x": 163,
+      "y": 326,
+      "zoneId": null
+    },
+    {
+      "markerId": "WFRPC2KFPJKD",
+      "x": 173,
+      "y": 505,
+      "zoneId": 10
+    },
+    {
+      "markerId": "WFRGM0YQ6DED",
+      "x": 209,
+      "y": 534,
+      "zoneId": 10
     }
   ]
 }

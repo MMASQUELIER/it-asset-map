@@ -1,25 +1,28 @@
 import L from "leaflet";
-import type { RectangleBounds } from "./types";
+import type { RectangleBounds } from "@/features/infrastructure-map/model/types";
 
 /**
- * Converts image-space rectangle bounds into Leaflet bounds.
- *
- * @param bounds Rectangle expressed in image coordinates.
- * @returns Leaflet bounds in `[lat, lng]` order.
+ * Convertit un rectangle exprime en coordonnees image vers des bornes Leaflet.
  */
 export function toLeafletBounds(bounds: RectangleBounds): L.LatLngBoundsExpression {
+  const topLeft: [number, number] = [bounds.y, bounds.x];
+  const bottomRight: [number, number] = [
+    bounds.y + bounds.height,
+    bounds.x + bounds.width,
+  ];
+
   return [
-    [bounds.y, bounds.x],
-    [bounds.y + bounds.height, bounds.x + bounds.width],
+    topLeft,
+    bottomRight,
   ];
 }
 
 /**
- * Returns the visual centre of a zone for badge placement.
- *
- * @param bounds Zone rectangle.
- * @returns Leaflet coordinates located at the rectangle centre.
+ * Retourne le centre visuel d'une zone pour placer badge ou etiquette.
  */
 export function getZoneCenter(bounds: RectangleBounds): L.LatLngExpression {
-  return [bounds.y + bounds.height / 2, bounds.x + bounds.width / 2];
+  const centerY = bounds.y + bounds.height / 2;
+  const centerX = bounds.x + bounds.width / 2;
+
+  return [centerY, centerX];
 }
