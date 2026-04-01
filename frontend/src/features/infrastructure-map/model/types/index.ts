@@ -1,8 +1,13 @@
+export { EDITABLE_PC_FIELD_IDS } from "@/features/infrastructure-map/model/types/pc";
 export type {
   MapImageDimensions,
   RectangleBounds,
 } from "@/features/infrastructure-map/model/types/map";
-export type { PcTechnicalDetails, MapPc } from "@/features/infrastructure-map/model/types/pc";
+export type {
+  EditablePcFieldId,
+  PcTechnicalDetails,
+  MapPc,
+} from "@/features/infrastructure-map/model/types/pc";
 export type {
   InteractiveMarker,
   MarkerDraft,

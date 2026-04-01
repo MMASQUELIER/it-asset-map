@@ -18,6 +18,7 @@ export interface PlacementPcCandidate {
   label: string;
   prodsched: string;
   sector: string;
+  sourceRowNumber: number;
   stationName: string;
   technicalDetails: PcTechnicalDetails;
 }

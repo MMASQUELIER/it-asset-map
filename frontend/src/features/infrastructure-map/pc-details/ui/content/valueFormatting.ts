@@ -86,6 +86,14 @@ function formatInventoryDateValue(value: string): string {
     );
   }
 
+  const frenchDateMatch = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+
+  if (frenchDateMatch !== null) {
+    const [, day, month, year] = frenchDateMatch;
+
+    return formatDateParts(Number(day), Number(month), Number(year));
+  }
+
   const parsedDate = new Date(value);
 
   if (!Number.isNaN(parsedDate.getTime())) {

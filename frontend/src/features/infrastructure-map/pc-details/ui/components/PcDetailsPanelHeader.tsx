@@ -10,10 +10,12 @@ import {
 } from "@/features/infrastructure-map/ui/uiClassNames";
 
 interface PcDetailsPanelHeaderProps {
+  connectionTypeLabel?: string;
   markerId: string;
   onClose: () => void;
   onSearchQueryChange: (value: string) => void;
   searchQuery: string;
+  securityStateLabel: string;
   subtitle: string;
   visibleFieldCount: number;
   zone: MapZone | null;
@@ -21,10 +23,12 @@ interface PcDetailsPanelHeaderProps {
 }
 
 export function PcDetailsPanelHeader({
+  connectionTypeLabel,
   markerId,
   onClose,
   onSearchQueryChange,
   searchQuery,
+  securityStateLabel,
   subtitle,
   visibleFieldCount,
   zone,
@@ -33,6 +37,7 @@ export function PcDetailsPanelHeader({
   const visibleInfoLabel = `${visibleFieldCount} info${
     visibleFieldCount > 1 ? "s" : ""
   } visible`;
+  const securityTone = getSecurityTone(securityStateLabel);
 
   return (
     <>
@@ -63,6 +68,8 @@ export function PcDetailsPanelHeader({
           {zoneLabel}
         </span>
         {renderContextBadge(zone === null ? undefined : zone.sector)}
+        {renderConnectionBadge(connectionTypeLabel)}
+        {renderSecurityBadge(securityStateLabel, securityTone)}
       </div>
 
       <div className="grid gap-2">
@@ -108,6 +115,41 @@ function renderContextBadge(label: string | undefined) {
   );
 }
 
+function renderConnectionBadge(label: string | undefined) {
+  if (label === undefined) {
+    return null;
+  }
+
+  return (
+    <span className="inline-flex max-w-full items-center rounded-full border border-schneider-950/10 bg-white/90 px-3 py-1.5 text-[0.78rem] font-bold text-schneider-900">
+      {label}
+    </span>
+  );
+}
+
+function renderSecurityBadge(
+  label: string,
+  tone: ReturnType<typeof getSecurityTone>,
+) {
+  return (
+    <span
+      className={joinClassNames(
+        "inline-flex max-w-full items-center rounded-full border px-3 py-1.5 text-[0.78rem] font-bold",
+        tone === "good" &&
+          "border-emerald-300/60 bg-emerald-50/90 text-emerald-800",
+        tone === "warning" &&
+          "border-amber-300/60 bg-amber-50/90 text-amber-800",
+        tone === "critical" &&
+          "border-rose-300/60 bg-rose-50/90 text-rose-800",
+        tone === "neutral" &&
+          "border-schneider-950/10 bg-white/90 text-schneider-900",
+      )}
+    >
+      {label}
+    </span>
+  );
+}
+
 function buildZoneBadgeStyle(zone: MapZone | null): CSSProperties | undefined {
   if (zone === null) {
     return undefined;
@@ -118,4 +160,3 @@ function buildZoneBadgeStyle(zone: MapZone | null): CSSProperties | undefined {
     background: `color-mix(in srgb, ${zone.color} 18%, white)`,
   } as CSSProperties;
 }
-

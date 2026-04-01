@@ -13,26 +13,28 @@ export function isPcAsset(asset: BackendAssetRecord): boolean {
 
 export function createPlacementPcCandidate(
   asset: BackendAssetRecord,
-  index: number,
+  sourceRowIndex: number,
   markerIdUsage: Map<string, number>,
   sectorColumnName: string,
 ): PlacementPcCandidateDto {
+  const sourceRowNumber = sourceRowIndex + 2;
   const hostname = readMeaningfulCell(asset[COLUMN_KEYS.hostname]);
   const serialNumber = readMeaningfulCell(asset[COLUMN_KEYS.serialNumber]);
   const stationName = readMeaningfulCell(asset[COLUMN_KEYS.stationName]) ?? "";
   const prodsched = readCellText(asset[COLUMN_KEYS.prodsched]);
   const sector = readCellText(asset[sectorColumnName]);
   const preferredMarkerId = hostname ?? serialNumber ??
-    buildFallbackMarkerIdSeed(prodsched, stationName, index);
+    buildFallbackMarkerIdSeed(prodsched, stationName, sourceRowNumber);
   const markerId = buildUniqueMarkerId(preferredMarkerId, markerIdUsage);
 
   return {
-    id: `${markerId}-${index}`,
+    id: `${markerId}-${sourceRowNumber}`,
     markerId,
     hostname: hostname ?? undefined,
     label: buildCandidateLabel(stationName, prodsched, sector),
     prodsched,
     sector,
+    sourceRowNumber,
     stationName,
     technicalDetails: mapAssetToTechnicalDetails(asset, sectorColumnName),
   };
@@ -41,13 +43,13 @@ export function createPlacementPcCandidate(
 function buildFallbackMarkerIdSeed(
   prodsched: string,
   stationName: string,
-  index: number,
+  sourceRowNumber: number,
 ): string {
   const labelParts = [prodsched, stationName].filter((value) => value.length > 0);
 
   return labelParts.length > 0
     ? `${labelParts.join("-")}-EXCEL-INCOMPLET`
-    : `PC-EXCEL-INCOMPLET-${index + 1}`;
+    : `PC-EXCEL-INCOMPLET-LIGNE-${sourceRowNumber}`;
 }
 
 function buildCandidateLabel(

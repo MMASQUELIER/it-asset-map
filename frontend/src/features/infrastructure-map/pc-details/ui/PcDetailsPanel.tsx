@@ -16,6 +16,7 @@ import {
   buildPcDetailSections,
   buildPcSubtitle,
   buildPcSummaryFields,
+  type VisiblePcDetailField,
 } from "@/features/infrastructure-map/pc-details/ui/pcDetailsContent";
 import { formatPcDetailValue } from "@/features/infrastructure-map/pc-details/ui/content/valueFormatting";
 import {
@@ -27,12 +28,19 @@ import { getZoneDisplayLabel } from "@/features/infrastructure-map/zones/logic/z
 interface PcDetailsPanelProps {
   marker: InteractiveMarker;
   onClose: () => void;
+  onUpdatePcField: (
+    markerId: string,
+    sourceRowNumber: number,
+    fieldId: NonNullable<VisiblePcDetailField["editableFieldId"]>,
+    value: string,
+  ) => Promise<void>;
   zone: MapZone | null;
 }
 
 export default function PcDetailsPanel({
   marker,
   onClose,
+  onUpdatePcField,
   zone,
 }: PcDetailsPanelProps) {
   const { copiedFieldId, handleCopy } = useCopiedField();
@@ -52,6 +60,22 @@ export default function PcDetailsPanel({
       },
       0,
     );
+
+  async function handleFieldSave(
+    field: VisiblePcDetailField,
+    nextValue: string,
+  ): Promise<void> {
+    if (field.editableFieldId === undefined) {
+      return;
+    }
+
+    await onUpdatePcField(
+      marker.id,
+      marker.sourceRowNumber,
+      field.editableFieldId,
+      nextValue,
+    );
+  }
 
   return (
     <aside
@@ -104,6 +128,7 @@ export default function PcDetailsPanel({
                   copiedFieldId={copiedFieldId}
                   field={field}
                   onCopy={handleCopy}
+                  onSaveField={handleFieldSave}
                 />
               ))}
             </div>
@@ -113,15 +138,16 @@ export default function PcDetailsPanel({
 
       {visibleDetailSections.length > 0
         ? visibleDetailSections.map((section, index) => (
-          <PcDetailsSection
-            key={section.title}
-            copiedFieldId={copiedFieldId}
-            forceOpen={detailSearchQuery.trim().length > 0}
-            items={section.items}
-            onCopy={handleCopy}
-            startOpen={index === 0}
-            title={section.title}
-          />
+            <PcDetailsSection
+              key={section.title}
+              copiedFieldId={copiedFieldId}
+              forceOpen={detailSearchQuery.trim().length > 0}
+              items={section.items}
+              onCopy={handleCopy}
+              onSaveField={handleFieldSave}
+              startOpen={index === 0}
+              title={section.title}
+            />
         ))
         : (
           <section className="rounded-[26px] border border-schneider-950/10 bg-schneider-50/65 px-4 py-5 text-sm leading-6 text-schneider-800/75">

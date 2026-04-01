@@ -1,4 +1,5 @@
 import type {
+  EditablePcFieldId,
   InteractiveMarker,
   MapZone,
   MarkerDraft,
@@ -25,6 +26,11 @@ export interface InfrastructureMapState {
   handleHoverZone: (zoneId: number) => void;
   handleSelectTool: (tool: InteractionTool) => void;
   handleZoneInteraction: (zoneId: number) => void;
+  handleUpdateMarkerTechnicalDetails: (
+    markerId: string,
+    fieldId: EditablePcFieldId,
+    value: string,
+  ) => void;
   handleZoneDraftProdschedChange: (value: string) => void;
   handleZoneDraftSectorChange: (value: string) => void;
   handleZoneDraftSave: () => void;

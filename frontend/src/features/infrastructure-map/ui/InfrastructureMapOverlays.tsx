@@ -1,4 +1,5 @@
 import type {
+  EditablePcFieldId,
   InteractiveMarker,
   MapZone,
   MarkerDraft,
@@ -27,6 +28,12 @@ interface InfrastructureMapOverlaysProps {
   onZoneProdschedChange: (value: string) => void;
   onZoneSectorChange: (value: string) => void;
   onZoneSubmit: () => void;
+  onUpdatePcField: (
+    markerId: string,
+    sourceRowNumber: number,
+    fieldId: EditablePcFieldId,
+    value: string,
+  ) => Promise<void>;
   selectedMarker: InteractiveMarker | null;
   selectedMarkerAssignedZone: MapZone | null;
   selectedZone: MapZone | null;
@@ -54,6 +61,7 @@ export function InfrastructureMapOverlays({
   onZoneProdschedChange,
   onZoneSectorChange,
   onZoneSubmit,
+  onUpdatePcField,
   selectedMarker,
   selectedMarkerAssignedZone,
   selectedZone,
@@ -98,6 +106,7 @@ export function InfrastructureMapOverlays({
           <PcDetailsPanel
             marker={selectedMarker}
             onClose={onCloseSelectedMarker}
+            onUpdatePcField={onUpdatePcField}
             zone={selectedMarkerAssignedZone}
           />
         )

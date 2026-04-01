@@ -41,6 +41,7 @@ export function hydratePlacedMarkers(
 
     hydratedMarkers.push({
       id: placementCandidate.markerId,
+      sourceRowNumber: placementCandidate.sourceRowNumber,
       x: Math.round(markerPlacement.x),
       y: Math.round(markerPlacement.y),
       zoneId: resolvedZone === null ? null : resolvedZone.id,

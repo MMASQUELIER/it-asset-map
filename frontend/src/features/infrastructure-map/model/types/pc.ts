@@ -1,3 +1,43 @@
+export const EDITABLE_PC_FIELD_IDS = [
+  "contact",
+  "pinKey",
+  "sector",
+  "manufacturingStationNames",
+  "lastInventoryDate",
+  "assetType",
+  "manufacturer",
+  "model",
+  "sap",
+  "hostname",
+  "operatingSystem",
+  "storage",
+  "ipAddress",
+  "oldIpAddress",
+  "newIpAddress",
+  "subnetMask",
+  "macAddress",
+  "vlan",
+  "vlanNew",
+  "networkScope",
+  "gateway",
+  "idPort",
+  "newPortAuto",
+  "switchName",
+  "switchIpAddress",
+  "connectedToSwitchName",
+  "connectedToSwitchPort",
+  "wifiOrWiredConnection",
+  "ticketBrassage",
+  "ipFilter",
+  "directoryAccount",
+  "commentaire2",
+  "serialNumber",
+  "etat",
+  "securityStatus",
+] as const;
+
+export type EditablePcFieldId = typeof EDITABLE_PC_FIELD_IDS[number];
+
 export interface PcTechnicalDetails {
   excelIssues?: string[];
   site?: string;
@@ -47,6 +87,7 @@ export interface PcTechnicalDetails {
 
 export interface MapPc {
   id: string;
+  sourceRowNumber: number;
   x: number;
   y: number;
   technicalDetails: PcTechnicalDetails;

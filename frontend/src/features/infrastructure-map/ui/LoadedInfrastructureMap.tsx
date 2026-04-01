@@ -1,4 +1,5 @@
 import type {
+  EditablePcFieldId,
   MapLayoutData,
   PlacementPcCandidate,
 } from "@/features/infrastructure-map/model/types";
@@ -19,6 +20,11 @@ interface LoadedInfrastructureMapProps {
   imageUrl: string;
   isSavingLayout: boolean;
   layoutData: MapLayoutData;
+  onUpdatePcField: (input: {
+    fieldId: EditablePcFieldId;
+    sourceRowNumber: number;
+    value: string;
+  }) => Promise<void>;
   onSaveLayout: (layoutData: MapLayoutData) => Promise<void>;
   placementPcCandidates: PlacementPcCandidate[];
   saveLayoutErrorMessage: string | null;
@@ -29,6 +35,7 @@ export function LoadedInfrastructureMap({
   imageUrl,
   isSavingLayout,
   layoutData,
+  onUpdatePcField,
   onSaveLayout,
   placementPcCandidates,
   saveLayoutErrorMessage,
@@ -62,6 +69,25 @@ export function LoadedInfrastructureMap({
     onSaveLayout,
     zones: interactiveMapState.zones,
   });
+
+  async function handlePcFieldUpdate(
+    markerId: string,
+    sourceRowNumber: number,
+    fieldId: EditablePcFieldId,
+    value: string,
+  ): Promise<void> {
+    await onUpdatePcField({
+      fieldId,
+      sourceRowNumber,
+      value,
+    });
+
+    interactiveMapState.handleUpdateMarkerTechnicalDetails(
+      markerId,
+      fieldId,
+      value,
+    );
+  }
 
   return (
     <section className={mapCardClassName}>
@@ -114,6 +140,7 @@ export function LoadedInfrastructureMap({
             onZoneProdschedChange={interactiveMapState.handleZoneDraftProdschedChange}
             onZoneSectorChange={interactiveMapState.handleZoneDraftSectorChange}
             onZoneSubmit={interactiveMapState.handleZoneDraftSave}
+            onUpdatePcField={handlePcFieldUpdate}
             selectedMarker={interactiveMapState.selectedMarker}
             selectedMarkerAssignedZone={selectedMarkerAssignedZone}
             selectedZone={interactiveMapState.selectedZone}

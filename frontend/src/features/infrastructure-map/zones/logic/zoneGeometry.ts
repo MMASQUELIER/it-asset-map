@@ -5,7 +5,7 @@ import type {
 import type { ZoneResizeHandle } from "@/features/infrastructure-map/shared/interactionTypes";
 
 /** Minimum allowed width and height for an interactive zone. */
-export const MIN_ZONE_DIMENSION = 40;
+export const MIN_ZONE_DIMENSION = 1;
 
 /**
  * Builds a rectangle from two drag points while keeping the result inside the

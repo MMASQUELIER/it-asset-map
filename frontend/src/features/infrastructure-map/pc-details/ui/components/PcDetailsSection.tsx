@@ -6,6 +6,7 @@ interface PcDetailsSectionProps {
   forceOpen?: boolean;
   items: VisiblePcDetailField[];
   onCopy: (field: VisiblePcDetailField) => void;
+  onSaveField?: (field: VisiblePcDetailField, nextValue: string) => Promise<void>;
   startOpen?: boolean;
   title: string;
 }
@@ -15,6 +16,7 @@ export function PcDetailsSection({
   forceOpen = false,
   items,
   onCopy,
+  onSaveField,
   startOpen = false,
   title,
 }: PcDetailsSectionProps) {
@@ -50,6 +52,7 @@ export function PcDetailsSection({
               copiedFieldId={copiedFieldId}
               field={field}
               onCopy={onCopy}
+              onSaveField={onSaveField}
             />
           );
         })}

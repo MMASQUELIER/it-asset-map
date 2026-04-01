@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type {
+  EditablePcFieldId,
   InteractiveMarker,
   MapImageDimensions,
   MapZone,
@@ -11,6 +12,7 @@ import type { InfrastructureMapState } from "@/features/infrastructure-map/state
 import { createInteractionModeHandlers } from "@/features/infrastructure-map/state/handlers/createInteractionModeHandlers";
 import { createMarkerHandlers } from "@/features/infrastructure-map/state/handlers/createMarkerHandlers";
 import { createZoneHandlers } from "@/features/infrastructure-map/state/handlers/createZoneHandlers";
+import { applyEditablePcFieldUpdate } from "@/features/infrastructure-map/pc-details/logic/pcTechnicalDetails";
 import { useSelectedMarker } from "@/features/infrastructure-map/state/useSelectedMarker";
 import { useZoneHoverState } from "@/features/infrastructure-map/state/useZoneHoverState";
 import useZoneDraft from "@/features/infrastructure-map/zones/model/useZoneDraft";
@@ -52,6 +54,29 @@ export default function useInfrastructureMapState({
   function resetTransientUiState(): void {
     selectedMarkerState.clearSelectedMarker();
     clearPendingDrafts();
+  }
+
+  function handleUpdateMarkerTechnicalDetails(
+    markerId: string,
+    fieldId: EditablePcFieldId,
+    value: string,
+  ): void {
+    setMarkers((currentMarkers) =>
+      currentMarkers.map(function updateMarkerTechnicalDetails(marker) {
+        if (marker.id !== markerId) {
+          return marker;
+        }
+
+        return {
+          ...marker,
+          technicalDetails: applyEditablePcFieldUpdate(
+            marker.technicalDetails,
+            fieldId,
+            value,
+          ),
+        };
+      })
+    );
   }
 
   const interactionHandlers = createInteractionModeHandlers({
@@ -109,6 +134,7 @@ export default function useInfrastructureMapState({
     handleSelectedZoneSectorChange: zoneHandlers.handleSelectedZoneSectorChange,
     handleSelectMarker: markerHandlers.handleSelectMarker,
     handleSelectTool: interactionHandlers.handleSelectTool,
+    handleUpdateMarkerTechnicalDetails,
     handleZoneDraftDrag: zoneHandlers.handleZoneDraftDrag,
     handleZoneDraftProdschedChange: zoneHandlers.handleZoneDraftProdschedChange,
     handleZoneDraftSave: zoneHandlers.handleZoneDraftSave,

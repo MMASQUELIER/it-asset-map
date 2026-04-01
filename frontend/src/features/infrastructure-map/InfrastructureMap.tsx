@@ -52,6 +52,7 @@ export default function InfrastructureMap({
       imageUrl={imageUrl}
       isSavingLayout={mapLayoutState.isSaving}
       layoutData={mapLayoutState.layoutData}
+      onUpdatePcField={infrastructureCatalogState.updatePcField}
       onSaveLayout={mapLayoutState.saveLayout}
       placementPcCandidates={infrastructureCatalogState.placementPcCandidates}
       saveLayoutErrorMessage={mapLayoutState.saveErrorMessage}

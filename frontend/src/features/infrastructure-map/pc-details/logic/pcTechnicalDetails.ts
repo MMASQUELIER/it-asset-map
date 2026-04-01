@@ -1,4 +1,5 @@
 import type {
+  EditablePcFieldId,
   MapZone,
   PcTechnicalDetails,
 } from "@/features/infrastructure-map/model/types";
@@ -23,6 +24,43 @@ export function syncPcTechnicalDetailsWithZone(
     floorLocation: resolveZoneValue(zoneSector, currentFloorLocation ?? currentSector),
     prodsched: resolveZoneValue(getZoneProdsched(zone), currentProdsched),
   };
+}
+
+export function applyEditablePcFieldUpdate(
+  technicalDetails: PcTechnicalDetails,
+  fieldId: EditablePcFieldId,
+  value: string,
+): PcTechnicalDetails {
+  const nextValue = getVisibleText(value);
+
+  if (fieldId === "sector") {
+    return {
+      ...technicalDetails,
+      floorLocation: nextValue,
+      sector: nextValue,
+    };
+  }
+
+  if (fieldId === "wifiOrWiredConnection") {
+    return {
+      ...technicalDetails,
+      connectionType: nextValue,
+      wifiOrWiredConnection: nextValue,
+    };
+  }
+
+  if (fieldId === "commentaire2") {
+    return {
+      ...technicalDetails,
+      comment: nextValue,
+      commentaire2: nextValue,
+    };
+  }
+
+  return {
+    ...technicalDetails,
+    [fieldId]: nextValue,
+  } as PcTechnicalDetails;
 }
 
 function getZoneSector(zone: ZoneContext | null): string | undefined {

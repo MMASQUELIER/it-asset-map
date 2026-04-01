@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type {
+  EditablePcFieldId,
   InfrastructureCatalog,
   PlacementPcCandidate,
 } from "@/features/infrastructure-map/model/types";
@@ -13,6 +14,13 @@ interface InfrastructureCatalogState {
   errorMessage: string | null;
   isLoading: boolean;
   placementPcCandidates: PlacementPcCandidate[];
+  updatePcField: (input: UpdatePcFieldInput) => Promise<void>;
+}
+
+interface UpdatePcFieldInput {
+  fieldId: EditablePcFieldId;
+  sourceRowNumber: number;
+  value: string;
 }
 
 /**
@@ -28,6 +36,18 @@ export default function useInfrastructureCatalog({
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const fetchCatalog = useCallback(async function fetchCatalog(): Promise<
+    InfrastructureCatalog
+  > {
+    const catalogResponse = await fetch(catalogUrl);
+
+    if (!catalogResponse.ok) {
+      throw new Error(`Chargement du catalogue impossible (${catalogResponse.status}).`);
+    }
+
+    return await catalogResponse.json() as InfrastructureCatalog;
+  }, [catalogUrl]);
+
   useEffect(() => {
     let isCancelled = false;
 
@@ -36,13 +56,7 @@ export default function useInfrastructureCatalog({
         setIsLoading(true);
         setErrorMessage(null);
 
-        const catalogResponse = await fetch(catalogUrl);
-
-        if (!catalogResponse.ok) {
-          throw new Error(`Chargement du catalogue impossible (${catalogResponse.status}).`);
-        }
-
-        const catalog = await catalogResponse.json() as InfrastructureCatalog;
+        const catalog = await fetchCatalog();
 
         if (isCancelled) {
           return;
@@ -75,12 +89,57 @@ export default function useInfrastructureCatalog({
     return () => {
       isCancelled = true;
     };
-  }, [catalogUrl]);
+  }, [fetchCatalog]);
+
+  const updatePcField = useCallback(async function updatePcField({
+    fieldId,
+    sourceRowNumber,
+    value,
+  }: UpdatePcFieldInput): Promise<void> {
+    const updateResponse = await fetch(`${catalogUrl}/pc/${sourceRowNumber}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        fieldId,
+        value,
+      }),
+    });
+
+    if (!updateResponse.ok) {
+      const errorPayload = await readErrorPayload(updateResponse);
+
+      throw new Error(
+        errorPayload ??
+          `Mise a jour du catalogue impossible (${updateResponse.status}).`,
+      );
+    }
+
+    try {
+      const nextCatalog = await fetchCatalog();
+
+      setPlacementPcCandidates(nextCatalog.placementPcCandidates);
+      setAvailableSectors(nextCatalog.availableSectors);
+    } catch {
+      // On conserve les donnees courantes si le refresh silencieux echoue.
+    }
+  }, [catalogUrl, fetchCatalog]);
 
   return {
     availableSectors,
     errorMessage,
     isLoading,
     placementPcCandidates,
+    updatePcField,
   };
+}
+
+async function readErrorPayload(response: Response): Promise<string | null> {
+  try {
+    const errorPayload = await response.json() as { error?: string };
+    return typeof errorPayload.error === "string" ? errorPayload.error : null;
+  } catch {
+    return null;
+  }
 }

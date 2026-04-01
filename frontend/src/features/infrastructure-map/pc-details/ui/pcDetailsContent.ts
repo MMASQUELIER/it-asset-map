@@ -16,6 +16,8 @@ export type {
   VisiblePcDetailSection,
 } from "@/features/infrastructure-map/pc-details/ui/content/types";
 
+const EMPTY_EDITABLE_FIELD_LABEL = "Non renseigne";
+
 export function buildPcSubtitle(marker: InteractiveMarker): string {
   return [
     formatPcDetailValue("prodsched", marker.technicalDetails.prodsched),
@@ -51,16 +53,23 @@ function buildVisibleFields(
   const visibleFields: VisiblePcDetailField[] = [];
 
   for (const field of fields) {
-    const fieldValue = formatPcDetailValue(field.id, field.getValue(marker));
+    const rawFieldValue = field.getValue(marker);
+    const fieldValue = formatPcDetailValue(field.id, rawFieldValue);
+    const isEditableField = field.editableFieldId !== undefined;
 
-    if (!isVisibleText(fieldValue)) {
+    if (!isVisibleText(fieldValue) && !isEditableField) {
       continue;
     }
 
     visibleFields.push({
+      editableFieldId: field.editableFieldId,
+      editValue: field.editableFieldId === undefined
+        ? undefined
+        : field.getEditValue?.(marker) ?? rawFieldValue ?? "",
       id: field.id,
+      isMissingValue: !isVisibleText(fieldValue),
       label: field.label,
-      value: fieldValue,
+      value: fieldValue ?? EMPTY_EDITABLE_FIELD_LABEL,
     });
   }
 

@@ -10,11 +10,26 @@ export function buildInfrastructureCatalog(
   sectorColumnName: string,
 ): CatalogResponseDto {
   const markerIdUsage = new Map<string, number>();
-  const placementPcCandidates = assets
-    .filter(isPcAsset)
-    .map((asset, index) =>
-      createPlacementPcCandidate(asset, index, markerIdUsage, sectorColumnName)
+  const placementPcCandidates = assets.reduce(function collectPlacementPcCandidates(
+    candidates,
+    asset,
+    sourceRowIndex,
+  ) {
+    if (!isPcAsset(asset)) {
+      return candidates;
+    }
+
+    candidates.push(
+      createPlacementPcCandidate(
+        asset,
+        sourceRowIndex,
+        markerIdUsage,
+        sectorColumnName,
+      ),
     );
+
+    return candidates;
+  }, [] as CatalogResponseDto["placementPcCandidates"]);
 
   return {
     availableSectors: buildAvailableSectors(placementPcCandidates),

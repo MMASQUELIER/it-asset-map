@@ -52,6 +52,7 @@ export interface PlacementPcCandidateDto {
   label: string;
   prodsched: string;
   sector: string;
+  sourceRowNumber: number;
   stationName: string;
   technicalDetails: PcTechnicalDetailsDto;
 }

@@ -111,6 +111,7 @@ export default function useMarkerDraft({
 
     return {
       id: nextMarkerId,
+      sourceRowNumber: selectedPlacementCandidate.sourceRowNumber,
       x: pendingMarkerDraft.x,
       y: pendingMarkerDraft.y,
       technicalDetails: syncPcTechnicalDetailsWithZone(
