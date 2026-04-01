@@ -10,12 +10,10 @@ import {
 } from "@/features/infrastructure-map/ui/uiClassNames";
 
 interface PcDetailsPanelHeaderProps {
-  connectionTypeLabel: string | undefined;
   markerId: string;
   onClose: () => void;
   onSearchQueryChange: (value: string) => void;
   searchQuery: string;
-  securityStateLabel: string;
   subtitle: string;
   visibleFieldCount: number;
   zone: MapZone | null;
@@ -23,20 +21,15 @@ interface PcDetailsPanelHeaderProps {
 }
 
 export function PcDetailsPanelHeader({
-  connectionTypeLabel,
   markerId,
   onClose,
   onSearchQueryChange,
   searchQuery,
-  securityStateLabel,
   subtitle,
   visibleFieldCount,
   zone,
   zoneLabel,
 }: PcDetailsPanelHeaderProps) {
-  const securityToneClassName = getSecurityToneClassName(
-    getSecurityTone(securityStateLabel),
-  );
   const visibleInfoLabel = `${visibleFieldCount} info${
     visibleFieldCount > 1 ? "s" : ""
   } visible`;
@@ -69,15 +62,6 @@ export function PcDetailsPanelHeader({
         >
           {zoneLabel}
         </span>
-        <span
-          className={joinClassNames(
-            "inline-flex max-w-full items-center rounded-full border px-3 py-1.5 text-[0.78rem] font-black uppercase tracking-[0.1em]",
-            securityToneClassName,
-          )}
-        >
-          {securityStateLabel}
-        </span>
-        {renderContextBadge(connectionTypeLabel)}
         {renderContextBadge(zone === null ? undefined : zone.sector)}
       </div>
 
@@ -135,20 +119,3 @@ function buildZoneBadgeStyle(zone: MapZone | null): CSSProperties | undefined {
   } as CSSProperties;
 }
 
-function getSecurityToneClassName(
-  tone: ReturnType<typeof getSecurityTone>,
-): string {
-  if (tone === "good") {
-    return "border-emerald-200 bg-emerald-50 text-emerald-700";
-  }
-
-  if (tone === "warning") {
-    return "border-amber-200 bg-amber-50 text-amber-700";
-  }
-
-  if (tone === "critical") {
-    return "border-rose-200 bg-rose-50 text-rose-700";
-  }
-
-  return "border-schneider-950/10 bg-white/90 text-schneider-900";
-}

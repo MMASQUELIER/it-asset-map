@@ -26,23 +26,56 @@ export default function usePersistedMapLayout({
   zones,
 }: PersistedMapLayoutOptions): void {
   const hasCompletedInitialMount = useRef(false);
+  const lastSavedLayoutSignature = useRef<string | null>(null);
+  const pendingLayoutSignature = useRef<string | null>(null);
 
   useEffect(() => {
+    const nextLayoutData = buildMapLayoutData(mapImage, zones, markers);
+    const nextLayoutSignature = JSON.stringify(nextLayoutData);
+
     if (!hasCompletedInitialMount.current) {
       hasCompletedInitialMount.current = true;
+      lastSavedLayoutSignature.current = nextLayoutSignature;
       return;
     }
 
+    if (
+      lastSavedLayoutSignature.current === nextLayoutSignature ||
+      pendingLayoutSignature.current === nextLayoutSignature
+    ) {
+      return;
+    }
+
+    let hasStartedSave = false;
+    pendingLayoutSignature.current = nextLayoutSignature;
+
     const timeoutId = window.setTimeout(function savePersistedMapLayout() {
-      void onSaveLayout(buildMapLayoutData(mapImage, zones, markers)).catch(
+      hasStartedSave = true;
+
+      void onSaveLayout(nextLayoutData).then(
+        function handlePersistedLayoutSaveSuccess() {
+          lastSavedLayoutSignature.current = nextLayoutSignature;
+        },
+      ).catch(
         function ignorePersistedLayoutError() {
           // L'erreur est deja exposee par le hook de persistence backend.
         },
-      );
+      ).finally(function clearPendingLayoutSignature() {
+        if (pendingLayoutSignature.current === nextLayoutSignature) {
+          pendingLayoutSignature.current = null;
+        }
+      });
     }, LAYOUT_SAVE_DEBOUNCE_MS);
 
     return () => {
       window.clearTimeout(timeoutId);
+
+      if (
+        !hasStartedSave &&
+        pendingLayoutSignature.current === nextLayoutSignature
+      ) {
+        pendingLayoutSignature.current = null;
+      }
     };
   }, [mapImage, markers, onSaveLayout, zones]);
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { MapLayoutData } from "@/features/infrastructure-map/model/types";
 import {
   createEmptyMapLayout,
@@ -93,7 +93,9 @@ export default function useMapLayout({
     };
   }, [imageUrl, layoutUrl]);
 
-  async function saveLayout(nextLayoutData: MapLayoutData): Promise<void> {
+  const saveLayout = useCallback(async function saveLayout(
+    nextLayoutData: MapLayoutData,
+  ): Promise<void> {
     setIsSaving(true);
     setSaveErrorMessage(null);
 
@@ -125,7 +127,7 @@ export default function useMapLayout({
     } finally {
       setIsSaving(false);
     }
-  }
+  }, [layoutUrl]);
 
   return {
     errorMessage,

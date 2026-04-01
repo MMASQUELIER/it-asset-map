@@ -1,6 +1,9 @@
 import type { DetailFieldDefinition } from "@/features/infrastructure-map/pc-details/ui/content/types";
 import { formatSesiValue } from "@/features/infrastructure-map/pc-details/ui/content/valueFormatting";
 
+/**
+ * Champs affiches dans la carte "Vue rapide" du panneau detail PC.
+ */
 export const SUMMARY_FIELD_DEFINITIONS: DetailFieldDefinition[] = [
   {
     id: "sesi",

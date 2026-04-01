@@ -12,6 +12,7 @@ interface InfrastructureMapControlsProps {
   activeTool: InteractionTool;
   highlightedZoneId: number | null;
   isInteractionMode: boolean;
+  isSavingLayout: boolean;
   markers: InteractiveMarker[];
   onCloseInteractionMode: () => void;
   onOpenInteractionMode: () => void;
@@ -20,7 +21,6 @@ interface InfrastructureMapControlsProps {
   onSelectZone: (zoneId: number) => void;
   saveLayoutErrorMessage: string | null;
   selectedMarkerId: string | null;
-  shouldShowSaveStatus: boolean;
   zones: MapZone[];
 }
 
@@ -28,6 +28,7 @@ export function InfrastructureMapControls({
   activeTool,
   highlightedZoneId,
   isInteractionMode,
+  isSavingLayout,
   markers,
   onCloseInteractionMode,
   onOpenInteractionMode,
@@ -36,7 +37,6 @@ export function InfrastructureMapControls({
   onSelectZone,
   saveLayoutErrorMessage,
   selectedMarkerId,
-  shouldShowSaveStatus,
   zones,
 }: InfrastructureMapControlsProps) {
   return (
@@ -63,7 +63,7 @@ export function InfrastructureMapControls({
           onSelectZone={onSelectZone}
           zones={zones}
         />
-        {shouldShowSaveStatus
+        {isSavingLayout || saveLayoutErrorMessage !== null
           ? (
             <p
               className={joinClassNames(

@@ -1,6 +1,9 @@
 import type { DetailSectionDefinition } from "@/features/infrastructure-map/pc-details/ui/content/types";
 import { formatSesiValue } from "@/features/infrastructure-map/pc-details/ui/content/valueFormatting";
 
+/**
+ * Configuration des panneaux repliables de la vue detail d'un PC.
+ */
 export const DETAIL_SECTION_DEFINITIONS: DetailSectionDefinition[] = [
   {
     title: "Identification",
@@ -62,33 +65,31 @@ export const DETAIL_SECTION_DEFINITIONS: DetailSectionDefinition[] = [
       },
     ],
   },
-  {
-    title: "Autre",
-    fields: [
-      { id: "pin", label: "Clé (PIN)", getValue: (marker) => marker.technicalDetails.pinKey },
-      { id: "date", label: "Date", getValue: (marker) => marker.technicalDetails.lastInventoryDate },
-      { id: "sap", label: "SAP", getValue: (marker) => marker.technicalDetails.sap },
-      {
-        id: "security-status",
-        label: "Client McAfee",
-        getValue: (marker) => marker.technicalDetails.securityStatus,
-      },
-      {
-        id: "commentaire2",
-        label: "Commentaire",
-        getValue: (marker) =>
-          marker.technicalDetails.commentaire2 ?? marker.technicalDetails.comment,
-      },
-    ],
-  },
+  
   {
     title: "Reseau",
     fields: [
-      { id: "mac-address", label: "Adresse MAC", getValue: (marker) => marker.technicalDetails.macAddress },
-      { id: "ip-address", label: "Adresse IP", getValue: (marker) => marker.technicalDetails.ipAddress },
-      { id: "subnet", label: "Sous-reseau", getValue: (marker) => marker.technicalDetails.subnetMask },
-      { id: "vlan-id-name", label: "VLAN", getValue: (marker) => marker.technicalDetails.vlan },
-      { id: "vlan-name", label: "Perimetre reseau", getValue: (marker) => marker.technicalDetails.networkScope },
+      { 
+        id: "mac-address", 
+        label: "Adresse MAC", 
+        getValue: (marker) => marker.technicalDetails.macAddress 
+      },
+      { 
+        id: "ip-address", 
+        label: "Adresse IP", 
+        getValue: (marker) => marker.technicalDetails.ipAddress },
+      { 
+        id: "subnet", 
+        label: "Sous-reseau", 
+        getValue: (marker) => marker.technicalDetails.subnetMask },
+      { 
+        id: "vlan-id-name", 
+        label: "VLAN", 
+        getValue: (marker) => marker.technicalDetails.vlan },
+      { 
+        id: "vlan-name", 
+        label: "Perimetre reseau", 
+        getValue: (marker) => marker.technicalDetails.networkScope },
       {
         id: "old-ip-address",
         label: "Ancienne adresse IP",
@@ -114,12 +115,36 @@ export const DETAIL_SECTION_DEFINITIONS: DetailSectionDefinition[] = [
         label: "Nouveau port auto",
         getValue: (marker) => marker.technicalDetails.newPortAuto,
       },
-      { id: "switch-name", label: "Nom du switch", getValue: (marker) => marker.technicalDetails.switchName },
-      { id: "switch-ip", label: "IP du switch", getValue: (marker) => marker.technicalDetails.switchIpAddress },
-      { id: "gateway", label: "Passerelle", getValue: (marker) => marker.technicalDetails.gateway },
-      { id: "ticket-brassage", label: "Ticket de brassage", getValue: (marker) => marker.technicalDetails.ticketBrassage },
-      { id: "ip-filter", label: "Filtre IP", getValue: (marker) => marker.technicalDetails.ipFilter },
-      { id: "etat", label: "Etat", getValue: (marker) => marker.technicalDetails.etat },
+      { 
+        id: "switch-name", 
+        label: "Nom du switch", 
+        getValue: (marker) => marker.technicalDetails.switchName 
+      },
+      { 
+        id: "switch-ip", 
+        label: "IP du switch", 
+        getValue: (marker) => marker.technicalDetails.switchIpAddress 
+      },
+      { 
+        id: "gateway", 
+        label: "Passerelle", 
+        getValue: (marker) => marker.technicalDetails.gateway 
+      },
+      { 
+        id: "ticket-brassage", 
+        label: "Ticket de brassage", 
+        getValue: (marker) => marker.technicalDetails.ticketBrassage 
+      },
+      { 
+        id: "ip-filter", 
+        label: "Filtre IP", 
+        getValue: (marker) => marker.technicalDetails.ipFilter 
+      },
+      { 
+        id: "etat", 
+        label: "Etat", 
+        getValue: (marker) => marker.technicalDetails.etat 
+      },
       {
         id: "connected-switch-name",
         label: "Switch connecte",
@@ -141,6 +166,37 @@ export const DETAIL_SECTION_DEFINITIONS: DetailSectionDefinition[] = [
         id: "login",
         label: "Compte",
         getValue: (marker) => marker.technicalDetails.directoryAccount,
+      },
+    ],
+  },
+  {
+    title: "Autre",
+    fields: [
+      { 
+        id: "pin", 
+        label: "Clé (PIN)", 
+        getValue: (marker) => marker.technicalDetails.pinKey 
+      },
+      { 
+        id: "date", 
+        label: "Date", 
+        getValue: (marker) => marker.technicalDetails.lastInventoryDate 
+      },
+      { 
+        id: "sap", 
+        label: "SAP", 
+        getValue: (marker) => marker.technicalDetails.sap 
+      },
+      {
+        id: "security-status",
+        label: "status securite",
+        getValue: (marker) => marker.technicalDetails.securityStatus,
+      },
+      {
+        id: "commentaire2",
+        label: "Commentaire",
+        getValue: (marker) =>
+          marker.technicalDetails.commentaire2 ?? marker.technicalDetails.comment,
       },
     ],
   },

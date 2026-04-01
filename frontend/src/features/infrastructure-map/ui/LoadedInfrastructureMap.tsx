@@ -79,6 +79,7 @@ export function LoadedInfrastructureMap({
           activeTool={interactiveMapState.activeTool}
           highlightedZoneId={interactiveMapState.highlightedZoneId}
           isInteractionMode={interactiveMapState.isInteractionMode}
+          isSavingLayout={isSavingLayout}
           markers={interactiveMapState.markers}
           onCloseInteractionMode={interactiveMapState.handleCloseInteractionMode}
           onOpenInteractionMode={interactiveMapState.handleOpenInteractionMode}
@@ -87,7 +88,6 @@ export function LoadedInfrastructureMap({
           onSelectZone={interactiveMapState.handleZoneInteraction}
           saveLayoutErrorMessage={saveLayoutErrorMessage}
           selectedMarkerId={interactiveMapState.selectedMarkerId}
-          shouldShowSaveStatus={isSavingLayout || saveLayoutErrorMessage !== null}
           zones={interactiveMapState.zones}
         />
         <div className={mapFrameClassName}>
