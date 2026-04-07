@@ -1,5 +1,5 @@
-import type { MarkerDraft, PlacementPcCandidate } from "@/features/infrastructure-map/model/types";
-import { getExcelIssueSummary } from "@/features/infrastructure-map/model/excelIssues";
+import type { MarkerDraft, PlacementCandidate } from "@/features/infrastructure-map/model/types";
+import { getCatalogIssueSummary } from "@/features/infrastructure-map/model/catalogIssues";
 import {
   detailLabelTextClassName,
   detailsGridClassName,
@@ -7,7 +7,7 @@ import {
 
 interface MarkerDraftSelectionSummaryProps {
   draft: MarkerDraft;
-  selectedCandidate: PlacementPcCandidate | null;
+  selectedCandidate: PlacementCandidate | null;
 }
 
 export function MarkerDraftSelectionSummary({
@@ -15,8 +15,8 @@ export function MarkerDraftSelectionSummary({
   selectedCandidate,
 }: MarkerDraftSelectionSummaryProps) {
   const zoneLabel = draft.zoneId === null ? "Hors zone" : `Zone ${draft.zoneId}`;
-  const excelIssueSummary = getExcelIssueSummary(
-    selectedCandidate?.technicalDetails.excelIssues,
+  const catalogIssueSummary = getCatalogIssueSummary(
+    selectedCandidate?.technicalDetails.catalogIssues,
   );
 
   return (
@@ -24,14 +24,14 @@ export function MarkerDraftSelectionSummary({
       <div className={detailsGridClassName}>
         <div>
           <span className={detailLabelTextClassName}>PC selectionne</span>
-          <strong>{selectedCandidate?.markerId ?? "Aucun PC selectionne"}</strong>
+          <strong>{selectedCandidate?.equipmentId ?? "Aucun PC selectionne"}</strong>
         </div>
 
         <div>
           <span className={detailLabelTextClassName}>Hostname</span>
           <strong>
             {selectedCandidate?.hostname ??
-              excelIssueSummary ??
+              catalogIssueSummary ??
               "En attente de selection"}
           </strong>
         </div>
@@ -57,7 +57,7 @@ export function MarkerDraftSelectionSummary({
 
             <div>
               <span className={detailLabelTextClassName}>Prodsched</span>
-              <strong>{selectedCandidate.prodsched || "Non renseigne"}</strong>
+              <strong>{selectedCandidate.zoneCode || "Non renseigne"}</strong>
             </div>
 
             <div>
@@ -68,10 +68,10 @@ export function MarkerDraftSelectionSummary({
         )
         : null}
 
-      {excelIssueSummary !== null
+      {catalogIssueSummary !== null
         ? (
           <p className="rounded-[18px] border border-amber-300/60 bg-amber-50/90 px-3 py-2 text-sm leading-6 text-amber-950">
-            {excelIssueSummary}
+            {catalogIssueSummary}
           </p>
         )
         : null}

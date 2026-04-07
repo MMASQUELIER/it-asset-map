@@ -11,16 +11,16 @@ export type {
 export type {
   InteractiveMarker,
   MarkerDraft,
-  PlacementPcCandidate,
-  InfrastructureCatalog,
+  PlacementCandidate,
 } from "@/features/infrastructure-map/model/types/markers";
 export type {
-  ZoneMetadata,
   ZoneDraft,
+  ZoneDraftValues,
   MapZone,
 } from "@/features/infrastructure-map/model/types/zones";
 export type {
-  StoredMapZone,
-  StoredMarkerPlacement,
-  MapLayoutData,
-} from "@/features/infrastructure-map/model/types/layout";
+  EquipmentDataRecord,
+  EquipmentRecord,
+  SectorRecord,
+  ZoneRecord,
+} from "@/features/infrastructure-map/model/types/resources";

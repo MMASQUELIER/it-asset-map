@@ -1,5 +1,10 @@
+import {
+  formatDirectoryAccountValue,
+  getResolvedPcComment,
+  getResolvedPcConnectionType,
+  getResolvedPcLocation,
+} from "@/features/infrastructure-map/model/pcValueResolvers";
 import type { DetailSectionDefinition } from "@/features/infrastructure-map/pc-details/ui/content/types";
-import { formatSesiValue } from "@/features/infrastructure-map/pc-details/ui/content/valueFormatting";
 
 /**
  * Configuration des panneaux repliables de la vue detail d'un PC.
@@ -9,41 +14,41 @@ export const DETAIL_SECTION_DEFINITIONS: DetailSectionDefinition[] = [
     title: "Identification",
     fields: [
       {
-        id: "hostname",
-        label: "Nom machine",
-        editableFieldId: "hostname",
-        getValue: (marker) => marker.technicalDetails.hostname,
-      },
-      {
-        id: "sesi",
-        label: "SESI",
-        editableFieldId: "directoryAccount",
-        getEditValue: (marker) => marker.technicalDetails.directoryAccount,
-        getValue: (marker) =>
-          formatSesiValue(marker.technicalDetails.directoryAccount),
-      },
-      {
         id: "collaborateur",
         label: "Collaborateur",
         editableFieldId: "contact",
         getValue: (marker) => marker.technicalDetails.contact,
       },
       {
-        id: "sector",
-        label: "Secteur",
-        editableFieldId: "sector",
-        getEditValue: (marker) =>
-          marker.technicalDetails.floorLocation ??
-          marker.technicalDetails.sector,
-        getValue: (marker) =>
-          marker.technicalDetails.floorLocation ??
-          marker.technicalDetails.sector,
+        id: "pin",
+        label: "Cle PIN",
+        editableFieldId: "pinKey",
+        getValue: (marker) => marker.technicalDetails.pinKey,
       },
       {
-        id: "manufacturing-station-name",
-        label: "Poste de fabrication",
+        id: "location",
+        label: "Emplacement",
+        editableFieldId: "sector",
+        getEditValue: (marker) => getResolvedPcLocation(marker.technicalDetails),
+        getValue: (marker) => getResolvedPcLocation(marker.technicalDetails),
+      },
+      {
+        id: "prodsched",
+        label: "Code zone",
+        editableFieldId: "zoneCode",
+        getValue: (marker) => marker.technicalDetails.zoneCode,
+      },
+      {
+        id: "manufacturing-station",
+        label: "Poste fabrication",
         editableFieldId: "manufacturingStationNames",
         getValue: (marker) => marker.technicalDetails.manufacturingStationNames,
+      },
+      {
+        id: "date",
+        label: "Date inventaire",
+        editableFieldId: "lastInventoryDate",
+        getValue: (marker) => marker.technicalDetails.lastInventoryDate,
       },
     ],
   },
@@ -52,7 +57,7 @@ export const DETAIL_SECTION_DEFINITIONS: DetailSectionDefinition[] = [
     fields: [
       {
         id: "equipment-type",
-        label: "Type d'equipement",
+        label: "Type equipement",
         editableFieldId: "assetType",
         getValue: (marker) => marker.technicalDetails.assetType,
       },
@@ -76,13 +81,25 @@ export const DETAIL_SECTION_DEFINITIONS: DetailSectionDefinition[] = [
       },
       {
         id: "hdd",
-        label: "Stockage",
+        label: "HDD",
         editableFieldId: "storage",
         getValue: (marker) => marker.technicalDetails.storage,
       },
       {
+        id: "hostname",
+        label: "Nom machine",
+        editableFieldId: "hostname",
+        getValue: (marker) => marker.technicalDetails.hostname,
+      },
+      {
+        id: "sap",
+        label: "SAP",
+        editableFieldId: "sap",
+        getValue: (marker) => marker.technicalDetails.sap,
+      },
+      {
         id: "os-type",
-        label: "Systeme d'exploitation",
+        label: "Systeme",
         editableFieldId: "operatingSystem",
         getValue: (marker) => marker.technicalDetails.operatingSystem,
       },
@@ -117,19 +134,19 @@ export const DETAIL_SECTION_DEFINITIONS: DetailSectionDefinition[] = [
       },
       {
         id: "vlan-name",
-        label: "Perimetre reseau",
+        label: "Nom VLAN",
         editableFieldId: "networkScope",
         getValue: (marker) => marker.technicalDetails.networkScope,
       },
       {
         id: "old-ip-address",
-        label: "Ancienne adresse IP",
+        label: "Ancienne IP",
         editableFieldId: "oldIpAddress",
         getValue: (marker) => marker.technicalDetails.oldIpAddress,
       },
       {
         id: "new-ip-address",
-        label: "Nouvelle adresse IP",
+        label: "Nouvelle IP",
         editableFieldId: "newIpAddress",
         getValue: (marker) => marker.technicalDetails.newIpAddress,
       },
@@ -141,13 +158,13 @@ export const DETAIL_SECTION_DEFINITIONS: DetailSectionDefinition[] = [
       },
       {
         id: "id-port",
-        label: "ID port",
+        label: "Port ID",
         editableFieldId: "idPort",
         getValue: (marker) => marker.technicalDetails.idPort,
       },
       {
         id: "new-port-auto",
-        label: "Nouveau port auto",
+        label: "Nouveau port",
         editableFieldId: "newPortAuto",
         getValue: (marker) => marker.technicalDetails.newPortAuto,
       },
@@ -164,14 +181,8 @@ export const DETAIL_SECTION_DEFINITIONS: DetailSectionDefinition[] = [
         getValue: (marker) => marker.technicalDetails.switchIpAddress,
       },
       {
-        id: "gateway",
-        label: "Passerelle",
-        editableFieldId: "gateway",
-        getValue: (marker) => marker.technicalDetails.gateway,
-      },
-      {
         id: "ticket-brassage",
-        label: "Ticket de brassage",
+        label: "Ticket Brassage",
         editableFieldId: "ticketBrassage",
         getValue: (marker) => marker.technicalDetails.ticketBrassage,
       },
@@ -182,10 +193,10 @@ export const DETAIL_SECTION_DEFINITIONS: DetailSectionDefinition[] = [
         getValue: (marker) => marker.technicalDetails.ipFilter,
       },
       {
-        id: "etat",
+        id: "status",
         label: "Etat",
-        editableFieldId: "etat",
-        getValue: (marker) => marker.technicalDetails.etat,
+        editableFieldId: "status",
+        getValue: (marker) => marker.technicalDetails.status,
       },
       {
         id: "connected-switch-name",
@@ -195,69 +206,36 @@ export const DETAIL_SECTION_DEFINITIONS: DetailSectionDefinition[] = [
       },
       {
         id: "connected-switch-port",
-        label: "Port du switch connecte",
+        label: "Port switch connecte",
         editableFieldId: "connectedToSwitchPort",
         getValue: (marker) => marker.technicalDetails.connectedToSwitchPort,
       },
       {
         id: "wifi-wired-connection",
-        label: "Type de connexion",
+        label: "Connexion",
         editableFieldId: "wifiOrWiredConnection",
-        getEditValue: (marker) =>
-          marker.technicalDetails.wifiOrWiredConnection ??
-          marker.technicalDetails.connectionType,
-        getValue: (marker) =>
-          marker.technicalDetails.wifiOrWiredConnection ??
-          marker.technicalDetails.connectionType,
+        getEditValue: (marker) => getResolvedPcConnectionType(marker.technicalDetails),
+        getValue: (marker) => getResolvedPcConnectionType(marker.technicalDetails),
       },
       {
-        id: "login",
+        id: "directory-account",
         label: "Compte",
         editableFieldId: "directoryAccount",
         getEditValue: (marker) => marker.technicalDetails.directoryAccount,
-        getValue: (marker) => marker.technicalDetails.directoryAccount,
+        getValue: (marker) =>
+          formatDirectoryAccountValue(marker.technicalDetails.directoryAccount),
       },
     ],
   },
   {
-    title: "Autre",
+    title: "Notes",
     fields: [
       {
-        id: "pin",
-        label: "Clé (PIN)",
-        editableFieldId: "pinKey",
-        getValue: (marker) => marker.technicalDetails.pinKey,
-      },
-      {
-        id: "date",
-        label: "Date",
-        editableFieldId: "lastInventoryDate",
-        getEditValue: (marker) =>
-          marker.technicalDetails.lastInventoryDate === undefined
-            ? undefined
-            : marker.technicalDetails.lastInventoryDate,
-        getValue: (marker) => marker.technicalDetails.lastInventoryDate,
-      },
-      {
-        id: "sap",
-        label: "SAP",
-        editableFieldId: "sap",
-        getValue: (marker) => marker.technicalDetails.sap,
-      },
-      {
-        id: "security-status",
-        label: "Status securite",
-        editableFieldId: "securityStatus",
-        getValue: (marker) => marker.technicalDetails.securityStatus,
-      },
-      {
-        id: "commentaire2",
+        id: "secondary-comment",
         label: "Commentaire",
-        editableFieldId: "commentaire2",
-        getEditValue: (marker) =>
-          marker.technicalDetails.commentaire2 ?? marker.technicalDetails.comment,
-        getValue: (marker) =>
-          marker.technicalDetails.commentaire2 ?? marker.technicalDetails.comment,
+        editableFieldId: "secondaryComment",
+        getEditValue: (marker) => getResolvedPcComment(marker.technicalDetails),
+        getValue: (marker) => getResolvedPcComment(marker.technicalDetails),
       },
     ],
   },

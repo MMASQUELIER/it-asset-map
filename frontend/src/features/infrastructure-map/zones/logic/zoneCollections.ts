@@ -1,67 +1,7 @@
 import type {
   MapZone,
   RectangleBounds,
-  StoredMapZone,
 } from "@/features/infrastructure-map/model/types";
-import { getSectorColor } from "@/features/infrastructure-map/zones/logic/zoneAppearance";
-
-/**
- * Converts persisted backend zones into interactive zones enriched for the UI.
- *
- * @param zones Zones loaded from the backend JSON layout.
- * @returns Zones ready to be stored in interactive state.
- */
-export function hydrateMapZones(zones: StoredMapZone[]): MapZone[] {
-  return zones.map((zone) => ({
-    id: zone.id,
-    label: zone.prodsched,
-    sector: zone.sector,
-    prodsched: zone.prodsched,
-    color: getSectorColor(zone.sector),
-    bounds: { ...zone.bounds },
-  }));
-}
-
-/**
- * Converts interactive zones back to their persisted JSON representation.
- *
- * @param zones Interactive zones currently displayed on the map.
- * @returns Persistable zone list.
- */
-export function serializeMapZones(zones: MapZone[]): StoredMapZone[] {
-  return zones.map((zone) => ({
-    id: zone.id,
-    sector: zone.sector,
-    prodsched: zone.prodsched,
-    bounds: { ...zone.bounds },
-  }));
-}
-
-/**
- * Generates the next zone identifier rounded to the next ten.
- *
- * @param zones Existing zones.
- * @returns Suggested identifier for a new zone.
- */
-export function generateSuggestedZoneId(zones: MapZone[]): number {
-  const highestZoneId = zones.reduce(
-    (currentMax, zone) => Math.max(currentMax, zone.id),
-    0,
-  );
-
-  return Math.ceil((highestZoneId + 1) / 10) * 10;
-}
-
-/**
- * Checks that a zone identifier is not already used.
- *
- * @param zones Existing zones.
- * @param zoneId Candidate identifier.
- * @returns `true` when the identifier is available.
- */
-export function isZoneIdUnique(zones: MapZone[], zoneId: number): boolean {
-  return zones.every((zone) => zone.id !== zoneId);
-}
 
 /**
  * Detects whether a candidate zone overlaps any existing zone.
@@ -87,6 +27,24 @@ export function sortZonesById(zones: MapZone[]): MapZone[] {
   return [...zones].sort((firstZone, secondZone) =>
     firstZone.id - secondZone.id
   );
+}
+
+/**
+ * Resolves a zone from its identifier.
+ *
+ * @param zones Zone list to scan.
+ * @param zoneId Identifier to match.
+ * @returns Matching zone or `null` when not found.
+ */
+export function findZoneById(
+  zones: MapZone[],
+  zoneId: number | null,
+): MapZone | null {
+  if (zoneId === null) {
+    return null;
+  }
+
+  return zones.find((zone) => zone.id === zoneId) ?? null;
 }
 
 /**

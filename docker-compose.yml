@@ -1,0 +1,64 @@
+x-backend-environment: &backend-environment
+  API_PORT: 8000
+  MAP_FILE_PATH: /app/assets/map.png
+  MYSQL_DATABASE: it_asset_map
+  MYSQL_HOST: mysql
+  MYSQL_PASSWORD: it_asset_map
+  MYSQL_PORT: 3306
+  MYSQL_USER: it_asset_map
+
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: it_asset_map
+      MYSQL_PASSWORD: it_asset_map
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: it_asset_map
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - mysqladmin ping -h 127.0.0.1 -uroot -proot
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+      target: development
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment: *backend-environment
+    ports:
+      - "8001:8000"
+    volumes:
+      - .:/app
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      target: development
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "8080"]
+    depends_on:
+      backend:
+        condition: service_started
+    environment:
+      VITE_BACKEND_PROXY_TARGET: http://backend:8000
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+      - frontend-node-modules:/app/frontend/node_modules
+
+volumes:
+  frontend-node-modules:
+  mysql-data:

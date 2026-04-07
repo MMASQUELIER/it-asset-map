@@ -1,11 +1,11 @@
-import type { PlacementPcCandidate } from "@/features/infrastructure-map/model/types";
-import { getExcelIssueSummary } from "@/features/infrastructure-map/model/excelIssues";
+import type { PlacementCandidate } from "@/features/infrastructure-map/model/types";
+import { getCatalogIssueSummary } from "@/features/infrastructure-map/model/catalogIssues";
 import { joinClassNames } from "@/features/infrastructure-map/ui/uiClassNames";
 
 interface MarkerDraftCatalogProps {
-  availableCandidates: PlacementPcCandidate[];
+  availableCandidates: PlacementCandidate[];
   markerId: string;
-  matchingCandidates: PlacementPcCandidate[];
+  matchingCandidates: PlacementCandidate[];
   onMarkerIdChange: (value: string) => void;
 }
 
@@ -35,7 +35,7 @@ export function MarkerDraftCatalog({
               <CatalogCandidateButton
                 key={candidate.id}
                 candidate={candidate}
-                isSelected={markerId === candidate.markerId}
+                isSelected={markerId === candidate.equipmentId}
                 onSelect={onMarkerIdChange}
               />
             );
@@ -47,9 +47,9 @@ export function MarkerDraftCatalog({
 }
 
 interface CatalogCandidateButtonProps {
-  candidate: PlacementPcCandidate;
+  candidate: PlacementCandidate;
   isSelected: boolean;
-  onSelect: (markerId: string) => void;
+  onSelect: (equipmentId: string) => void;
 }
 
 function CatalogCandidateButton({
@@ -58,8 +58,10 @@ function CatalogCandidateButton({
   onSelect,
 }: CatalogCandidateButtonProps) {
   const candidateMeta = buildCatalogCandidateMeta(candidate);
-  const excelIssueSummary = getExcelIssueSummary(candidate.technicalDetails.excelIssues);
-  const candidateLabel = getCatalogCandidateLabel(candidate, excelIssueSummary);
+  const catalogIssueSummary = getCatalogIssueSummary(
+    candidate.technicalDetails.catalogIssues,
+  );
+  const candidateLabel = getCatalogCandidateLabel(candidate, catalogIssueSummary);
 
   return (
     <button
@@ -67,23 +69,28 @@ function CatalogCandidateButton({
         "grid gap-1 rounded-[22px] border p-3 text-left transition",
         "border-schneider-950/10 bg-schneider-50/70 text-schneider-950 hover:-translate-y-0.5 hover:border-schneider-500/20 hover:bg-white",
         isSelected &&
-          "border-schneider-500/24 bg-schneider-500 text-schneider-950 shadow-[0_14px_28px_rgba(61,205,88,0.2)]",
+          "border-schneider-500/24 bg-schneider-500 text-white shadow-[0_14px_28px_rgba(61,205,88,0.2)]",
       )}
       type="button"
       onClick={function handleCatalogCandidateSelection() {
-        onSelect(candidate.markerId);
+        onSelect(candidate.equipmentId);
       }}
     >
-      <strong>{candidate.markerId}</strong>
+      <strong>{candidate.equipmentId}</strong>
       <span className="text-sm text-current/80">{candidateLabel}</span>
       {candidateMeta.length > 0 ? (
         <span className="text-xs font-medium uppercase tracking-[0.08em] text-current/70">
           {candidateMeta}
         </span>
       ) : null}
-      {excelIssueSummary !== null ? (
-        <span className="text-[0.72rem] font-bold uppercase tracking-[0.08em] text-amber-700">
-          {excelIssueSummary}
+      {catalogIssueSummary !== null ? (
+        <span
+          className={joinClassNames(
+            "text-[0.72rem] font-bold uppercase tracking-[0.08em]",
+            isSelected ? "text-white/85" : "text-amber-700",
+          )}
+        >
+          {catalogIssueSummary}
         </span>
       ) : null}
     </button>
@@ -91,8 +98,8 @@ function CatalogCandidateButton({
 }
 
 function getMarkerDraftCatalogMessage(
-  availableCandidates: PlacementPcCandidate[],
-  matchingCandidates: PlacementPcCandidate[],
+  availableCandidates: PlacementCandidate[],
+  matchingCandidates: PlacementCandidate[],
 ): string | null {
   if (availableCandidates.length === 0) {
     return "Aucun PC du catalogue n'est disponible pour cette position.";
@@ -105,22 +112,22 @@ function getMarkerDraftCatalogMessage(
   return null;
 }
 
-function buildCatalogCandidateMeta(candidate: PlacementPcCandidate): string {
-  return [candidate.stationName, candidate.prodsched, candidate.sector]
+function buildCatalogCandidateMeta(candidate: PlacementCandidate): string {
+  return [candidate.stationName, candidate.zoneCode ?? "", candidate.sector]
     .filter((value) => value.length > 0)
     .join(" • ");
 }
 
 function getCatalogCandidateLabel(
-  candidate: PlacementPcCandidate,
-  excelIssueSummary: string | null,
+  candidate: PlacementCandidate,
+  catalogIssueSummary: string | null,
 ): string {
   if (candidate.hostname !== undefined) {
     return candidate.hostname;
   }
 
-  if (excelIssueSummary !== null) {
-    return excelIssueSummary;
+  if (catalogIssueSummary !== null) {
+    return catalogIssueSummary;
   }
 
   return "Hostname non renseigne";

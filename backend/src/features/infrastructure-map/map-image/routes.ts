@@ -3,7 +3,7 @@ import { backendConfig } from "@/config/env.ts";
 import { readMapFile } from "@/features/infrastructure-map/map-image/repository.ts";
 
 export function registerMapImageRoutes(apiApp: Hono): void {
-  apiApp.get("/api/map", handleGetMap);
+  apiApp.get("/api/map-image", handleGetMap);
 }
 
 async function handleGetMap(context: Context) {
@@ -15,7 +15,7 @@ async function handleGetMap(context: Context) {
     return context.body(mapFileBuffer, 200, {
       "Content-Type": "image/png",
     });
-  } catch (error) {
-    return context.json({ error: "Impossible de charger la carte" }, 500);
+  } catch {
+    return context.json({ error: "Unable to load the map image." }, 500);
   }
 }

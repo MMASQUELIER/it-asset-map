@@ -6,7 +6,8 @@ import type { ZoneResizeHandle } from "@/features/infrastructure-map/shared/inte
 /** Props used to resize the currently selected zone. */
 interface ZoneResizeHandlesProps {
   bounds: RectangleBounds;
-  onResize: (handle: ZoneResizeHandle, x: number, y: number) => void;
+  onResizeCommit: (handle: ZoneResizeHandle, x: number, y: number) => void;
+  onResizePreview: (handle: ZoneResizeHandle, x: number, y: number) => void;
 }
 
 /** Resize handles rendered around the selected zone. */
@@ -34,7 +35,8 @@ const HANDLE_ICON = L.divIcon({
  */
 export default function ZoneResizeHandles({
   bounds,
-  onResize,
+  onResizeCommit,
+  onResizePreview,
 }: ZoneResizeHandlesProps) {
   return (
     <>
@@ -46,7 +48,11 @@ export default function ZoneResizeHandles({
           eventHandlers={{
             drag: (event) => {
               const { lat, lng } = event.target.getLatLng();
-              onResize(handle, lng, lat);
+              onResizePreview(handle, lng, lat);
+            },
+            dragend: (event) => {
+              const { lat, lng } = event.target.getLatLng();
+              onResizeCommit(handle, lng, lat);
             },
           }}
           icon={HANDLE_ICON}

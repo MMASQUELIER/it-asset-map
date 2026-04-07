@@ -1,6 +1,0 @@
-{
-  "imports": {
-    "@db/sqlite": "jsr:@db/sqlite@^0.13.0",
-    "@mirror/xlsx": "jsr:@mirror/xlsx@^0.20.3"
-  }
-}

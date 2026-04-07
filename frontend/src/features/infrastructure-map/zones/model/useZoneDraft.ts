@@ -3,6 +3,7 @@ import type {
   MapImageDimensions,
   MapZone,
   ZoneDraft,
+  ZoneDraftValues,
 } from "@/features/infrastructure-map/model/types";
 import {
   clampZoneBounds,
@@ -10,15 +11,17 @@ import {
   createZoneDraft,
   doesZoneOverlap,
   hasMinimumZoneDimensions,
-  isZoneIdUnique,
   MIN_ZONE_DIMENSION,
 } from "@/features/infrastructure-map/zones/logic/interactiveZones";
-import { getSectorColor } from "@/features/infrastructure-map/zones/logic/zoneAppearance";
 
 interface UseZoneDraftOptions {
-  availableSectors: string[];
+  availableSectorNames: string[];
   mapImage: MapImageDimensions;
   zones: MapZone[];
+}
+
+export interface ZoneDraftSubmission extends ZoneDraftValues {
+  bounds: ZoneDraft["bounds"];
 }
 
 interface ZoneDraftState {
@@ -29,35 +32,37 @@ interface ZoneDraftState {
     currentX: number,
     currentY: number,
   ) => void;
-  handleZoneDraftProdschedChange: (prodsched: string) => void;
-  handleZoneDraftSave: () => MapZone | null;
-  handleZoneDraftSectorChange: (sector: string) => void;
+  handleZoneDraftCodeChange: (code: string) => void;
+  handleZoneDraftNameChange: (name: string) => void;
+  handleZoneDraftSave: () => ZoneDraftSubmission | null;
+  handleZoneDraftSectorChange: (sectorName: string) => void;
   pendingZoneDraft: ZoneDraft | null;
   pendingZoneDraftError: string | null;
-  pendingZoneProdsched: string;
-  pendingZoneSector: string;
+  pendingZoneCode: string;
+  pendingZoneName: string;
+  pendingZoneSectorName: string;
 }
 
 export default function useZoneDraft({
-  availableSectors,
+  availableSectorNames,
   mapImage,
   zones,
 }: UseZoneDraftOptions): ZoneDraftState {
   const [pendingZoneDraft, setPendingZoneDraft] = useState<ZoneDraft | null>(
     null,
   );
-  const [pendingZoneId, setPendingZoneId] = useState("");
-  const [pendingZoneSector, setPendingZoneSector] = useState("");
-  const [pendingZoneProdsched, setPendingZoneProdsched] = useState("");
+  const [pendingZoneSectorName, setPendingZoneSectorName] = useState("");
+  const [pendingZoneCode, setPendingZoneCode] = useState("");
+  const [pendingZoneName, setPendingZoneName] = useState("");
   const [pendingZoneDraftError, setPendingZoneDraftError] = useState<
     string | null
   >(null);
 
   function clearPendingZoneDraft(): void {
     setPendingZoneDraft(null);
-    setPendingZoneId("");
-    setPendingZoneSector("");
-    setPendingZoneProdsched("");
+    setPendingZoneSectorName("");
+    setPendingZoneCode("");
+    setPendingZoneName("");
     setPendingZoneDraftError(null);
   }
 
@@ -90,53 +95,46 @@ export default function useZoneDraft({
       ...nextDraft,
       bounds: nextBounds,
     });
-    setPendingZoneId((currentZoneId) =>
-      currentZoneId.length > 0 ? currentZoneId : String(nextDraft.suggestedId)
-    );
-    setPendingZoneSector((currentSector) =>
-      currentSector.length > 0 ? currentSector : (availableSectors[0] ?? "")
+    setPendingZoneSectorName((currentSectorName) =>
+      currentSectorName.length > 0
+        ? currentSectorName
+        : (availableSectorNames[0] ?? "")
     );
     setPendingZoneDraftError(null);
   }
 
-  function handleZoneDraftSectorChange(sector: string): void {
-    setPendingZoneSector(sector);
+  function handleZoneDraftSectorChange(sectorName: string): void {
+    setPendingZoneSectorName(sectorName);
+    setPendingZoneDraftError(null);
   }
 
-  function handleZoneDraftProdschedChange(prodsched: string): void {
-    setPendingZoneProdsched(prodsched);
+  function handleZoneDraftCodeChange(code: string): void {
+    setPendingZoneCode(code);
+    setPendingZoneDraftError(null);
   }
 
-  function handleZoneDraftSave(): MapZone | null {
+  function handleZoneDraftNameChange(name: string): void {
+    setPendingZoneName(name);
+    setPendingZoneDraftError(null);
+  }
+
+  function handleZoneDraftSave(): ZoneDraftSubmission | null {
     if (pendingZoneDraft === null) {
       return null;
     }
 
-    const nextZoneId = Number(pendingZoneId);
+    const nextZoneSectorName = pendingZoneSectorName.trim();
+    const nextZoneCode = pendingZoneCode.trim();
+    const nextZoneName = pendingZoneName.trim();
 
-    if (!Number.isInteger(nextZoneId) || nextZoneId <= 0) {
-      setPendingZoneDraftError(
-        "Impossible de generer un identifiant interne valide pour la zone.",
-      );
-      return null;
-    }
-
-    const nextZoneSector = pendingZoneSector.trim();
-    const nextZoneProdsched = pendingZoneProdsched.trim();
-
-    if (nextZoneSector.length === 0) {
+    if (nextZoneSectorName.length === 0) {
       setPendingZoneDraftError("Le secteur de zone est obligatoire.");
       return null;
     }
 
-    if (nextZoneProdsched.length === 0) {
-      setPendingZoneDraftError("Le prodsched de zone est obligatoire.");
-      return null;
-    }
-
-    if (!isZoneIdUnique(zones, nextZoneId)) {
+    if (!/^\d{3}$/.test(nextZoneCode)) {
       setPendingZoneDraftError(
-        "Impossible d'enregistrer la zone car son identifiant interne existe deja.",
+        "Le code de zone doit contenir exactement 3 chiffres.",
       );
       return null;
     }
@@ -155,27 +153,25 @@ export default function useZoneDraft({
       return null;
     }
 
-    clearPendingZoneDraft();
-
     return {
-      id: nextZoneId,
-      label: nextZoneProdsched,
-      sector: nextZoneSector,
-      prodsched: nextZoneProdsched,
-      color: getSectorColor(nextZoneSector),
       bounds: nextBounds,
+      code: nextZoneCode,
+      name: nextZoneName,
+      sectorName: nextZoneSectorName,
     };
   }
 
   return {
     clearPendingZoneDraft,
     handleZoneDraftDrag,
-    handleZoneDraftProdschedChange,
+    handleZoneDraftCodeChange,
+    handleZoneDraftNameChange,
     handleZoneDraftSave,
     handleZoneDraftSectorChange,
     pendingZoneDraft,
     pendingZoneDraftError,
-    pendingZoneProdsched,
-    pendingZoneSector,
+    pendingZoneCode,
+    pendingZoneName,
+    pendingZoneSectorName,
   };
 }

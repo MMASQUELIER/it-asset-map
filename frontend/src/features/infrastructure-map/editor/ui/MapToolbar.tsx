@@ -25,8 +25,7 @@ export default function MapToolbar({
 
   return (
     <div className="min-w-0">
-      <div className={`${surfacePanelClassName} relative overflow-hidden grid gap-4 p-5`}>
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-[linear-gradient(180deg,rgba(15,122,70,0.08),transparent)]" />
+      <div className={`${surfacePanelClassName} grid gap-4 p-4 sm:p-5`}>
         <MapToolbarHeader
           activeToolDefinition={activeToolDefinition}
           isInteractionMode={isInteractionMode}
@@ -37,7 +36,6 @@ export default function MapToolbar({
           ? (
             <MapToolbarSections
               activeTool={activeTool}
-              activeToolDefinition={activeToolDefinition}
               onSelectTool={onSelectTool}
             />
           )

@@ -1,18 +1,19 @@
 import type {
   InteractiveMarker,
   MapZone,
-  PlacementPcCandidate,
+  PlacementCandidate,
 } from "@/features/infrastructure-map/model/types";
+import { getResolvedPcLocation } from "@/features/infrastructure-map/model/pcValueResolvers";
 import { doesPlacementCandidateMatchSector } from "@/features/infrastructure-map/markers/services/placementCandidateSearch";
 
-export function getAvailablePlacementPcCandidates(
-  placementPcCandidates: PlacementPcCandidate[],
+export function getAvailablePlacementCandidates(
+  placementCandidates: PlacementCandidate[],
   markers: InteractiveMarker[],
   pendingMarkerZone: MapZone | null,
-): PlacementPcCandidate[] {
-  const availableCandidates: PlacementPcCandidate[] = [];
+): PlacementCandidate[] {
+  const availableCandidates: PlacementCandidate[] = [];
 
-  for (const candidate of placementPcCandidates) {
+  for (const candidate of placementCandidates) {
     if (isPlacementCandidateAlreadyPlaced(candidate, markers)) {
       continue;
     }
@@ -25,7 +26,7 @@ export function getAvailablePlacementPcCandidates(
     if (
       doesPlacementCandidateMatchSector(
       candidate,
-      pendingMarkerZone.sector,
+      pendingMarkerZone.sectorName,
       )
     ) {
       availableCandidates.push(candidate);
@@ -39,10 +40,8 @@ export function doesMarkerMatchZoneSector(
   marker: InteractiveMarker,
   zone: MapZone,
 ): boolean {
-  const markerSector = normalizeSectorName(
-    marker.technicalDetails.floorLocation ?? marker.technicalDetails.sector,
-  );
-  const zoneSector = normalizeSectorName(zone.sector);
+  const markerSector = normalizeSectorName(getResolvedPcLocation(marker.technicalDetails));
+  const zoneSector = normalizeSectorName(zone.sectorName);
 
   if (markerSector.length === 0) {
     return true;
@@ -64,11 +63,11 @@ function normalizeSectorName(value: string | undefined): string {
 }
 
 function isPlacementCandidateAlreadyPlaced(
-  candidate: PlacementPcCandidate,
+  candidate: PlacementCandidate,
   markers: InteractiveMarker[],
 ): boolean {
   for (const marker of markers) {
-    if (marker.id === candidate.markerId) {
+    if (marker.id === candidate.equipmentId) {
       return true;
     }
   }

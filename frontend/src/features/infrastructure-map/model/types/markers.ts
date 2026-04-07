@@ -11,19 +11,14 @@ export interface MarkerDraft {
   suggestedId: string;
 }
 
-export interface PlacementPcCandidate {
+export interface PlacementCandidate {
   id: string;
-  markerId: string;
+  equipmentDataId: number;
+  equipmentId: string;
   hostname?: string;
   label: string;
-  prodsched: string;
+  zoneCode?: string;
   sector: string;
-  sourceRowNumber: number;
   stationName: string;
   technicalDetails: PcTechnicalDetails;
-}
-
-export interface InfrastructureCatalog {
-  availableSectors: string[];
-  placementPcCandidates: PlacementPcCandidate[];
 }

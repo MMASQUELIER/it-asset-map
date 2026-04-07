@@ -2,9 +2,9 @@ import { useDeferredValue, useState } from "react";
 import type { FormEvent } from "react";
 import type {
   MarkerDraft,
-  PlacementPcCandidate,
+  PlacementCandidate,
 } from "@/features/infrastructure-map/model/types";
-import { searchPlacementPcCandidates } from "@/features/infrastructure-map/markers/services/placementCandidateSearch";
+import { searchPlacementCandidates } from "@/features/infrastructure-map/markers/services/placementCandidateSearch";
 import {
   closeButtonClassName,
   eyebrowTextClassName,
@@ -21,9 +21,8 @@ import { MarkerDraftSelectionSummary } from "@/features/infrastructure-map/marke
 
 /** Props du formulaire de creation de marqueur. */
 interface MarkerDraftFormProps {
-  availableCandidates: PlacementPcCandidate[];
+  availableCandidates: PlacementCandidate[];
   draft: MarkerDraft;
-  errorMessage: string | null;
   markerId: string;
   onCancel: () => void;
   onMarkerIdChange: (value: string) => void;
@@ -34,7 +33,6 @@ interface MarkerDraftFormProps {
 export default function MarkerDraftForm({
   availableCandidates,
   draft,
-  errorMessage,
   markerId,
   onCancel,
   onMarkerIdChange,
@@ -43,7 +41,7 @@ export default function MarkerDraftForm({
   const [searchQuery, setSearchQuery] = useState("");
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const selectedCandidate = getSelectedCandidate(availableCandidates, markerId);
-  const matchingCandidates = searchPlacementPcCandidates(
+  const matchingCandidates = searchPlacementCandidates(
     availableCandidates,
     deferredSearchQuery,
     8,
@@ -66,7 +64,7 @@ export default function MarkerDraftForm({
         <input
           autoFocus
           className={textInputClassName}
-          placeholder="Ex. hostname, prodsched, station, secteur..."
+          placeholder="Ex. hostname, code zone, station, secteur..."
           type="search"
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
@@ -83,8 +81,6 @@ export default function MarkerDraftForm({
         matchingCandidates={matchingCandidates}
         onMarkerIdChange={onMarkerIdChange}
       />
-
-      {renderMarkerDraftError(errorMessage)}
 
       <div className={panelActionRowClassName}>
         <button className={primaryButtonClassName} type="submit">
@@ -103,14 +99,14 @@ export default function MarkerDraftForm({
 }
 
 function getSelectedCandidate(
-  availableCandidates: PlacementPcCandidate[],
+  availableCandidates: PlacementCandidate[],
   markerId: string,
-): PlacementPcCandidate | null {
+): PlacementCandidate | null {
   if (markerId.length === 0) {
     return null;
   }
 
-  return availableCandidates.find((candidate) => candidate.markerId === markerId) ??
+  return availableCandidates.find((candidate) => candidate.equipmentId === markerId) ??
     null;
 }
 
@@ -118,25 +114,13 @@ function renderMarkerDraftHeader(onCancel: () => void) {
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
-        <p className={eyebrowTextClassName}>Nouveau point</p>
-        <h2 className={panelTitleTextClassName}>Ajouter un marqueur</h2>
+        <p className={eyebrowTextClassName}>Poste</p>
+        <h2 className={panelTitleTextClassName}>Ajouter</h2>
       </div>
 
       <button className={closeButtonClassName} type="button" onClick={onCancel}>
         Fermer
       </button>
     </div>
-  );
-}
-
-function renderMarkerDraftError(errorMessage: string | null) {
-  if (errorMessage === null) {
-    return null;
-  }
-
-  return (
-    <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
-      {errorMessage}
-    </p>
   );
 }

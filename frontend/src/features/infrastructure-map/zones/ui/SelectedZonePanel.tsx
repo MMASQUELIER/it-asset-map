@@ -1,4 +1,5 @@
-import type { CSSProperties } from "react";
+import type { CSSProperties, FormEvent } from "react";
+import { useState } from "react";
 import type { MapZone } from "@/features/infrastructure-map/model/types";
 import {
   closeButtonClassName,
@@ -6,8 +7,11 @@ import {
   detailsGridClassName,
   eyebrowTextClassName,
   fieldGroupClassName,
+  panelActionRowClassName,
   panelDescriptionTextClassName,
   panelTitleTextClassName,
+  primaryButtonClassName,
+  secondaryButtonClassName,
   scrollableFloatingPanelClassName,
   textInputClassName,
 } from "@/features/infrastructure-map/ui/uiClassNames";
@@ -17,43 +21,109 @@ import ZoneSectorSelector from "@/features/infrastructure-map/zones/ui/ZoneSecto
 /** Props du panneau d'edition rapide de la zone selectionnee. */
 interface SelectedZonePanelProps {
   availableSectors: string[];
+  isSaving: boolean;
   onClose: () => void;
-  onProdschedChange: (value: string) => void;
-  onSectorChange: (value: string) => void;
+  onInputChange: () => void;
+  onSubmit: (input: {
+    code: string;
+    name: string;
+    sectorName: string;
+  }) => void;
   zone: MapZone;
 }
 
 /** Affiche un editeur compact pour la zone actuellement selectionnee. */
 export default function SelectedZonePanel({
   availableSectors,
+  isSaving,
   onClose,
-  onProdschedChange,
-  onSectorChange,
+  onInputChange,
+  onSubmit,
   zone,
 }: SelectedZonePanelProps) {
+  const zoneSnapshotKey = `${zone.id}:${zone.sectorName}:${zone.code}:${zone.name ?? ""}`;
+
   return (
-    <aside className={`${scrollableFloatingPanelClassName} grid gap-4`}>
+    <SelectedZonePanelForm
+      key={zoneSnapshotKey}
+      availableSectors={availableSectors}
+      isSaving={isSaving}
+      onClose={onClose}
+      onInputChange={onInputChange}
+      onSubmit={onSubmit}
+      zone={zone}
+    />
+  );
+}
+
+function SelectedZonePanelForm({
+  availableSectors,
+  isSaving,
+  onClose,
+  onInputChange,
+  onSubmit,
+  zone,
+}: SelectedZonePanelProps) {
+  const [sectorName, setSectorName] = useState(() => zone.sectorName);
+  const [code, setCode] = useState(() => zone.code);
+  const [name, setName] = useState(() => zone.name ?? "");
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>): void {
+    event.preventDefault();
+    onSubmit({
+      code,
+      name,
+      sectorName,
+    });
+  }
+
+  return (
+    <form
+      className={`${scrollableFloatingPanelClassName} grid gap-4`}
+      onSubmit={handleSubmit}
+    >
       {renderSelectedZoneHeader(onClose)}
 
       <label className={fieldGroupClassName}>
         <span className="text-sm font-bold text-schneider-900">Secteur</span>
         <ZoneSectorSelector
           availableSectors={availableSectors}
-          onSelectSector={onSectorChange}
-          selectedSector={zone.sector}
+          onSelectSector={(value) => {
+            onInputChange();
+            setSectorName(value);
+          }}
+          selectedSector={sectorName}
         />
       </label>
 
       <label className={fieldGroupClassName}>
-        <span className="text-sm font-bold text-schneider-900">Prodsched</span>
+        <span className="text-sm font-bold text-schneider-900">Code zone</span>
         <input
           autoFocus
           className={textInputClassName}
           inputMode="numeric"
+          maxLength={3}
           placeholder="Ex. 250"
           type="text"
-          value={zone.prodsched}
-          onChange={(event) => onProdschedChange(event.target.value)}
+          value={code}
+          onChange={(event) => {
+            onInputChange();
+            setCode(event.target.value);
+          }}
+        />
+      </label>
+
+      <label className={fieldGroupClassName}>
+        <span className="text-sm font-bold text-schneider-900">Nom</span>
+        <input
+          className={textInputClassName}
+          placeholder="Nom optionnel"
+          type="text"
+          value={name}
+          onChange={(event) => {
+            onInputChange();
+            setName(event.target.value);
+          }}
         />
       </label>
 
@@ -74,10 +144,27 @@ export default function SelectedZonePanel({
 
         <div>
           <span className={detailLabelTextClassName}>Couleur secteur</span>
-          {renderSelectedZoneBadge(zone.sector)}
+          {renderSelectedZoneBadge(sectorName)}
         </div>
       </div>
-    </aside>
+
+      <div className={panelActionRowClassName}>
+        <button
+          className={primaryButtonClassName}
+          disabled={sectorName.trim().length === 0 || code.trim().length !== 3 || isSaving}
+          type="submit"
+        >
+          {isSaving ? "Enregistrement..." : "Enregistrer"}
+        </button>
+        <button
+          className={secondaryButtonClassName}
+          type="button"
+          onClick={onClose}
+        >
+          Fermer
+        </button>
+      </div>
+    </form>
   );
 }
 
@@ -85,12 +172,9 @@ function renderSelectedZoneHeader(onClose: () => void) {
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
-        <p className={eyebrowTextClassName}>Zone selectionnee</p>
-        <h2 className={panelTitleTextClassName}>Edition rapide</h2>
-        <p className={panelDescriptionTextClassName}>
-          Changez le secteur ou le prodsched, puis ajustez les coins
-          directement sur la carte si besoin.
-        </p>
+        <p className={eyebrowTextClassName}>Zone</p>
+        <h2 className={panelTitleTextClassName}>Modifier</h2>
+        <p className={panelDescriptionTextClassName}>Secteur, code et nom.</p>
       </div>
 
       <button className={closeButtonClassName} type="button" onClick={onClose}>

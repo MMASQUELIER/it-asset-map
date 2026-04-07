@@ -1,61 +1,51 @@
 import "leaflet/dist/leaflet.css";
-import useInfrastructureCatalog from "@/features/infrastructure-map/catalog/model/useInfrastructureCatalog";
-import useMapLayout from "@/features/infrastructure-map/layout/model/useMapLayout";
+import { useInfrastructureMapBootstrap } from "@/features/infrastructure-map/model/useInfrastructureMapBootstrap";
 import { LoadedInfrastructureMap } from "@/features/infrastructure-map/ui/LoadedInfrastructureMap";
 import { InfrastructureMapStatus } from "@/features/infrastructure-map/ui/InfrastructureMapStatus";
 
-interface InfrastructureMapProps {
-  catalogUrl: string;
-  imageUrl: string;
-  layoutUrl: string;
-}
+const MAP_IMAGE_URL = "/api/map-image";
 
-export default function InfrastructureMap({
-  catalogUrl,
-  imageUrl,
-  layoutUrl,
-}: InfrastructureMapProps) {
-  const infrastructureCatalogState = useInfrastructureCatalog({ catalogUrl });
-  const mapLayoutState = useMapLayout({ imageUrl, layoutUrl });
+export default function InfrastructureMap() {
+  const infrastructureMapBootstrap = useInfrastructureMapBootstrap(MAP_IMAGE_URL);
 
-  if (infrastructureCatalogState.isLoading || mapLayoutState.isLoading) {
+  if (infrastructureMapBootstrap.isLoading) {
     return (
       <InfrastructureMapStatus
-        message="Chargement du catalogue Excel et du layout de la carte..."
+        message="Chargement des ressources de la carte..."
         title="Chargement"
+        tone="info"
       />
     );
   }
 
-  if (infrastructureCatalogState.errorMessage !== null) {
+  if (infrastructureMapBootstrap.errorMessage !== null) {
     return (
       <InfrastructureMapStatus
-        message={infrastructureCatalogState.errorMessage}
-        title="Catalogue indisponible"
+        message={infrastructureMapBootstrap.errorMessage}
+        title="Carte indisponible"
+        tone="error"
       />
     );
   }
 
-  if (mapLayoutState.errorMessage !== null || mapLayoutState.layoutData === null) {
+  if (infrastructureMapBootstrap.bootstrap === null) {
     return (
       <InfrastructureMapStatus
-        message={mapLayoutState.errorMessage ??
-          "Impossible de charger le layout de la carte."}
-        title="Layout indisponible"
+        message="Impossible de charger les données de la carte."
+        title="Carte indisponible"
+        tone="error"
       />
     );
   }
 
   return (
     <LoadedInfrastructureMap
-      availableSectors={infrastructureCatalogState.availableSectors}
-      imageUrl={imageUrl}
-      isSavingLayout={mapLayoutState.isSaving}
-      layoutData={mapLayoutState.layoutData}
-      onUpdatePcField={infrastructureCatalogState.updatePcField}
-      onSaveLayout={mapLayoutState.saveLayout}
-      placementPcCandidates={infrastructureCatalogState.placementPcCandidates}
-      saveLayoutErrorMessage={mapLayoutState.saveErrorMessage}
+      availableSectors={infrastructureMapBootstrap.bootstrap.availableSectors}
+      imageDimensions={infrastructureMapBootstrap.bootstrap.imageDimensions}
+      imageUrl={MAP_IMAGE_URL}
+      initialMarkers={infrastructureMapBootstrap.bootstrap.initialMarkers}
+      initialPlacementCandidates={infrastructureMapBootstrap.bootstrap.initialPlacementCandidates}
+      initialZones={infrastructureMapBootstrap.bootstrap.initialZones}
     />
   );
 }

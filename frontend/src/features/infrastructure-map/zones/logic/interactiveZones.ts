@@ -6,8 +6,7 @@
  */
 export {
   doesZoneOverlap,
-  hydrateMapZones,
-  isZoneIdUnique,
+  findZoneById,
   sortZonesById,
 } from "./zoneCollections";
 export { createZoneDraft } from "./zoneDrafts";

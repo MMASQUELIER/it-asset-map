@@ -2,6 +2,7 @@ export const EDITABLE_PC_FIELD_IDS = [
   "contact",
   "pinKey",
   "sector",
+  "zoneCode",
   "manufacturingStationNames",
   "lastInventoryDate",
   "assetType",
@@ -19,7 +20,6 @@ export const EDITABLE_PC_FIELD_IDS = [
   "vlan",
   "vlanNew",
   "networkScope",
-  "gateway",
   "idPort",
   "newPortAuto",
   "switchName",
@@ -30,22 +30,20 @@ export const EDITABLE_PC_FIELD_IDS = [
   "ticketBrassage",
   "ipFilter",
   "directoryAccount",
-  "commentaire2",
+  "secondaryComment",
   "serialNumber",
-  "etat",
-  "securityStatus",
+  "status",
 ] as const;
 
 export type EditablePcFieldId = typeof EDITABLE_PC_FIELD_IDS[number];
 
 export interface PcTechnicalDetails {
-  excelIssues?: string[];
-  site?: string;
+  catalogIssues?: string[];
   contact?: string;
   pinKey?: string;
   sector?: string;
   floorLocation?: string;
-  prodsched?: string;
+  zoneCode?: string;
   manufacturingStationNames?: string;
   lastInventoryDate?: string;
   assetType?: string;
@@ -54,8 +52,6 @@ export interface PcTechnicalDetails {
   sap?: string;
   hostname?: string;
   operatingSystem?: string;
-  processor?: string;
-  memory?: string;
   storage?: string;
   ipAddress?: string;
   oldIpAddress?: string;
@@ -65,29 +61,28 @@ export interface PcTechnicalDetails {
   vlan?: string;
   vlanNew?: string;
   networkScope?: string;
-  gateway?: string;
   idPort?: string;
-  switchPort?: string;
   newPortAuto?: string;
   switchName?: string;
   connectedToSwitchName?: string;
   switchIpAddress?: string;
   connectedToSwitchPort?: string;
+  // Legacy aliases still accepted for rows not yet normalized in CMDB.
   connectionType?: string;
   wifiOrWiredConnection?: string;
   ticketBrassage?: string;
   ipFilter?: string;
   directoryAccount?: string;
   comment?: string;
-  commentaire2?: string;
+  secondaryComment?: string;
   serialNumber?: string;
-  etat?: string;
+  status?: string;
   securityStatus?: string;
 }
 
 export interface MapPc {
   id: string;
-  sourceRowNumber: number;
+  equipmentDataId: number;
   x: number;
   y: number;
   technicalDetails: PcTechnicalDetails;

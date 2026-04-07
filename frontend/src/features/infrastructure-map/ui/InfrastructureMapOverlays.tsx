@@ -3,7 +3,7 @@ import type {
   InteractiveMarker,
   MapZone,
   MarkerDraft,
-  PlacementPcCandidate,
+  PlacementCandidate,
   ZoneDraft,
 } from "@/features/infrastructure-map/model/types";
 import MapDraftPanels from "@/features/infrastructure-map/editor/ui/MapDraftPanels";
@@ -11,54 +11,60 @@ import PcDetailsPanel from "@/features/infrastructure-map/pc-details/ui/PcDetail
 import SelectedZonePanel from "@/features/infrastructure-map/zones/ui/SelectedZonePanel";
 
 interface InfrastructureMapOverlaysProps {
-  availablePlacementPcCandidates: PlacementPcCandidate[];
+  availablePlacementCandidates: PlacementCandidate[];
   availableSectors: string[];
   isInteractionMode: boolean;
+  isSaving: boolean;
   isZoneEditToolActive: boolean;
   markerDraft: MarkerDraft | null;
-  markerDraftError: string | null;
   markerDraftId: string;
   onCancelDrafts: () => void;
   onCloseSelectedMarker: () => void;
   onMarkerIdChange: (value: string) => void;
   onMarkerSubmit: () => void;
   onSelectedZoneClose: () => void;
-  onSelectedZoneProdschedChange: (value: string) => void;
-  onSelectedZoneSectorChange: (value: string) => void;
-  onZoneProdschedChange: (value: string) => void;
+  onSelectedZoneInputChange: () => void;
+  onSelectedZoneSubmit: (input: {
+    code: string;
+    name: string;
+    sectorName: string;
+  }) => void;
+  onZoneCodeChange: (value: string) => void;
+  onZoneNameChange: (value: string) => void;
   onZoneSectorChange: (value: string) => void;
   onZoneSubmit: () => void;
   onUpdatePcField: (
     markerId: string,
-    sourceRowNumber: number,
+    equipmentDataId: number,
     fieldId: EditablePcFieldId,
     value: string,
-  ) => Promise<void>;
+  ) => Promise<void> | void;
   selectedMarker: InteractiveMarker | null;
   selectedMarkerAssignedZone: MapZone | null;
   selectedZone: MapZone | null;
   zoneDraft: ZoneDraft | null;
-  zoneDraftError: string | null;
-  zoneDraftProdsched: string;
-  zoneDraftSector: string;
+  zoneDraftCode: string;
+  zoneDraftName: string;
+  zoneDraftSectorName: string;
 }
 
 export function InfrastructureMapOverlays({
-  availablePlacementPcCandidates,
+  availablePlacementCandidates,
   availableSectors,
   isInteractionMode,
+  isSaving,
   isZoneEditToolActive,
   markerDraft,
-  markerDraftError,
   markerDraftId,
   onCancelDrafts,
   onCloseSelectedMarker,
   onMarkerIdChange,
   onMarkerSubmit,
   onSelectedZoneClose,
-  onSelectedZoneProdschedChange,
-  onSelectedZoneSectorChange,
-  onZoneProdschedChange,
+  onSelectedZoneInputChange,
+  onSelectedZoneSubmit,
+  onZoneCodeChange,
+  onZoneNameChange,
   onZoneSectorChange,
   onZoneSubmit,
   onUpdatePcField,
@@ -66,37 +72,38 @@ export function InfrastructureMapOverlays({
   selectedMarkerAssignedZone,
   selectedZone,
   zoneDraft,
-  zoneDraftError,
-  zoneDraftProdsched,
-  zoneDraftSector,
+  zoneDraftCode,
+  zoneDraftName,
+  zoneDraftSectorName,
 }: InfrastructureMapOverlaysProps) {
   return (
     <>
       <MapDraftPanels
         availableSectors={availableSectors}
         markerDraft={markerDraft}
-        markerDraftError={markerDraftError}
         markerDraftId={markerDraftId}
-        markerPlacementCandidates={availablePlacementPcCandidates}
+        markerPlacementCandidates={availablePlacementCandidates}
         onCancel={onCancelDrafts}
         onMarkerIdChange={onMarkerIdChange}
         onMarkerSubmit={onMarkerSubmit}
-        onZoneProdschedChange={onZoneProdschedChange}
+        onZoneCodeChange={onZoneCodeChange}
+        onZoneNameChange={onZoneNameChange}
         onZoneSectorChange={onZoneSectorChange}
         onZoneSubmit={onZoneSubmit}
         zoneDraft={zoneDraft}
-        zoneDraftError={zoneDraftError}
-        zoneDraftProdsched={zoneDraftProdsched}
-        zoneDraftSector={zoneDraftSector}
+        zoneDraftCode={zoneDraftCode}
+        zoneDraftName={zoneDraftName}
+        zoneDraftSectorName={zoneDraftSectorName}
       />
       {isInteractionMode && isZoneEditToolActive && selectedZone !== null &&
           markerDraft === null && zoneDraft === null
         ? (
           <SelectedZonePanel
             availableSectors={availableSectors}
+            isSaving={isSaving}
             onClose={onSelectedZoneClose}
-            onProdschedChange={onSelectedZoneProdschedChange}
-            onSectorChange={onSelectedZoneSectorChange}
+            onInputChange={onSelectedZoneInputChange}
+            onSubmit={onSelectedZoneSubmit}
             zone={selectedZone}
           />
         )

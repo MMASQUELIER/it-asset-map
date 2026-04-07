@@ -3,8 +3,12 @@ import type {
   InteractiveMarker,
   MapZone,
 } from "@/features/infrastructure-map/model/types";
+import {
+  getResolvedPcConnectionType,
+  getResolvedPcStatus,
+} from "@/features/infrastructure-map/model/pcValueResolvers";
 import { PcDetailFieldCard } from "@/features/infrastructure-map/pc-details/ui/components/PcDetailFieldCard";
-import { PcExcelIssues } from "@/features/infrastructure-map/pc-details/ui/components/PcExcelIssues";
+import { PcCatalogIssues } from "@/features/infrastructure-map/pc-details/ui/components/PcCatalogIssues";
 import { PcDetailsPanelHeader } from "@/features/infrastructure-map/pc-details/ui/components/PcDetailsPanelHeader";
 import { PcDetailsSection } from "@/features/infrastructure-map/pc-details/ui/components/PcDetailsSection";
 import { useCopiedField } from "@/features/infrastructure-map/pc-details/ui/components/useCopiedField";
@@ -30,10 +34,10 @@ interface PcDetailsPanelProps {
   onClose: () => void;
   onUpdatePcField: (
     markerId: string,
-    sourceRowNumber: number,
+    equipmentDataId: number,
     fieldId: NonNullable<VisiblePcDetailField["editableFieldId"]>,
     value: string,
-  ) => Promise<void>;
+  ) => Promise<void> | void;
   zone: MapZone | null;
 }
 
@@ -71,7 +75,7 @@ export default function PcDetailsPanel({
 
     await onUpdatePcField(
       marker.id,
-      marker.sourceRowNumber,
+      marker.equipmentDataId,
       field.editableFieldId,
       nextValue,
     );
@@ -85,40 +89,39 @@ export default function PcDetailsPanel({
       )}
     >
       <PcDetailsPanelHeader
-        connectionTypeLabel={formatPcDetailValue(
+        connectionLabel={formatPcDetailValue(
           "wifi-wired-connection",
-          marker.technicalDetails.wifiOrWiredConnection ??
-            marker.technicalDetails.connectionType,
+          getResolvedPcConnectionType(marker.technicalDetails),
         )}
         markerId={marker.id}
         onClose={onClose}
         onSearchQueryChange={setDetailSearchQuery}
         searchQuery={detailSearchQuery}
-        securityStateLabel={formatPcDetailValue(
-          "etat",
-          marker.technicalDetails.etat ?? marker.technicalDetails.securityStatus,
+        statusLabel={formatPcDetailValue(
+          "status",
+          getResolvedPcStatus(marker.technicalDetails),
         ) ?? "Non renseigne"}
         subtitle={buildPcSubtitle(marker)}
         visibleFieldCount={visibleFieldCount}
         zone={zone}
         zoneLabel={zone === null
           ? "Hors zone"
-          : `Prodsched ${getZoneDisplayLabel(zone)}`}
+          : `Zone ${getZoneDisplayLabel(zone)}`}
       />
 
-      {(marker.technicalDetails.excelIssues ?? []).length > 0
-        ? <PcExcelIssues issues={marker.technicalDetails.excelIssues ?? []} />
+      {(marker.technicalDetails.catalogIssues ?? []).length > 0
+        ? <PcCatalogIssues issues={marker.technicalDetails.catalogIssues ?? []} />
         : null}
 
       {visibleSummaryFields.length > 0
         ? (
-          <section className="grid gap-3 rounded-[26px] border border-schneider-950/10 bg-schneider-50/65 p-4 md:p-5">
+          <section className="grid gap-3 rounded-[20px] border border-schneider-950/10 bg-schneider-50/72 p-4 md:p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h3 className="m-0 text-[0.82rem] font-black uppercase tracking-[0.14em] text-schneider-700">
-                Vue rapide
+              <h3 className="m-0 text-[0.82rem] font-semibold uppercase tracking-[0.14em] text-schneider-700">
+                Resume
               </h3>
-              <span className="text-xs font-medium text-schneider-800/65">
-                Essentiel
+              <span className="text-xs text-schneider-800/62">
+                {visibleSummaryFields.length} champ(s)
               </span>
             </div>
             <div className="grid gap-2.5">
@@ -128,7 +131,6 @@ export default function PcDetailsPanel({
                   copiedFieldId={copiedFieldId}
                   field={field}
                   onCopy={handleCopy}
-                  onSaveField={handleFieldSave}
                 />
               ))}
             </div>
@@ -150,8 +152,8 @@ export default function PcDetailsPanel({
             />
         ))
         : (
-          <section className="rounded-[26px] border border-schneider-950/10 bg-schneider-50/65 px-4 py-5 text-sm leading-6 text-schneider-800/75">
-            Aucun champ ne correspond a cette recherche.
+          <section className="rounded-[20px] border border-schneider-950/10 bg-schneider-50/72 px-4 py-5 text-sm leading-6 text-schneider-800/75">
+            Aucun champ correspondant.
           </section>
         )}
     </aside>

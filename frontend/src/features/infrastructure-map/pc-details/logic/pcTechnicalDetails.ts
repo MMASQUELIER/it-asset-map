@@ -4,7 +4,7 @@ import type {
   PcTechnicalDetails,
 } from "@/features/infrastructure-map/model/types";
 
-type ZoneContext = Pick<MapZone, "prodsched" | "sector">;
+type ZoneContext = Pick<MapZone, "code" | "sectorName">;
 
 /**
  * Resynchronise les champs techniques qui doivent suivre la zone courante.
@@ -16,13 +16,13 @@ export function syncPcTechnicalDetailsWithZone(
   const zoneSector = getZoneSector(zone);
   const currentSector = getVisibleText(technicalDetails.sector);
   const currentFloorLocation = getVisibleText(technicalDetails.floorLocation);
-  const currentProdsched = getVisibleText(technicalDetails.prodsched);
+  const currentZoneCode = getVisibleText(technicalDetails.zoneCode);
 
   return {
     ...technicalDetails,
     sector: resolveZoneValue(zoneSector, currentSector),
     floorLocation: resolveZoneValue(zoneSector, currentFloorLocation ?? currentSector),
-    prodsched: resolveZoneValue(getZoneProdsched(zone), currentProdsched),
+    zoneCode: resolveZoneValue(getZoneCode(zone), currentZoneCode),
   };
 }
 
@@ -49,11 +49,11 @@ export function applyEditablePcFieldUpdate(
     };
   }
 
-  if (fieldId === "commentaire2") {
+  if (fieldId === "secondaryComment") {
     return {
       ...technicalDetails,
       comment: nextValue,
-      commentaire2: nextValue,
+      secondaryComment: nextValue,
     };
   }
 
@@ -68,15 +68,15 @@ function getZoneSector(zone: ZoneContext | null): string | undefined {
     return undefined;
   }
 
-  return getVisibleText(zone.sector);
+  return getVisibleText(zone.sectorName);
 }
 
-function getZoneProdsched(zone: ZoneContext | null): string | undefined {
+function getZoneCode(zone: ZoneContext | null): string | undefined {
   if (zone === null) {
     return undefined;
   }
 
-  return getVisibleText(zone.prodsched);
+  return getVisibleText(zone.code);
 }
 
 function resolveZoneValue(

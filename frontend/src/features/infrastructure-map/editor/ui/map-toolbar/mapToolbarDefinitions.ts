@@ -16,50 +16,48 @@ export interface ToolSection {
 export const TOOL_SECTIONS: ToolSection[] = [
   {
     title: "Marqueurs",
-    description: "Agir sur les PC affiches sur le plan.",
+    description: "Ajouter, deplacer ou supprimer.",
     tools: [
       {
         id: "add-marker",
         label: "Ajouter un marqueur",
-        description: "Cliquez sur la carte pour preparer un nouveau PC.",
+        description: "Cliquez sur la carte pour placer un poste.",
         tone: "primary",
       },
       {
         id: "move-marker",
         label: "Deplacer un marqueur",
-        description: "Glissez un PC vers sa nouvelle position.",
+        description: "Glissez un poste vers sa nouvelle position.",
         tone: "move",
       },
       {
         id: "delete-marker",
         label: "Supprimer un marqueur",
-        description: "Cliquez sur un PC pour le retirer.",
+        description: "Cliquez sur un poste pour le retirer.",
         tone: "danger",
       },
     ],
   },
   {
     title: "Zones",
-    description: "Mettre a jour les zones et leur contour.",
+    description: "Creer, modifier ou supprimer.",
     tools: [
       {
         id: "select-zone",
         label: "Editer une zone",
-        description:
-          "Selectionnez une zone pour changer son secteur, son prodsched ou ses coins.",
+        description: "Selectionnez une zone pour modifier ses infos.",
         tone: "zone",
       },
       {
         id: "add-zone",
         label: "Ajouter une zone",
-        description:
-          "Dessinez un rectangle puis choisissez rapidement secteur et prodsched.",
+        description: "Dessinez la zone puis renseignez son code.",
         tone: "zone",
       },
       {
         id: "delete-zone",
         label: "Supprimer une zone",
-        description: "Cliquez sur une zone pour retirer son contour.",
+        description: "Cliquez sur une zone pour la retirer.",
         tone: "danger",
       },
     ],

@@ -26,7 +26,7 @@ function createZoneIcon(zoneLabel: string, isActive: boolean): L.DivIcon {
     className: "border-0 bg-transparent",
     html: `<span class="inline-flex min-w-[56px] max-w-[96px] items-center justify-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full border px-3 py-1.5 text-[0.82rem] font-black tracking-[0.02em] shadow-[0_10px_22px_rgba(22,67,39,0.18)] ${
       isActive
-        ? "border-schneider-500/25 bg-schneider-500 text-schneider-950"
+        ? "border-schneider-500/25 bg-schneider-500 text-white"
         : "border-white/90 bg-white/96 text-[#174b28]"
     }">${zoneLabel}</span>`,
     iconSize: [84, 32],

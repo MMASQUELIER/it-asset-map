@@ -1,10 +1,8 @@
 import type {
   MapImageDimensions,
-  MapZone,
   ZoneDraft,
 } from "@/features/infrastructure-map/model/types";
 import { clampZoneBounds } from "@/features/infrastructure-map/zones/logic/zoneGeometry";
-import { generateSuggestedZoneId } from "@/features/infrastructure-map/zones/logic/zoneCollections";
 
 /** Default width applied to a newly created zone draft. */
 const DEFAULT_ZONE_WIDTH = 160;
@@ -21,7 +19,7 @@ const DEFAULT_ZONE_HEIGHT = 100;
  */
 export function createZoneDraft(
   image: MapImageDimensions,
-  zones: MapZone[],
+  _zones: unknown[],
   x: number,
   y: number,
 ): ZoneDraft {
@@ -37,6 +35,5 @@ export function createZoneDraft(
 
   return {
     bounds,
-    suggestedId: generateSuggestedZoneId(zones),
   };
 }

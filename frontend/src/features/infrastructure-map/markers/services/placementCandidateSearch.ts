@@ -1,16 +1,16 @@
 import type {
-  PlacementPcCandidate,
+  PlacementCandidate,
 } from "@/features/infrastructure-map/model/types";
 import { normalizeSearchValue } from "@/features/infrastructure-map/markers/logic/marker-search/normalization";
 
-export function searchPlacementPcCandidates(
-  candidates: PlacementPcCandidate[],
+export function searchPlacementCandidates(
+  candidates: PlacementCandidate[],
   searchQuery: string,
   limit = 10,
-): PlacementPcCandidate[] {
+): PlacementCandidate[] {
   const normalizedSearchQuery = normalizeSearchValue(searchQuery);
   const rankedCandidates: Array<{
-    candidate: PlacementPcCandidate;
+    candidate: PlacementCandidate;
     score: number;
   }> = [];
 
@@ -30,7 +30,7 @@ export function searchPlacementPcCandidates(
 
   rankedCandidates.sort(comparePlacementCandidates);
 
-  const visibleCandidates: PlacementPcCandidate[] = [];
+  const visibleCandidates: PlacementCandidate[] = [];
 
   for (const entry of rankedCandidates) {
     visibleCandidates.push(entry.candidate);
@@ -44,7 +44,7 @@ export function searchPlacementPcCandidates(
 }
 
 export function doesPlacementCandidateMatchSector(
-  candidate: PlacementPcCandidate,
+  candidate: PlacementCandidate,
   sectorName: string,
 ): boolean {
   const candidateSector = normalizeSearchValue(candidate.sector);
@@ -54,7 +54,7 @@ export function doesPlacementCandidateMatchSector(
 }
 
 function getPlacementCandidateScore(
-  candidate: PlacementPcCandidate,
+  candidate: PlacementCandidate,
   normalizedSearchQuery: string,
 ): number | null {
   let bestScore: number | null = null;
@@ -86,27 +86,27 @@ function getPlacementCandidateScore(
 }
 
 function comparePlacementCandidates(
-  firstEntry: { candidate: PlacementPcCandidate; score: number },
-  secondEntry: { candidate: PlacementPcCandidate; score: number },
+  firstEntry: { candidate: PlacementCandidate; score: number },
+  secondEntry: { candidate: PlacementCandidate; score: number },
 ): number {
   if (firstEntry.score !== secondEntry.score) {
     return secondEntry.score - firstEntry.score;
   }
 
-  return firstEntry.candidate.markerId.localeCompare(
-    secondEntry.candidate.markerId,
+  return firstEntry.candidate.equipmentId.localeCompare(
+    secondEntry.candidate.equipmentId,
     "fr",
   );
 }
 
 function getPlacementCandidateSearchValues(
-  candidate: PlacementPcCandidate,
+  candidate: PlacementCandidate,
 ): string[] {
   return [
-    candidate.markerId,
+    candidate.equipmentId,
     candidate.hostname ?? "",
     candidate.label,
-    candidate.prodsched,
+    candidate.zoneCode ?? "",
     candidate.sector,
     candidate.stationName,
     candidate.technicalDetails.contact ?? "",

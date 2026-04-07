@@ -8,9 +8,6 @@ import { searchMarkers } from "@/features/infrastructure-map/markers/logic/marke
 import { MapSearchResultCard } from "@/features/infrastructure-map/markers/ui/map-search/MapSearchResultCard";
 import {
   eyebrowTextClassName,
-  infoBadgeClassName,
-  joinClassNames,
-  panelDescriptionTextClassName,
   panelTitleTextClassName,
   primaryButtonClassName,
   secondaryButtonClassName,
@@ -65,8 +62,8 @@ export default function MapSearchPanel({
     if (trimmedSearchQuery.length > 0) {
       if (searchResults.length === 0) {
         return (
-          <p className="rounded-[22px] border border-schneider-900/8 bg-schneider-100/58 px-4 py-3 text-sm text-schneider-800/75">
-            Aucun equipement correspondant a cette recherche.
+          <p className="rounded-[18px] border border-schneider-900/8 bg-schneider-50/78 px-4 py-3 text-sm text-schneider-800/75">
+            Aucun resultat.
           </p>
         );
       }
@@ -92,16 +89,15 @@ export default function MapSearchPanel({
 
     if (selectedMarker !== null) {
       return (
-        <p className="rounded-[22px] border border-schneider-900/8 bg-schneider-100/58 px-4 py-3 text-sm text-schneider-800/75">
-          Equipement selectionne : <strong>{selectedMarker.id}</strong>
+        <p className="rounded-[18px] border border-schneider-900/8 bg-schneider-50/78 px-4 py-3 text-sm text-schneider-800/75">
+          Selection : <strong>{selectedMarker.id}</strong>
         </p>
       );
     }
 
     return (
-      <p className="rounded-[22px] border border-schneider-900/8 bg-schneider-100/58 px-4 py-3 text-sm text-schneider-800/75">
-        Saisissez un critere puis validez pour centrer la carte sur le premier
-        resultat.
+      <p className="rounded-[18px] border border-schneider-900/8 bg-schneider-50/78 px-4 py-3 text-sm text-schneider-800/75">
+        {markers.length} poste(s)
       </p>
     );
   }
@@ -109,40 +105,20 @@ export default function MapSearchPanel({
   return (
     <section className="min-w-0">
       <form
-        className={`${surfacePanelClassName} relative overflow-hidden grid gap-4 p-5`}
+        className={`${surfacePanelClassName} grid gap-4 p-4 sm:p-5`}
         onSubmit={handleSearchSubmit}
       >
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-[linear-gradient(180deg,rgba(15,122,70,0.08),transparent)]" />
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div className="grid gap-1.5">
-            <p className={eyebrowTextClassName}>Recherche equipement</p>
-            <h2 className={panelTitleTextClassName}>Localiser un poste specifique</h2>
-            <p className={panelDescriptionTextClassName}>
-              Recherchez par identifiant, nom machine, prodsched, secteur,
-              poste de fabrication, IP ou MAC.
-            </p>
-          </div>
-
-          <span
-            className={joinClassNames(
-              infoBadgeClassName,
-              trimmedSearchQuery.length > 0
-                ? "border-schneider-500/18 bg-schneider-500/10 text-schneider-700"
-                : "bg-schneider-100/70 text-schneider-800/72",
-            )}
-          >
-            {trimmedSearchQuery.length > 0
-              ? `${searchResults.length} resultat(s)`
-              : "Recherche multi-criteres"}
-          </span>
+        <div className="grid gap-1.5">
+          <p className={eyebrowTextClassName}>Recherche</p>
+          <h2 className={panelTitleTextClassName}>Trouver un poste</h2>
         </div>
 
-        <div className="grid gap-3 rounded-[24px] border border-schneider-900/8 bg-schneider-100/58 p-3 md:grid-cols-[minmax(0,1fr)_auto_auto]">
+        <div className="grid gap-3 rounded-[18px] border border-schneider-900/8 bg-schneider-50/78 p-3 md:grid-cols-[minmax(0,1fr)_auto_auto]">
           <input
             aria-label="Rechercher un equipement"
             autoComplete="off"
             className={textInputClassName}
-            placeholder="Ex. WFRGMOY2DD, 250, SECTEUR MANUEL, 10.20.4.12..."
+            placeholder="ID, hostname, IP..."
             type="search"
             value={searchQuery}
             onChange={(event) => setSearchQuery(event.target.value)}

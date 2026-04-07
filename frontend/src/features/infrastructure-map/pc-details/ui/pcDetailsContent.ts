@@ -20,7 +20,7 @@ const EMPTY_EDITABLE_FIELD_LABEL = "Non renseigne";
 
 export function buildPcSubtitle(marker: InteractiveMarker): string {
   return [
-    formatPcDetailValue("prodsched", marker.technicalDetails.prodsched),
+    formatPcDetailValue("zone-code", marker.technicalDetails.zoneCode),
     formatPcDetailValue(
       "manufacturing-station-name",
       marker.technicalDetails.manufacturingStationNames,

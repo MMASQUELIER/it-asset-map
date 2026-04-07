@@ -1,6 +1,6 @@
 import type {
   MarkerDraft,
-  PlacementPcCandidate,
+  PlacementCandidate,
   ZoneDraft,
 } from "@/features/infrastructure-map/model/types";
 import MarkerDraftForm from "@/features/infrastructure-map/markers/ui/MarkerDraftForm";
@@ -10,19 +10,19 @@ import ZoneDraftForm from "@/features/infrastructure-map/zones/ui/ZoneDraftForm"
 interface MapDraftPanelsProps {
   availableSectors: string[];
   markerDraft: MarkerDraft | null;
-  markerDraftError: string | null;
   markerDraftId: string;
-  markerPlacementCandidates: PlacementPcCandidate[];
+  markerPlacementCandidates: PlacementCandidate[];
   onCancel: () => void;
   onMarkerIdChange: (value: string) => void;
   onMarkerSubmit: () => void;
-  onZoneProdschedChange: (value: string) => void;
+  onZoneCodeChange: (value: string) => void;
+  onZoneNameChange: (value: string) => void;
   onZoneSectorChange: (value: string) => void;
   onZoneSubmit: () => void;
   zoneDraft: ZoneDraft | null;
-  zoneDraftError: string | null;
-  zoneDraftProdsched: string;
-  zoneDraftSector: string;
+  zoneDraftCode: string;
+  zoneDraftName: string;
+  zoneDraftSectorName: string;
 }
 
 /**
@@ -31,19 +31,19 @@ interface MapDraftPanelsProps {
 export default function MapDraftPanels({
   availableSectors,
   markerDraft,
-  markerDraftError,
   markerDraftId,
   markerPlacementCandidates,
   onCancel,
   onMarkerIdChange,
   onMarkerSubmit,
-  onZoneProdschedChange,
+  onZoneCodeChange,
+  onZoneNameChange,
   onZoneSectorChange,
   onZoneSubmit,
   zoneDraft,
-  zoneDraftError,
-  zoneDraftProdsched,
-  zoneDraftSector,
+  zoneDraftCode,
+  zoneDraftName,
+  zoneDraftSectorName,
 }: MapDraftPanelsProps) {
   if (markerDraft === null && zoneDraft === null) {
     return null;
@@ -54,7 +54,6 @@ export default function MapDraftPanels({
       {renderMarkerDraftForm(
         markerDraft,
         markerPlacementCandidates,
-        markerDraftError,
         markerDraftId,
         onCancel,
         onMarkerIdChange,
@@ -63,13 +62,14 @@ export default function MapDraftPanels({
       {renderZoneDraftForm(
         zoneDraft,
         availableSectors,
-        zoneDraftError,
         onCancel,
-        onZoneProdschedChange,
+        onZoneCodeChange,
+        onZoneNameChange,
         onZoneSectorChange,
         onZoneSubmit,
-        zoneDraftProdsched,
-        zoneDraftSector,
+        zoneDraftCode,
+        zoneDraftName,
+        zoneDraftSectorName,
       )}
     </>
   );
@@ -77,8 +77,7 @@ export default function MapDraftPanels({
 
 function renderMarkerDraftForm(
   markerDraft: MarkerDraft | null,
-  markerPlacementCandidates: PlacementPcCandidate[],
-  markerDraftError: string | null,
+  markerPlacementCandidates: PlacementCandidate[],
   markerDraftId: string,
   onCancel: () => void,
   onMarkerIdChange: (value: string) => void,
@@ -92,7 +91,6 @@ function renderMarkerDraftForm(
     <MarkerDraftForm
       availableCandidates={markerPlacementCandidates}
       draft={markerDraft}
-      errorMessage={markerDraftError}
       markerId={markerDraftId}
       onCancel={onCancel}
       onMarkerIdChange={onMarkerIdChange}
@@ -104,13 +102,14 @@ function renderMarkerDraftForm(
 function renderZoneDraftForm(
   zoneDraft: ZoneDraft | null,
   availableSectors: string[],
-  zoneDraftError: string | null,
   onCancel: () => void,
-  onZoneProdschedChange: (value: string) => void,
+  onZoneCodeChange: (value: string) => void,
+  onZoneNameChange: (value: string) => void,
   onZoneSectorChange: (value: string) => void,
   onZoneSubmit: () => void,
-  zoneDraftProdsched: string,
-  zoneDraftSector: string,
+  zoneDraftCode: string,
+  zoneDraftName: string,
+  zoneDraftSectorName: string,
 ) {
   if (zoneDraft === null) {
     return null;
@@ -120,13 +119,14 @@ function renderZoneDraftForm(
     <ZoneDraftForm
       availableSectors={availableSectors}
       draft={zoneDraft}
-      errorMessage={zoneDraftError}
       onCancel={onCancel}
-      onProdschedChange={onZoneProdschedChange}
+      onCodeChange={onZoneCodeChange}
+      onNameChange={onZoneNameChange}
       onSectorChange={onZoneSectorChange}
       onSubmit={onZoneSubmit}
-      zoneProdsched={zoneDraftProdsched}
-      zoneSector={zoneDraftSector}
+      zoneCode={zoneDraftCode}
+      zoneName={zoneDraftName}
+      zoneSectorName={zoneDraftSectorName}
     />
   );
 }

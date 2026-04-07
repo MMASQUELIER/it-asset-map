@@ -3,8 +3,10 @@ import type {
   InteractiveMarker,
   MapZone,
   MarkerDraft,
-  PlacementPcCandidate,
+  PlacementCandidate,
+  SectorRecord,
   ZoneDraft,
+  ZoneDraftValues,
 } from "@/features/infrastructure-map/model/types";
 import type {
   InteractionTool,
@@ -14,7 +16,10 @@ import type {
 /** Etat public et callbacks exposes par le hook principal de la carte. */
 export interface InfrastructureMapState {
   activeTool: InteractionTool;
+  availablePlacementCandidates: PlacementCandidate[];
+  availableSectors: string[];
   highlightedZoneId: number | null;
+  clearRuntimeError: () => void;
   clearPendingDrafts: () => void;
   handleCloseInteractionMode: () => void;
   handleDeleteMarker: (markerId: string) => void;
@@ -28,27 +33,34 @@ export interface InfrastructureMapState {
   handleZoneInteraction: (zoneId: number) => void;
   handleUpdateMarkerTechnicalDetails: (
     markerId: string,
+    equipmentDataId: number,
     fieldId: EditablePcFieldId,
     value: string,
   ) => void;
-  handleZoneDraftProdschedChange: (value: string) => void;
+  handleZoneDraftCodeChange: (value: string) => void;
+  handleZoneDraftNameChange: (value: string) => void;
   handleZoneDraftSectorChange: (value: string) => void;
   handleZoneDraftSave: () => void;
-  handleSelectedZoneProdschedChange: (value: string) => void;
-  handleSelectedZoneSectorChange: (value: string) => void;
+  handleSelectedZoneSave: (input: ZoneDraftValues) => void;
   handleZoneDraftDrag: (
     startX: number,
     startY: number,
     currentX: number,
     currentY: number,
   ) => void;
-  handleZoneResizeDrag: (
+  handleZoneResizePreview: (
+    handle: ZoneResizeHandle,
+    x: number,
+    y: number,
+  ) => void;
+  handleZoneResizeCommit: (
     handle: ZoneResizeHandle,
     x: number,
     y: number,
   ) => void;
   handleCloseSelectedMarker: () => void;
   handleSelectMarker: (markerId: string) => void;
+  isSavingChanges: boolean;
   isMarkerCreationToolActive: boolean;
   isMarkerMoveToolActive: boolean;
   isCreationToolActive: boolean;
@@ -59,18 +71,19 @@ export interface InfrastructureMapState {
   isZoneEditToolActive: boolean;
   pendingMarkerDraft: MarkerDraft | null;
   pendingMarkerDraftError: string | null;
-  pendingMarkerId: string;
-  availablePlacementPcCandidates: PlacementPcCandidate[];
-  availableSectors: string[];
+  pendingEquipmentId: string;
+  saveErrorMessage: string | null;
+  sectors: SectorRecord[];
   markers: InteractiveMarker[];
   selectedMarker: InteractiveMarker | null;
   selectedMarkerFocusToken: number;
   selectedMarkerId: string | null;
   selectedZone: MapZone | null;
-  setPendingMarkerId: (value: string) => void;
+  setPendingEquipmentId: (value: string) => void;
   pendingZoneDraft: ZoneDraft | null;
   pendingZoneDraftError: string | null;
-  pendingZoneProdsched: string;
-  pendingZoneSector: string;
+  pendingZoneCode: string;
+  pendingZoneName: string;
+  pendingZoneSectorName: string;
   zones: MapZone[];
 }

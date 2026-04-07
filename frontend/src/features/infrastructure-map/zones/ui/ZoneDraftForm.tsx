@@ -21,29 +21,31 @@ import ZoneSectorSelector from "@/features/infrastructure-map/zones/ui/ZoneSecto
 interface ZoneDraftFormProps {
   availableSectors: string[];
   draft: ZoneDraft;
-  errorMessage: string | null;
   onCancel: () => void;
-  onProdschedChange: (value: string) => void;
+  onCodeChange: (value: string) => void;
+  onNameChange: (value: string) => void;
   onSectorChange: (value: string) => void;
   onSubmit: () => void;
-  zoneProdsched: string;
-  zoneSector: string;
+  zoneCode: string;
+  zoneName: string;
+  zoneSectorName: string;
 }
 
 /** Formulaire de confirmation pour la creation d'une nouvelle zone. */
 export default function ZoneDraftForm({
   availableSectors,
   draft,
-  errorMessage,
   onCancel,
-  onProdschedChange,
+  onCodeChange,
+  onNameChange,
   onSectorChange,
   onSubmit,
-  zoneProdsched,
-  zoneSector,
+  zoneCode,
+  zoneName,
+  zoneSectorName,
 }: ZoneDraftFormProps) {
-  const isSubmitDisabled = zoneSector.trim().length === 0 ||
-    zoneProdsched.trim().length === 0;
+  const isSubmitDisabled = zoneSectorName.trim().length === 0 ||
+    zoneCode.trim().length !== 3;
 
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
@@ -62,20 +64,32 @@ export default function ZoneDraftForm({
         <ZoneSectorSelector
           availableSectors={availableSectors}
           onSelectSector={onSectorChange}
-          selectedSector={zoneSector}
+          selectedSector={zoneSectorName}
         />
       </label>
 
       <label className={fieldGroupClassName}>
-        <span className="text-sm font-bold text-schneider-900">Prodsched</span>
+        <span className="text-sm font-bold text-schneider-900">Code zone</span>
         <input
           autoFocus
           className={textInputClassName}
           inputMode="numeric"
           placeholder="Ex. 250"
+          maxLength={3}
           type="text"
-          value={zoneProdsched}
-          onChange={(event) => onProdschedChange(event.target.value)}
+          value={zoneCode}
+          onChange={(event) => onCodeChange(event.target.value)}
+        />
+      </label>
+
+      <label className={fieldGroupClassName}>
+        <span className="text-sm font-bold text-schneider-900">Nom</span>
+        <input
+          className={textInputClassName}
+          placeholder="Nom optionnel"
+          type="text"
+          value={zoneName}
+          onChange={(event) => onNameChange(event.target.value)}
         />
       </label>
 
@@ -96,11 +110,9 @@ export default function ZoneDraftForm({
 
         <div>
           <span className={detailLabelTextClassName}>Couleur secteur</span>
-          {renderZoneSectorBadge(zoneSector)}
+          {renderZoneSectorBadge(zoneSectorName)}
         </div>
       </div>
-
-      {renderZoneDraftError(errorMessage)}
 
       <div className={panelActionRowClassName}>
         <button
@@ -126,11 +138,9 @@ function renderZoneDraftHeader(onCancel: () => void) {
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
-        <p className={eyebrowTextClassName}>Nouvelle zone</p>
-        <h2 className={panelTitleTextClassName}>Creer une zone</h2>
-        <p className={panelDescriptionTextClassName}>
-          Choisissez le secteur puis saisissez le prodsched pour creer la zone.
-        </p>
+        <p className={eyebrowTextClassName}>Zone</p>
+        <h2 className={panelTitleTextClassName}>Ajouter</h2>
+        <p className={panelDescriptionTextClassName}>Secteur et code sur 3 chiffres.</p>
       </div>
 
       <button className={closeButtonClassName} type="button" onClick={onCancel}>
@@ -146,20 +156,8 @@ function renderZoneSectorBadge(zoneSector: string) {
       className="inline-flex min-h-10 items-center rounded-full border px-4 text-sm font-bold text-schneider-900"
       style={getZoneSectorBadgeStyle(zoneSector)}
     >
-      {zoneSector.length > 0 ? zoneSector : "Selectionnez un secteur"}
+      {zoneSector.length > 0 ? zoneSector : "Saisissez un secteur"}
     </strong>
-  );
-}
-
-function renderZoneDraftError(errorMessage: string | null) {
-  if (errorMessage === null) {
-    return null;
-  }
-
-  return (
-    <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
-      {errorMessage}
-    </p>
   );
 }
 

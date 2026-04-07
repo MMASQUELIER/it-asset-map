@@ -2,9 +2,7 @@ import type { ToolDefinition } from "@/features/infrastructure-map/editor/ui/map
 import {
   closeButtonClassName,
   eyebrowTextClassName,
-  infoBadgeClassName,
   joinClassNames,
-  panelDescriptionTextClassName,
   panelTitleTextClassName,
 } from "@/features/infrastructure-map/ui/uiClassNames";
 
@@ -17,9 +15,8 @@ interface MapToolbarHeaderProps {
 
 interface MapToolbarHeaderContent {
   actionLabel: string;
-  description: string;
   onAction: () => void;
-  status: string;
+  status?: string;
   title: string;
 }
 
@@ -38,24 +35,15 @@ export function MapToolbarHeader({
 
   return (
     <div className="flex flex-wrap items-start justify-between gap-4">
-      <div className="grid max-w-[30rem] gap-1.5">
-        <p className={eyebrowTextClassName}>Outils de carte</p>
+      <div className="grid gap-1.5">
+        <p className={eyebrowTextClassName}>Edition</p>
         <p className={panelTitleTextClassName}>{content.title}</p>
-        <p className={panelDescriptionTextClassName}>{content.description}</p>
+        {content.status !== undefined
+          ? <p className="m-0 text-sm text-schneider-800/70">{content.status}</p>
+          : null}
       </div>
 
       <div className="flex flex-wrap items-center justify-end gap-2">
-        <span
-          className={joinClassNames(
-            infoBadgeClassName,
-            isInteractionMode
-              ? "border-schneider-500/18 bg-schneider-500/10 text-schneider-700"
-              : "bg-schneider-100/70 text-schneider-800/75",
-          )}
-        >
-          {content.status}
-        </span>
-
         <button
           aria-pressed={isInteractionMode}
           className={joinClassNames(
@@ -82,20 +70,16 @@ function getMapToolbarHeaderContent(
 ): MapToolbarHeaderContent {
   if (!isInteractionMode) {
     return {
-      actionLabel: "Activer le mode interaction",
-      description:
-        "Activez le mode interaction pour modifier les zones et les marqueurs.",
+      actionLabel: "Passer en edition",
       onAction: onOpenInteractionMode,
-      status: "Navigation libre",
-      title: "Carte en lecture",
+      title: "Modification des zones et postes",
     };
   }
 
   return {
-    actionLabel: "Fermer le mode interaction",
-    description: "Choisissez un outil puis intervenez directement sur le plan.",
+    actionLabel: "Quitter l'edition",
     onAction: onCloseInteractionMode,
-    status: `Outil actif : ${activeToolDefinition.label}`,
-    title: "Mode interaction actif",
+    status: `Outil actif: ${activeToolDefinition.label}`,
+    title: "Modification des zones et postes",
   };
 }

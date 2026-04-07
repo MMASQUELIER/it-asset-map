@@ -1,3 +1,7 @@
+import {
+  formatDirectoryAccountValue,
+  getResolvedPcLocation,
+} from "@/features/infrastructure-map/model/pcValueResolvers";
 import type { SearchField } from "@/features/infrastructure-map/markers/logic/marker-search/types";
 
 export const markerSearchFields: SearchField[] = [
@@ -23,19 +27,19 @@ export const markerSearchFields: SearchField[] = [
     weight: 88,
   },
   {
-    getValue: (marker) => marker.technicalDetails.directoryAccount,
-    label: "SESI / Compte",
+    getValue: (marker) =>
+      formatDirectoryAccountValue(marker.technicalDetails.directoryAccount),
+    label: "Compte",
     weight: 82,
   },
   {
-    getValue: (marker) => marker.technicalDetails.prodsched,
+    getValue: (marker) => marker.technicalDetails.zoneCode,
     label: "Prodsched",
     weight: 80,
   },
   {
-    getValue: (marker) =>
-      marker.technicalDetails.floorLocation ?? marker.technicalDetails.sector,
-    label: "Secteur",
+    getValue: (marker) => getResolvedPcLocation(marker.technicalDetails),
+    label: "Emplacement",
     weight: 78,
   },
   {

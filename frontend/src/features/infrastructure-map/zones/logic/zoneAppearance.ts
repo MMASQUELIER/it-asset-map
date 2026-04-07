@@ -1,23 +1,23 @@
 import type { MapZone } from "@/features/infrastructure-map/model/types";
 
-type ZoneDisplaySource = Pick<MapZone, "label" | "prodsched">;
+type ZoneDisplaySource = Pick<MapZone, "code" | "name">;
 
 const DEFAULT_SECTOR_COLOR = "hsl(212 13% 45%)";
 
 /**
  * Resolves the display label shown for one zone on the map.
  *
- * @param zone Zone-like record containing a prodsched and an optional label.
+ * @param zone Zone-like record containing a code and an optional name.
  * @returns Human-readable display label.
  */
 export function getZoneDisplayLabel(zone: ZoneDisplaySource): string {
-  const prodsched = zone.prodsched.trim();
+  const code = zone.code.trim();
 
-  if (prodsched.length > 0) {
-    return prodsched;
+  if (code.length > 0) {
+    return code;
   }
 
-  const fallbackLabel = zone.label.trim();
+  const fallbackLabel = (zone.name ?? "").trim();
   return fallbackLabel.length > 0 ? fallbackLabel : "Zone";
 }
 

@@ -1,17 +1,16 @@
 import type {
   InteractiveMarker,
   MapZone,
-  PlacementPcCandidate,
+  PlacementCandidate,
 } from "@/features/infrastructure-map/model/types";
+import { getResolvedPcLocation } from "@/features/infrastructure-map/model/pcValueResolvers";
 
 export function isMarkerCompatibleWithZone(
   marker: InteractiveMarker,
   zone: MapZone,
 ): boolean {
-  const markerSector = normalizeSectorName(
-    marker.technicalDetails.floorLocation ?? marker.technicalDetails.sector,
-  );
-  const zoneSector = normalizeSectorName(zone.sector);
+  const markerSector = normalizeSectorName(getResolvedPcLocation(marker.technicalDetails));
+  const zoneSector = normalizeSectorName(zone.sectorName);
 
   if (markerSector.length === 0) {
     return true;
@@ -25,11 +24,11 @@ export function isMarkerCompatibleWithZone(
 }
 
 export function doesPlacementCandidateMatchZoneSector(
-  candidate: PlacementPcCandidate,
+  candidate: PlacementCandidate,
   zone: MapZone,
 ): boolean {
   const candidateSector = normalizeSectorName(candidate.sector);
-  const zoneSector = normalizeSectorName(zone.sector);
+  const zoneSector = normalizeSectorName(zone.sectorName);
 
   return candidateSector === zoneSector;
 }

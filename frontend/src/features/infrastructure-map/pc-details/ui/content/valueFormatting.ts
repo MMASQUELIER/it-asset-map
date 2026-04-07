@@ -1,3 +1,5 @@
+import { formatDirectoryAccountValue } from "@/features/infrastructure-map/model/pcValueResolvers";
+
 const HIDDEN_PLACEHOLDER_VALUES = new Set([
   "-",
   "--",
@@ -24,8 +26,8 @@ export function formatPcDetailValue(
     return undefined;
   }
 
-  if (fieldId === "sesi" || fieldId === "login") {
-    return sanitizeRawValue(formatSesiValue(sanitizedValue));
+  if (fieldId === "directory-account" || fieldId === "login") {
+    return sanitizeRawValue(formatDirectoryAccountValue(sanitizedValue));
   }
 
   if (fieldId === "date") {
@@ -40,23 +42,11 @@ export function formatPcDetailValue(
     return formatConnectionTypeValue(sanitizedValue);
   }
 
-  if (fieldId === "etat" || fieldId === "security-status") {
+  if (fieldId === "status" || fieldId === "security-status") {
     return formatSecurityValue(sanitizedValue);
   }
 
   return sanitizedValue;
-}
-
-export function formatSesiValue(
-  directoryAccount: string | undefined,
-): string | undefined {
-  if (directoryAccount === undefined) {
-    return undefined;
-  }
-
-  const [, account = directoryAccount] = directoryAccount.split("\\");
-
-  return account.trim().length > 0 ? account : directoryAccount;
 }
 
 function sanitizeRawValue(value: string | undefined): string | undefined {
@@ -77,12 +67,14 @@ function sanitizeRawValue(value: string | undefined): string | undefined {
 
 function formatInventoryDateValue(value: string): string {
   if (/^\d{5}$/.test(value)) {
-    const excelDate = new Date(Date.UTC(1899, 11, 30) + Number(value) * 86400000);
+    const spreadsheetSerialDate = new Date(
+      Date.UTC(1899, 11, 30) + Number(value) * 86400000,
+    );
 
     return formatDateParts(
-      excelDate.getUTCDate(),
-      excelDate.getUTCMonth() + 1,
-      excelDate.getUTCFullYear(),
+      spreadsheetSerialDate.getUTCDate(),
+      spreadsheetSerialDate.getUTCMonth() + 1,
+      spreadsheetSerialDate.getUTCFullYear(),
     );
   }
 

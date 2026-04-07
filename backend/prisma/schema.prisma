@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+  runtime  = "deno"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+model Sector {
+  id    BigInt @id @default(autoincrement()) @db.UnsignedBigInt
+  name  String @unique(map: "uq_sectors_name") @db.VarChar(191)
+  zones Zone[]
+
+  @@map("sectors")
+}
+
+model Zone {
+  id       BigInt      @id @default(autoincrement()) @db.UnsignedBigInt
+  sectorId BigInt      @map("sector_id") @db.UnsignedBigInt
+  code     String      @db.Char(3)
+  name     String?     @db.VarChar(191)
+  xMin     Int         @map("x_min")
+  yMin     Int         @map("y_min")
+  xMax     Int         @map("x_max")
+  yMax     Int         @map("y_max")
+  sector   Sector      @relation(fields: [sectorId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  equipment Equipment[]
+
+  @@unique([code], map: "uq_zones_code")
+  @@map("zones")
+}
+
+model EquipmentData {
+  id                        BigInt     @id @default(autoincrement()) @db.UnsignedBigInt
+  equipmentId               String     @unique(map: "uq_equipment_data_equipment_id") @map("equipment_id") @db.VarChar(191)
+  site                      String?    @db.VarChar(191)
+  contact                   String?    @db.VarChar(191)
+  pinKey                    String?    @map("pin_key") @db.VarChar(191)
+  sector                    String?    @db.VarChar(191)
+  floorLocation             String?    @map("floor_location") @db.VarChar(191)
+  zoneCode                  String?    @map("zone_code") @db.VarChar(191)
+  manufacturingStationNames String?    @map("manufacturing_station_names") @db.Text
+  lastInventoryDate         String?    @map("last_inventory_date") @db.VarChar(191)
+  assetType                 String?    @map("asset_type") @db.VarChar(191)
+  manufacturer              String?    @db.VarChar(191)
+  model                     String?    @db.VarChar(191)
+  sap                       String?    @db.VarChar(191)
+  hostname                  String?    @db.VarChar(191)
+  operatingSystem           String?    @map("operating_system") @db.VarChar(191)
+  processor                 String?    @db.VarChar(191)
+  memory                    String?    @db.VarChar(191)
+  storage                   String?    @db.VarChar(191)
+  ipAddress                 String?    @map("ip_address") @db.VarChar(191)
+  oldIpAddress              String?    @map("old_ip_address") @db.VarChar(191)
+  newIpAddress              String?    @map("new_ip_address") @db.VarChar(191)
+  subnetMask                String?    @map("subnet_mask") @db.VarChar(191)
+  macAddress                String?    @map("mac_address") @db.VarChar(191)
+  vlan                      String?    @db.VarChar(191)
+  vlanNew                   String?    @map("vlan_new") @db.VarChar(191)
+  networkScope              String?    @map("network_scope") @db.VarChar(191)
+  gateway                   String?    @db.VarChar(191)
+  idPort                    String?    @map("id_port") @db.VarChar(191)
+  switchPort                String?    @map("switch_port") @db.VarChar(191)
+  newPortAuto               String?    @map("new_port_auto") @db.VarChar(191)
+  switchName                String?    @map("switch_name") @db.VarChar(191)
+  connectedToSwitchName     String?    @map("connected_to_switch_name") @db.VarChar(191)
+  switchIpAddress           String?    @map("switch_ip_address") @db.VarChar(191)
+  connectedToSwitchPort     String?    @map("connected_to_switch_port") @db.VarChar(191)
+  connectionType            String?    @map("connection_type") @db.VarChar(191)
+  wifiOrWiredConnection     String?    @map("wifi_or_wired_connection") @db.VarChar(191)
+  ticketBrassage            String?    @map("ticket_brassage") @db.VarChar(191)
+  ipFilter                  String?    @map("ip_filter") @db.VarChar(191)
+  directoryAccount          String?    @map("directory_account") @db.VarChar(191)
+  comment                   String?    @map("comment_text") @db.Text
+  secondaryComment          String?    @map("secondary_comment") @db.Text
+  serialNumber              String?    @map("serial_number") @db.VarChar(191)
+  status                    String?    @db.VarChar(191)
+  securityStatus            String?    @map("security_status") @db.VarChar(191)
+  equipment                 Equipment?
+
+  @@map("equipment_data")
+}
+
+model Equipment {
+  id              String        @id @db.VarChar(191)
+  equipmentDataId BigInt        @unique(map: "uq_equipment_equipment_data_id") @map("equipment_data_id") @db.UnsignedBigInt
+  x               Int
+  y               Int
+  zoneId          BigInt?       @map("zone_id") @db.UnsignedBigInt
+  equipmentData   EquipmentData @relation(fields: [equipmentDataId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  zone            Zone?         @relation(fields: [zoneId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@map("equipment")
+}

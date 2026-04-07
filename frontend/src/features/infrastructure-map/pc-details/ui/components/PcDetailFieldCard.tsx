@@ -9,7 +9,10 @@ interface PcDetailFieldCardProps {
   copiedFieldId: string | null;
   field: VisiblePcDetailField;
   onCopy: (field: VisiblePcDetailField) => void;
-  onSaveField?: (field: VisiblePcDetailField, nextValue: string) => Promise<void>;
+  onSaveField?: (
+    field: VisiblePcDetailField,
+    nextValue: string,
+  ) => Promise<void> | void;
 }
 
 export function PcDetailFieldCard({
@@ -24,7 +27,6 @@ export function PcDetailFieldCard({
   const buttonLabel = isCopied ? `${field.label} copie` : `Copier ${field.label}`;
   const buttonTitle = isCopied ? "Copie" : "Copier";
   const [draftValue, setDraftValue] = useState(field.editValue ?? field.value);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -38,13 +40,11 @@ export function PcDetailFieldCard({
 
   function handleStartEdit(): void {
     setDraftValue(field.editValue ?? field.value);
-    setErrorMessage(null);
     setIsEditing(true);
   }
 
   function handleCancelEdit(): void {
     setDraftValue(field.editValue ?? field.value);
-    setErrorMessage(null);
     setIsEditing(false);
   }
 
@@ -54,17 +54,12 @@ export function PcDetailFieldCard({
     }
 
     setIsSaving(true);
-    setErrorMessage(null);
 
     try {
       await onSaveField(field, draftValue);
       setIsEditing(false);
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Impossible de sauvegarder ce champ.",
-      );
+    } catch {
+      // The shared map notice already displays save errors in a single place.
     } finally {
       setIsSaving(false);
     }
@@ -117,7 +112,7 @@ export function PcDetailFieldCard({
                     "inline-flex size-8 shrink-0 items-center justify-center rounded-full border transition sm:size-9",
                     "border-schneider-950/10 bg-schneider-50 text-schneider-800 hover:-translate-y-0.5 hover:bg-white",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-schneider-500/25",
-                    isCopied && "border-schneider-500/20 bg-schneider-500 text-schneider-950",
+                    isCopied && "border-schneider-500/20 bg-schneider-500 text-white",
                   )}
                   title={buttonTitle}
                   type="button"
@@ -158,14 +153,6 @@ export function PcDetailFieldCard({
               {field.value}
             </strong>
           )}
-
-        {errorMessage !== null
-          ? (
-            <p className="m-0 text-xs font-medium leading-5 text-rose-700">
-              {errorMessage}
-            </p>
-          )
-          : null}
       </div>
     </div>
   );

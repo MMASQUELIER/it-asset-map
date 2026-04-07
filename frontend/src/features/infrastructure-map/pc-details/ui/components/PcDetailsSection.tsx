@@ -28,16 +28,16 @@ export function PcDetailsSection({
 
   return (
     <details
-      className="group rounded-[26px] border border-schneider-950/10 bg-schneider-50/65 p-4 md:p-5"
+      className="group rounded-[20px] border border-schneider-950/10 bg-schneider-50/72 p-4 md:p-5"
       open={forceOpen || undefined}
       {...(!forceOpen ? { defaultOpen: startOpen } : {})}
     >
       <summary className="flex cursor-pointer list-none items-center justify-between gap-3 [&::-webkit-details-marker]:hidden">
         <div className="grid gap-1">
-          <h3 className="m-0 text-[0.82rem] font-black uppercase tracking-[0.14em] text-schneider-700">
+          <h3 className="m-0 text-[0.82rem] font-semibold uppercase tracking-[0.14em] text-schneider-700">
             {title}
           </h3>
-          <span className="text-xs font-medium text-schneider-800/65">{itemCountLabel}</span>
+          <span className="text-xs text-schneider-800/62">{itemCountLabel}</span>
         </div>
         <span className="text-xs font-bold uppercase tracking-[0.1em] text-schneider-800/55 transition group-open:rotate-180">
           ▼

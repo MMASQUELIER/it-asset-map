@@ -32,7 +32,8 @@ interface InfrastructureMapCanvasProps {
   onLeaveZone: () => void;
   onMarkerPlacement: (x: number, y: number) => void;
   onMoveMarker: (markerId: string, x: number, y: number) => void;
-  onResizeZone: (handle: ZoneResizeHandle, x: number, y: number) => void;
+  onResizeZoneCommit: (handle: ZoneResizeHandle, x: number, y: number) => void;
+  onResizeZonePreview: (handle: ZoneResizeHandle, x: number, y: number) => void;
   onSelectMarker: (markerId: string) => void;
   onSelectZone: (zoneId: number) => void;
   onZoneDraftDrag: (startX: number, startY: number, currentX: number, currentY: number) => void;
@@ -62,7 +63,8 @@ export function InfrastructureMapCanvas({
   onLeaveZone,
   onMarkerPlacement,
   onMoveMarker,
-  onResizeZone,
+  onResizeZoneCommit,
+  onResizeZonePreview,
   onSelectMarker,
   onSelectZone,
   onZoneDraftDrag,
@@ -130,7 +132,8 @@ export function InfrastructureMapCanvas({
         ? (
           <ZoneResizeHandles
             bounds={selectedZone.bounds}
-            onResize={onResizeZone}
+            onResizeCommit={onResizeZoneCommit}
+            onResizePreview={onResizeZonePreview}
           />
         )
         : null}

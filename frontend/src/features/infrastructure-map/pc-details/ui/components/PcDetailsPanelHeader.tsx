@@ -10,12 +10,12 @@ import {
 } from "@/features/infrastructure-map/ui/uiClassNames";
 
 interface PcDetailsPanelHeaderProps {
-  connectionTypeLabel?: string;
+  connectionLabel?: string;
   markerId: string;
   onClose: () => void;
   onSearchQueryChange: (value: string) => void;
   searchQuery: string;
-  securityStateLabel: string;
+  statusLabel: string;
   subtitle: string;
   visibleFieldCount: number;
   zone: MapZone | null;
@@ -23,27 +23,27 @@ interface PcDetailsPanelHeaderProps {
 }
 
 export function PcDetailsPanelHeader({
-  connectionTypeLabel,
+  connectionLabel,
   markerId,
   onClose,
   onSearchQueryChange,
   searchQuery,
-  securityStateLabel,
+  statusLabel,
   subtitle,
   visibleFieldCount,
   zone,
   zoneLabel,
 }: PcDetailsPanelHeaderProps) {
-  const visibleInfoLabel = `${visibleFieldCount} info${
+  const visibleInfoLabel = `${visibleFieldCount} champ${
     visibleFieldCount > 1 ? "s" : ""
-  } visible`;
-  const securityTone = getSecurityTone(securityStateLabel);
+  }`;
+  const securityTone = getSecurityTone(statusLabel);
 
   return (
     <>
       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start">
         <div className="min-w-0 grid gap-2">
-          <p className={eyebrowTextClassName}>Fiche PC</p>
+          <p className={eyebrowTextClassName}>Poste</p>
           <h2
             className={joinClassNames(
               panelTitleTextClassName,
@@ -67,21 +67,21 @@ export function PcDetailsPanelHeader({
         >
           {zoneLabel}
         </span>
-        {renderContextBadge(zone === null ? undefined : zone.sector)}
-        {renderConnectionBadge(connectionTypeLabel)}
-        {renderSecurityBadge(securityStateLabel, securityTone)}
+        {renderContextBadge(zone === null ? undefined : zone.sectorName)}
+        {renderConnectionBadge(connectionLabel)}
+        {renderSecurityBadge(statusLabel, securityTone)}
       </div>
 
       <div className="grid gap-2">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <span className="text-[0.72rem] font-black uppercase tracking-[0.14em] text-schneider-700">
-            Recherche rapide
+          <span className="text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-schneider-700/72">
+            Filtrer
           </span>
-          <span className="text-xs font-medium text-schneider-800/65">{visibleInfoLabel}</span>
+          <span className="text-xs text-schneider-800/62">{visibleInfoLabel}</span>
         </div>
         <input
           className={textInputClassName}
-          placeholder="Filtrer par champ ou par valeur..."
+          placeholder="Champ, valeur..."
           type="search"
           value={searchQuery}
           onChange={(event) => onSearchQueryChange(event.target.value)}
@@ -109,7 +109,7 @@ function renderContextBadge(label: string | undefined) {
   }
 
   return (
-    <span className="inline-flex max-w-full items-center rounded-full border border-schneider-950/10 bg-white/90 px-3 py-1.5 text-[0.78rem] font-bold text-schneider-900">
+    <span className="inline-flex max-w-full items-center rounded-full border border-schneider-950/10 bg-white px-3 py-1.5 text-[0.78rem] font-medium text-schneider-900">
       {label}
     </span>
   );
@@ -121,7 +121,7 @@ function renderConnectionBadge(label: string | undefined) {
   }
 
   return (
-    <span className="inline-flex max-w-full items-center rounded-full border border-schneider-950/10 bg-white/90 px-3 py-1.5 text-[0.78rem] font-bold text-schneider-900">
+    <span className="inline-flex max-w-full items-center rounded-full border border-schneider-950/10 bg-white px-3 py-1.5 text-[0.78rem] font-medium text-schneider-900">
       {label}
     </span>
   );
@@ -134,7 +134,7 @@ function renderSecurityBadge(
   return (
     <span
       className={joinClassNames(
-        "inline-flex max-w-full items-center rounded-full border px-3 py-1.5 text-[0.78rem] font-bold",
+        "inline-flex max-w-full items-center rounded-full border px-3 py-1.5 text-[0.78rem] font-medium",
         tone === "good" &&
           "border-emerald-300/60 bg-emerald-50/90 text-emerald-800",
         tone === "warning" &&

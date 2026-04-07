@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import type { MarkerSearchResult } from "@/features/infrastructure-map/markers/logic/markerSearch";
-import { getExcelIssueSummary } from "@/features/infrastructure-map/model/excelIssues";
+import { getCatalogIssueSummary } from "@/features/infrastructure-map/model/catalogIssues";
 import type { MapZone } from "@/features/infrastructure-map/model/types";
 import { joinClassNames } from "@/features/infrastructure-map/ui/uiClassNames";
 import { getZoneDisplayLabel } from "@/features/infrastructure-map/zones/logic/zoneAppearance";
@@ -18,10 +18,10 @@ export function MapSearchResultCard({
   result,
   zone,
 }: MapSearchResultCardProps) {
-  const excelIssueSummary = getExcelIssueSummary(
-    result.marker.technicalDetails.excelIssues,
+  const catalogIssueSummary = getCatalogIssueSummary(
+    result.marker.technicalDetails.catalogIssues,
   );
-  const secondaryLabel = getSearchResultSecondaryLabel(result, excelIssueSummary);
+  const secondaryLabel = getSearchResultSecondaryLabel(result, catalogIssueSummary);
   const zoneLabel = getSearchResultZoneLabel(zone);
 
   return (
@@ -31,7 +31,7 @@ export function MapSearchResultCard({
         "border-schneider-950/10 bg-white/94 text-schneider-950 shadow-[0_12px_26px_rgba(16,38,26,0.06)]",
         "hover:-translate-y-0.5 hover:border-schneider-500/20 hover:bg-schneider-50",
         isSelected &&
-          "border-schneider-500/25 bg-schneider-500 text-schneider-950 shadow-[0_16px_28px_rgba(61,205,88,0.2)]",
+          "border-schneider-500/25 bg-schneider-500 text-white shadow-[0_16px_28px_rgba(61,205,88,0.2)]",
       )}
       type="button"
       onClick={function handleSearchResultSelection() {
@@ -52,7 +52,7 @@ export function MapSearchResultCard({
 
       <span className="text-sm font-medium text-current/80">{secondaryLabel}</span>
 
-      {renderSearchResultExcelIssue(excelIssueSummary)}
+      {renderSearchResultIssue(catalogIssueSummary, isSelected)}
       {renderSearchResultSector(zone)}
 
       <span className="text-xs font-bold uppercase tracking-[0.08em] text-current/70">
@@ -64,12 +64,12 @@ export function MapSearchResultCard({
 
 function getSearchResultSecondaryLabel(
   result: MarkerSearchResult,
-  excelIssueSummary: string | null,
+  catalogIssueSummary: string | null,
 ): string {
   const hostname = result.marker.technicalDetails.hostname;
 
   if (hostname === undefined || hostname === result.marker.id) {
-    return excelIssueSummary ?? result.matchedValue;
+    return catalogIssueSummary ?? result.matchedValue;
   }
 
   return hostname;
@@ -80,17 +80,25 @@ function getSearchResultZoneLabel(zone: MapZone | null): string {
     return "Hors zone";
   }
 
-  return `Prodsched ${getZoneDisplayLabel(zone)}`;
+  return `Zone ${getZoneDisplayLabel(zone)}`;
 }
 
-function renderSearchResultExcelIssue(excelIssueSummary: string | null) {
-  if (excelIssueSummary === null) {
+function renderSearchResultIssue(
+  catalogIssueSummary: string | null,
+  isSelected: boolean,
+) {
+  if (catalogIssueSummary === null) {
     return null;
   }
 
   return (
-    <span className="text-xs font-bold uppercase tracking-[0.08em] text-amber-700">
-      {excelIssueSummary}
+    <span
+      className={joinClassNames(
+        "text-xs font-bold uppercase tracking-[0.08em]",
+        isSelected ? "text-white/85" : "text-amber-700",
+      )}
+    >
+      {catalogIssueSummary}
     </span>
   );
 }
@@ -102,7 +110,7 @@ function renderSearchResultSector(zone: MapZone | null) {
 
   return (
     <span className="text-xs font-bold uppercase tracking-[0.08em] text-current/70">
-      Secteur : {zone.sector}
+      Secteur : {zone.sectorName}
     </span>
   );
 }
