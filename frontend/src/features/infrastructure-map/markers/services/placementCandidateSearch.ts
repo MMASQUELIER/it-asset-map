@@ -93,8 +93,8 @@ function comparePlacementCandidates(
     return secondEntry.score - firstEntry.score;
   }
 
-  return firstEntry.candidate.equipmentId.localeCompare(
-    secondEntry.candidate.equipmentId,
+  return firstEntry.candidate.id.localeCompare(
+    secondEntry.candidate.id,
     "fr",
   );
 }
@@ -103,12 +103,13 @@ function getPlacementCandidateSearchValues(
   candidate: PlacementCandidate,
 ): string[] {
   return [
-    candidate.equipmentId,
+    candidate.id,
     candidate.hostname ?? "",
     candidate.label,
-    candidate.zoneCode ?? "",
+    candidate.prodsheet ?? "",
     candidate.sector,
     candidate.stationName,
+    candidate.technicalDetails.serialNumber ?? "",
     candidate.technicalDetails.contact ?? "",
   ];
 }

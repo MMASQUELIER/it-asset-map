@@ -7,7 +7,6 @@ export interface EquipmentDataDto {
   connectionType?: string;
   contact?: string;
   directoryAccount?: string;
-  equipmentId: string;
   floorLocation?: string;
   gateway?: string;
   hostname?: string;
@@ -19,7 +18,6 @@ export interface EquipmentDataDto {
   macAddress?: string;
   manufacturer?: string;
   manufacturingStationNames?: string;
-  memory?: string;
   model?: string;
   networkScope?: string;
   newIpAddress?: string;
@@ -27,7 +25,7 @@ export interface EquipmentDataDto {
   oldIpAddress?: string;
   operatingSystem?: string;
   pinKey?: string;
-  processor?: string;
+  prodsheet?: string;
   sap?: string;
   secondaryComment?: string;
   sector?: string;
@@ -44,7 +42,6 @@ export interface EquipmentDataDto {
   vlan?: string;
   vlanNew?: string;
   wifiOrWiredConnection?: string;
-  zoneCode?: string;
 }
 
 export const EQUIPMENT_DATA_COLUMN_BY_FIELD = {
@@ -55,7 +52,6 @@ export const EQUIPMENT_DATA_COLUMN_BY_FIELD = {
   connectionType: "connection_type",
   contact: "contact",
   directoryAccount: "directory_account",
-  equipmentId: "equipment_id",
   floorLocation: "floor_location",
   gateway: "gateway",
   hostname: "hostname",
@@ -66,7 +62,6 @@ export const EQUIPMENT_DATA_COLUMN_BY_FIELD = {
   macAddress: "mac_address",
   manufacturer: "manufacturer",
   manufacturingStationNames: "manufacturing_station_names",
-  memory: "memory",
   model: "model",
   networkScope: "network_scope",
   newIpAddress: "new_ip_address",
@@ -74,7 +69,7 @@ export const EQUIPMENT_DATA_COLUMN_BY_FIELD = {
   oldIpAddress: "old_ip_address",
   operatingSystem: "operating_system",
   pinKey: "pin_key",
-  processor: "processor",
+  prodsheet: "prodsheet",
   sap: "sap",
   secondaryComment: "secondary_comment",
   sector: "sector",
@@ -91,7 +86,6 @@ export const EQUIPMENT_DATA_COLUMN_BY_FIELD = {
   vlan: "vlan",
   vlanNew: "vlan_new",
   wifiOrWiredConnection: "wifi_or_wired_connection",
-  zoneCode: "zone_code",
 } as const;
 
 export type EquipmentDataField = keyof typeof EQUIPMENT_DATA_COLUMN_BY_FIELD;
@@ -101,8 +95,7 @@ export const EQUIPMENT_DATA_FIELDS: EquipmentDataField[] = Object.keys(
 ) as EquipmentDataField[];
 
 export type EquipmentDataCreateInput =
-  & Pick<EquipmentDataDto, "equipmentId">
-  & Partial<Omit<EquipmentDataDto, "id" | "equipmentId">>;
+  Partial<Omit<EquipmentDataDto, "id">>;
 
 export type EquipmentDataPatch = Partial<
   {

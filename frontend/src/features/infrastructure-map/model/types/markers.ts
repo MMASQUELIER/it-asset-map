@@ -14,10 +14,9 @@ export interface MarkerDraft {
 export interface PlacementCandidate {
   id: string;
   equipmentDataId: number;
-  equipmentId: string;
   hostname?: string;
   label: string;
-  zoneCode?: string;
+  prodsheet?: string;
   sector: string;
   stationName: string;
   technicalDetails: PcTechnicalDetails;

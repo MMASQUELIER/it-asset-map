@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { FormEvent } from "react";
+import type { FormEvent, ReactNode } from "react";
 import type {
   InteractiveMarker,
   MapZone,
@@ -33,10 +33,13 @@ export default function MapSearchPanel({
 }: MapSearchPanelProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const trimmedSearchQuery = searchQuery.trim();
-  const searchResults = trimmedSearchQuery.length === 0
+  const hasSearchQuery = trimmedSearchQuery.length > 0;
+  const searchResults = !hasSearchQuery
     ? []
     : searchMarkers(markers, searchQuery, SEARCH_RESULT_LIMIT);
-  const selectedMarker = findSelectedMarker(markers, selectedMarkerId);
+  const selectedMarker = selectedMarkerId === null
+    ? null
+    : (markers.find((marker) => marker.id === selectedMarkerId) ?? null);
   const zonesById = createZoneByIdMap(zones);
 
   function handleSearchSubmit(event: FormEvent<HTMLFormElement>): void {
@@ -52,50 +55,6 @@ export default function MapSearchPanel({
   function handleSearchResultSelection(markerId: string): void {
     setSearchQuery(markerId);
     onSelectMarker(markerId);
-  }
-
-  function renderSearchResults() {
-    if (trimmedSearchQuery.length > 0) {
-      if (searchResults.length === 0) {
-        return (
-          <p className="rounded-[18px] border border-schneider-900/8 bg-schneider-50/78 px-4 py-3 text-sm text-schneider-800/75">
-            {EMPTY_RESULT_TEXT}
-          </p>
-        );
-      }
-
-      return (
-        <div className="grid gap-2" role="list">
-          {searchResults.map(function renderSearchResult(result) {
-            const zone = getMarkerZone(result.marker.zoneId, zonesById);
-
-            return (
-              <MapSearchResultCard
-                key={result.marker.id}
-                isSelected={selectedMarkerId === result.marker.id}
-                result={result}
-                zone={zone}
-                onSelect={handleSearchResultSelection}
-              />
-            );
-          })}
-        </div>
-      );
-    }
-
-    if (selectedMarker !== null) {
-      return (
-        <p className="rounded-[18px] border border-schneider-900/8 bg-schneider-50/78 px-4 py-3 text-sm text-schneider-800/75">
-          Selection : <strong>{selectedMarker.id}</strong>
-        </p>
-      );
-    }
-
-    return (
-      <p className="rounded-[18px] border border-schneider-900/8 bg-schneider-50/78 px-4 py-3 text-sm text-schneider-800/75">
-        {markers.length} poste(s)
-      </p>
-    );
   }
 
   return (
@@ -136,34 +95,82 @@ export default function MapSearchPanel({
           </button>
         </div>
 
-        {renderSearchResults()}
+        <MapSearchPanelResults
+          hasSearchQuery={hasSearchQuery}
+          markerCount={markers.length}
+          searchResults={searchResults}
+          selectedMarker={selectedMarker}
+          selectedMarkerId={selectedMarkerId}
+          zonesById={zonesById}
+          onSelect={handleSearchResultSelection}
+        />
       </form>
     </section>
   );
-}
-
-function findSelectedMarker(
-  markers: InteractiveMarker[],
-  selectedMarkerId: string | null,
-): InteractiveMarker | null {
-  if (selectedMarkerId === null) {
-    return null;
-  }
-
-  return markers.find((marker) => marker.id === selectedMarkerId) ?? null;
 }
 
 function createZoneByIdMap(zones: MapZone[]): Map<number, MapZone> {
   return new Map(zones.map((zone) => [zone.id, zone]));
 }
 
-function getMarkerZone(
-  zoneId: number | null,
-  zonesById: Map<number, MapZone>,
-): MapZone | null {
-  if (zoneId === null) {
-    return null;
+interface MapSearchPanelResultsProps {
+  hasSearchQuery: boolean;
+  markerCount: number;
+  onSelect: (markerId: string) => void;
+  searchResults: ReturnType<typeof searchMarkers>;
+  selectedMarker: InteractiveMarker | null;
+  selectedMarkerId: string | null;
+  zonesById: Map<number, MapZone>;
+}
+
+function MapSearchPanelResults({
+  hasSearchQuery,
+  markerCount,
+  onSelect,
+  searchResults,
+  selectedMarker,
+  selectedMarkerId,
+  zonesById,
+}: MapSearchPanelResultsProps) {
+  if (!hasSearchQuery) {
+    return selectedMarker === null
+      ? <PanelInfoMessage>{markerCount} poste(s)</PanelInfoMessage>
+      : (
+        <PanelInfoMessage>
+          Selection : <strong>{selectedMarker.id}</strong>
+        </PanelInfoMessage>
+      );
   }
 
-  return zonesById.get(zoneId) ?? null;
+  if (searchResults.length === 0) {
+    return <PanelInfoMessage>{EMPTY_RESULT_TEXT}</PanelInfoMessage>;
+  }
+
+  return (
+    <div className="grid gap-2" role="list">
+      {searchResults.map((result) => (
+        <MapSearchResultCard
+          key={result.marker.id}
+          isSelected={selectedMarkerId === result.marker.id}
+          result={result}
+          zone={result.marker.zoneId === null
+            ? null
+            : (zonesById.get(result.marker.zoneId) ?? null)}
+          onSelect={onSelect}
+        />
+      ))}
+    </div>
+  );
+}
+
+interface PanelInfoMessageProps {
+  children: ReactNode;
+}
+
+function PanelInfoMessage({ children }: PanelInfoMessageProps) {
+  return (
+    <p className="rounded-[18px] border border-schneider-900/8 bg-schneider-50/78 px-4 py-3 text-sm text-schneider-800/75">
+      {children}
+    </p>
+  );
 }

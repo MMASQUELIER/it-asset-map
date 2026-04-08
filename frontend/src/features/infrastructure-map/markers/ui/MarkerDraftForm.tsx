@@ -48,20 +48,32 @@ export default function MarkerDraftForm({
   );
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const isPcOnlyFilterActive = catalogFilterMode === "pc-only";
-  const selectedCandidate = getSelectedCandidate(availableCandidates, markerId);
-  const visibleCandidates = getVisibleCatalogCandidates(
-    availableCandidates,
-    catalogFilterMode,
-  );
+  const selectedCandidate = markerId.length === 0
+    ? null
+    : (availableCandidates.find((candidate) => candidate.id === markerId) ?? null);
+  const visibleCandidates = isPcOnlyFilterActive
+    ? availableCandidates.filter((candidate) =>
+      isPcTechnicalDetails(candidate.technicalDetails)
+    )
+    : availableCandidates;
   const matchingCandidates = searchPlacementCandidates(
     visibleCandidates,
     deferredSearchQuery,
     CATALOG_SEARCH_LIMIT,
   );
+  const searchLabel = isPcOnlyFilterActive
+    ? "Rechercher un PC"
+    : "Rechercher un equipement";
 
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
     onSubmit();
+  }
+
+  function toggleCatalogFilterMode(): void {
+    setCatalogFilterMode((currentMode) =>
+      currentMode === "pc-only" ? "all" : "pc-only"
+    );
   }
 
   return (
@@ -72,13 +84,11 @@ export default function MarkerDraftForm({
       <MarkerDraftHeader onClose={onCancel} />
 
       <label className={fieldGroupClassName}>
-        <span className="text-sm font-bold text-schneider-900">
-          {getSearchLabel(isPcOnlyFilterActive)}
-        </span>
+        <span className="text-sm font-bold text-schneider-900">{searchLabel}</span>
         <input
           autoFocus
           className={textInputClassName}
-          placeholder="Ex. hostname, code zone, station, secteur..."
+          placeholder="Ex. hostname, prodsheet, secteur, nom, S/N..."
           type="search"
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value)}
@@ -87,11 +97,7 @@ export default function MarkerDraftForm({
 
       <CatalogFilterCard
         isPcOnlyFilterActive={isPcOnlyFilterActive}
-        onToggle={function handlePcOnlyFilterToggle() {
-          setCatalogFilterMode((currentMode) =>
-            currentMode === "pc-only" ? "all" : "pc-only"
-          );
-        }}
+        onToggle={toggleCatalogFilterMode}
       />
 
       <MarkerDraftSelectionSummary
@@ -120,37 +126,6 @@ export default function MarkerDraftForm({
       </div>
     </form>
   );
-}
-
-function getSelectedCandidate(
-  availableCandidates: PlacementCandidate[],
-  markerId: string,
-): PlacementCandidate | null {
-  if (markerId.length === 0) {
-    return null;
-  }
-
-  return availableCandidates.find((candidate) => candidate.equipmentId === markerId) ??
-    null;
-}
-
-function getVisibleCatalogCandidates(
-  availableCandidates: PlacementCandidate[],
-  catalogFilterMode: CatalogFilterMode,
-): PlacementCandidate[] {
-  if (catalogFilterMode === "all") {
-    return availableCandidates;
-  }
-
-  return availableCandidates.filter((candidate) =>
-    isPcTechnicalDetails(candidate.technicalDetails)
-  );
-}
-
-function getSearchLabel(isPcOnlyFilterActive: boolean): string {
-  return isPcOnlyFilterActive
-    ? "Rechercher un PC"
-    : "Rechercher un equipement";
 }
 
 interface CatalogFilterCardProps {

@@ -1,4 +1,5 @@
 import { isDuplicateEntryError, isForeignKeyConstraintError } from "@/db/errors.ts";
+import { syncEquipmentDataLocationBySectorId } from "@/db/repositories/equipmentDataRepository.ts";
 import {
   createSectorRecord,
   deleteSectorRecord,
@@ -12,6 +13,7 @@ import {
   NotFoundError,
   ValidationError,
 } from "@/features/infrastructure-map/shared/errors.ts";
+import { buildAvailableSectorColor } from "@/features/infrastructure-map/sectors/colors.ts";
 import type {
   SectorDto,
   SectorMutationInput,
@@ -25,9 +27,13 @@ export async function createSector(
   input: SectorMutationInput,
 ): Promise<SectorDto> {
   const normalizedName = normalizeSectorName(input.name);
+  const color = buildAvailableSectorColor(
+    normalizedName,
+    (await listSectorRecords()).map((sector) => sector.color),
+  );
 
   try {
-    return await createSectorRecord(normalizedName);
+    return await createSectorRecord(normalizedName, color);
   } catch (error) {
     if (isDuplicateEntryError(error)) {
       throw new ConflictError("A sector with this name already exists.");
@@ -63,6 +69,8 @@ export async function updateSector(
     throw new NotFoundError("Sector not found.");
   }
 
+  await syncEquipmentDataLocationBySectorId(id, sector.name);
+
   return sector;
 }
 
@@ -92,7 +100,13 @@ export async function ensureSectorExists(name: string): Promise<SectorDto> {
     return existingSector;
   }
 
-  return await createSectorRecord(normalizedName);
+  return await createSectorRecord(
+    normalizedName,
+    buildAvailableSectorColor(
+      normalizedName,
+      (await listSectorRecords()).map((sector) => sector.color),
+    ),
+  );
 }
 
 function normalizeSectorName(name: string): string {

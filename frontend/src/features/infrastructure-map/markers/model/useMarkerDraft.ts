@@ -22,7 +22,7 @@ interface UseMarkerDraftOptions {
 
 export interface MarkerDraftSubmission {
   equipmentDataId: number;
-  equipmentId: string;
+  markerId: string;
   technicalDetails: PcTechnicalDetails;
   x: number;
   y: number;
@@ -36,8 +36,8 @@ interface MarkerDraftState {
   handleMarkerPlacement: (x: number, y: number) => void;
   pendingMarkerDraft: MarkerDraft | null;
   pendingMarkerDraftError: string | null;
-  pendingEquipmentId: string;
-  setPendingEquipmentId: (value: string) => void;
+  pendingMarkerId: string;
+  setPendingMarkerId: (value: string) => void;
 }
 
 export default function useMarkerDraft({
@@ -48,7 +48,7 @@ export default function useMarkerDraft({
   const [pendingMarkerDraft, setPendingMarkerDraft] = useState<
     MarkerDraft | null
   >(null);
-  const [pendingEquipmentId, setPendingEquipmentId] = useState("");
+  const [pendingMarkerId, setPendingMarkerId] = useState("");
   const [pendingMarkerDraftError, setPendingMarkerDraftError] = useState<
     string | null
   >(null);
@@ -61,7 +61,7 @@ export default function useMarkerDraft({
 
   function clearPendingMarkerDraft(): void {
     setPendingMarkerDraft(null);
-    setPendingEquipmentId("");
+    setPendingMarkerId("");
     setPendingMarkerDraftError(null);
   }
 
@@ -69,7 +69,7 @@ export default function useMarkerDraft({
     const nextDraft = createMarkerDraft(zones, markers, x, y);
 
     setPendingMarkerDraft(nextDraft);
-    setPendingEquipmentId("");
+    setPendingMarkerId("");
     setPendingMarkerDraftError(null);
   }
 
@@ -78,9 +78,9 @@ export default function useMarkerDraft({
       return null;
     }
 
-    const nextEquipmentId = pendingEquipmentId.trim();
+    const nextCandidateId = pendingMarkerId.trim();
 
-    if (nextEquipmentId.length === 0) {
+    if (nextCandidateId.length === 0) {
       setPendingMarkerDraftError(
         "La selection d'un PC du catalogue est obligatoire.",
       );
@@ -89,7 +89,7 @@ export default function useMarkerDraft({
 
     const selectedPlacementCandidate =
       availablePlacementCandidates.find((candidate) =>
-        candidate.equipmentId === nextEquipmentId
+        candidate.id === nextCandidateId
       ) ?? null;
 
     if (selectedPlacementCandidate === null) {
@@ -99,7 +99,7 @@ export default function useMarkerDraft({
       return null;
     }
 
-    if (!isMarkerIdUnique(markers, nextEquipmentId)) {
+    if (!isMarkerIdUnique(markers, nextCandidateId)) {
       setPendingMarkerDraftError("Ce PC est deja place sur la carte.");
       return null;
     }
@@ -119,7 +119,7 @@ export default function useMarkerDraft({
 
     return {
       equipmentDataId: selectedPlacementCandidate.equipmentDataId,
-      equipmentId: nextEquipmentId,
+      markerId: nextCandidateId,
       x: pendingMarkerDraft.x,
       y: pendingMarkerDraft.y,
       technicalDetails: syncPcTechnicalDetailsWithZone(
@@ -137,9 +137,9 @@ export default function useMarkerDraft({
     handleMarkerPlacement,
     pendingMarkerDraft,
     pendingMarkerDraftError,
-    pendingEquipmentId,
-    setPendingEquipmentId(value: string) {
-      setPendingEquipmentId(value);
+    pendingMarkerId,
+    setPendingMarkerId(value: string) {
+      setPendingMarkerId(value);
       setPendingMarkerDraftError(null);
     },
   };

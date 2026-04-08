@@ -9,7 +9,7 @@ import useInfrastructureMapState from "@/features/infrastructure-map/state/useIn
 import { createImageBounds } from "@/features/infrastructure-map/shared/mapConfig";
 import { InfrastructureMapOverview } from "@/features/infrastructure-map/ui/InfrastructureMapOverview";
 import { mapCardClassName } from "@/features/infrastructure-map/ui/uiClassNames";
-import { getSectorColor } from "@/features/infrastructure-map/zones/logic/zoneAppearance";
+import { getSectorColorByName } from "@/features/infrastructure-map/zones/logic/zoneAppearance";
 import { findZoneById } from "@/features/infrastructure-map/zones/logic/interactiveZones";
 import { InfrastructureMapCanvas } from "@/features/infrastructure-map/ui/InfrastructureMapCanvas";
 import { InfrastructureMapControls } from "@/features/infrastructure-map/ui/InfrastructureMapControls";
@@ -40,153 +40,170 @@ export function LoadedInfrastructureMap({
     initialPlacementCandidates,
     initialZones,
   });
+  const {
+    activeTool,
+    availablePlacementCandidates,
+    availableSectors: zoneSectorOptions,
+    clearPendingDrafts,
+    clearRuntimeError,
+    handleCloseInteractionMode,
+    handleCloseSelectedMarker,
+    handleDeleteMarker,
+    handleHoverZone,
+    handleLeaveZone,
+    handleMarkerDraftSave,
+    handleMarkerPlacement,
+    handleMoveMarker,
+    handleOpenInteractionMode,
+    handleSelectMarker,
+    handleSelectTool,
+    handleSelectedZoneSave,
+    handleUpdateMarkerTechnicalDetails,
+    handleZoneDraftCodeChange,
+    handleZoneDraftDrag,
+    handleZoneDraftNameChange,
+    handleZoneDraftSave,
+    handleZoneDraftSectorChange,
+    handleZoneInteraction,
+    handleZoneResizeCommit,
+    handleZoneResizePreview,
+    highlightedZoneId,
+    isCreationToolActive,
+    isInteractionMode,
+    isMarkerCreationToolActive,
+    isMarkerDeletionToolActive,
+    isMarkerMoveToolActive,
+    isSavingChanges,
+    isZoneCreationToolActive,
+    isZoneEditToolActive,
+    markers,
+    pendingMarkerDraft,
+    pendingMarkerDraftError,
+    pendingMarkerId,
+    pendingZoneCode,
+    pendingZoneDraft,
+    pendingZoneDraftError,
+    pendingZoneName,
+    pendingZoneSectorName,
+    saveErrorMessage,
+    selectedMarker,
+    selectedMarkerFocusToken,
+    selectedMarkerId,
+    selectedZone,
+    setPendingMarkerId,
+    zones,
+  } = interactiveMapState;
   const imageBounds = createImageBounds(imageDimensions);
   const selectedMarkerAssignedZone = findZoneById(
-    interactiveMapState.zones,
-    interactiveMapState.selectedMarker?.zoneId ?? null,
+    zones,
+    selectedMarker?.zoneId ?? null,
   );
   const mapFrameClassName = getMapFrameClassName({
-    isCreationToolActive: interactiveMapState.isCreationToolActive,
+    isCreationToolActive,
     isDeletionToolActive: interactiveMapState.isDeletionToolActive,
-    isInteractionMode: interactiveMapState.isInteractionMode,
-    isMarkerMoveToolActive: interactiveMapState.isMarkerMoveToolActive,
+    isInteractionMode,
+    isMarkerMoveToolActive,
   });
-  const uiErrorMessage = getUiErrorMessage(
-    interactiveMapState.pendingZoneDraftError,
-    interactiveMapState.pendingMarkerDraftError,
-    interactiveMapState.saveErrorMessage,
-  );
-  const selectedMarkerPosition = getSelectedMarkerPosition(
-    interactiveMapState.selectedMarker,
-  );
-  const pendingZonePreviewLabel = interactiveMapState.pendingZoneCode || "Zone";
-  const handleSelectedZoneClose = createSelectedZoneCloseHandler(
-    interactiveMapState.selectedZone,
-    interactiveMapState.handleZoneInteraction,
-  );
+  const uiErrorMessage = pendingZoneDraftError ??
+    pendingMarkerDraftError ??
+    saveErrorMessage;
+  const selectedMarkerPosition = selectedMarker === null
+    ? null
+    : { x: selectedMarker.x, y: selectedMarker.y };
+  const pendingZonePreviewLabel = pendingZoneCode || "Zone";
+  const handleSelectedZoneClose = () => {
+    if (selectedZone !== null) {
+      handleZoneInteraction(selectedZone.id);
+    }
+  };
 
   return (
     <section className={mapCardClassName}>
       <InfrastructureMapOverview
-        isInteractionMode={interactiveMapState.isInteractionMode}
-        markerCount={interactiveMapState.markers.length}
-        zoneCount={interactiveMapState.zones.length}
+        isInteractionMode={isInteractionMode}
+        markerCount={markers.length}
+        zoneCount={zones.length}
       />
       <InfrastructureMapControls
-        activeTool={interactiveMapState.activeTool}
-        highlightedZoneId={interactiveMapState.highlightedZoneId}
+        activeTool={activeTool}
+        highlightedZoneId={highlightedZoneId}
         errorMessage={uiErrorMessage}
-        isInteractionMode={interactiveMapState.isInteractionMode}
-        isSavingChanges={interactiveMapState.isSavingChanges}
-        markers={interactiveMapState.markers}
-        onCloseInteractionMode={interactiveMapState.handleCloseInteractionMode}
-        onOpenInteractionMode={interactiveMapState.handleOpenInteractionMode}
-        onSelectMarker={interactiveMapState.handleSelectMarker}
-        onSelectTool={interactiveMapState.handleSelectTool}
-        onSelectZone={interactiveMapState.handleZoneInteraction}
-        selectedMarkerId={interactiveMapState.selectedMarkerId}
-        zones={interactiveMapState.zones}
+        isInteractionMode={isInteractionMode}
+        isSavingChanges={isSavingChanges}
+        markers={markers}
+        onCloseInteractionMode={handleCloseInteractionMode}
+        onOpenInteractionMode={handleOpenInteractionMode}
+        onSelectMarker={handleSelectMarker}
+        onSelectTool={handleSelectTool}
+        onSelectZone={handleZoneInteraction}
+        selectedMarkerId={selectedMarkerId}
+        zones={zones}
       />
       <div className="px-4 pb-4 sm:px-5 sm:pb-5 lg:px-6 lg:pb-6">
         <div className={mapFrameClassName}>
           <InfrastructureMapOverlays
-            availablePlacementCandidates={interactiveMapState.availablePlacementCandidates}
-            availableSectors={interactiveMapState.availableSectors}
-            isInteractionMode={interactiveMapState.isInteractionMode}
-            isSaving={interactiveMapState.isSavingChanges}
-            isZoneEditToolActive={interactiveMapState.isZoneEditToolActive}
-            markerDraft={interactiveMapState.pendingMarkerDraft}
-            markerDraftId={interactiveMapState.pendingEquipmentId}
-            onCancelDrafts={interactiveMapState.clearPendingDrafts}
-            onCloseSelectedMarker={interactiveMapState.handleCloseSelectedMarker}
-            onMarkerIdChange={interactiveMapState.setPendingEquipmentId}
-            onMarkerSubmit={interactiveMapState.handleMarkerDraftSave}
+            availablePlacementCandidates={availablePlacementCandidates}
+            availableSectors={zoneSectorOptions}
+            isInteractionMode={isInteractionMode}
+            isSaving={isSavingChanges}
+            isZoneEditToolActive={isZoneEditToolActive}
+            markerDraft={pendingMarkerDraft}
+            markerDraftId={pendingMarkerId}
+            onCancelDrafts={clearPendingDrafts}
+            onCloseSelectedMarker={handleCloseSelectedMarker}
+            onMarkerIdChange={setPendingMarkerId}
+            onMarkerSubmit={handleMarkerDraftSave}
             onSelectedZoneClose={handleSelectedZoneClose}
-            onSelectedZoneInputChange={interactiveMapState.clearRuntimeError}
-            onSelectedZoneSubmit={interactiveMapState.handleSelectedZoneSave}
-            onZoneCodeChange={interactiveMapState.handleZoneDraftCodeChange}
-            onZoneNameChange={interactiveMapState.handleZoneDraftNameChange}
-            onZoneSectorChange={interactiveMapState.handleZoneDraftSectorChange}
-            onZoneSubmit={interactiveMapState.handleZoneDraftSave}
-            onUpdatePcField={interactiveMapState.handleUpdateMarkerTechnicalDetails}
-            selectedMarker={interactiveMapState.selectedMarker}
+            onSelectedZoneInputChange={clearRuntimeError}
+            onSelectedZoneSubmit={handleSelectedZoneSave}
+            onZoneCodeChange={handleZoneDraftCodeChange}
+            onZoneNameChange={handleZoneDraftNameChange}
+            onZoneSectorChange={handleZoneDraftSectorChange}
+            onZoneSubmit={handleZoneDraftSave}
+            onUpdatePcField={handleUpdateMarkerTechnicalDetails}
+            selectedMarker={selectedMarker}
             selectedMarkerAssignedZone={selectedMarkerAssignedZone}
-            selectedZone={interactiveMapState.selectedZone}
-            zoneDraft={interactiveMapState.pendingZoneDraft}
-            zoneDraftCode={interactiveMapState.pendingZoneCode}
-            zoneDraftName={interactiveMapState.pendingZoneName}
-            zoneDraftSectorName={interactiveMapState.pendingZoneSectorName}
+            selectedZone={selectedZone}
+            zoneDraft={pendingZoneDraft}
+            zoneDraftCode={pendingZoneCode}
+            zoneDraftName={pendingZoneName}
+            zoneDraftSectorName={pendingZoneSectorName}
           />
           <InfrastructureMapCanvas
-            highlightedZoneId={interactiveMapState.highlightedZoneId}
+            highlightedZoneId={highlightedZoneId}
             imageBounds={imageBounds}
             imageUrl={imageUrl}
-            isConsultationEnabled={!interactiveMapState.isInteractionMode}
-            isDeleteMode={interactiveMapState.isMarkerDeletionToolActive}
-            isMarkerCreationToolActive={interactiveMapState.isMarkerCreationToolActive}
-            isMoveMode={interactiveMapState.isMarkerMoveToolActive}
-            isZoneCreationToolActive={interactiveMapState.isZoneCreationToolActive}
-            isZoneEditToolActive={interactiveMapState.isZoneEditToolActive}
-            markers={interactiveMapState.markers}
-            onDeleteMarker={interactiveMapState.handleDeleteMarker}
-            onHoverZone={interactiveMapState.handleHoverZone}
-            onLeaveZone={interactiveMapState.handleLeaveZone}
-            onMarkerPlacement={interactiveMapState.handleMarkerPlacement}
-            onMoveMarker={interactiveMapState.handleMoveMarker}
-            onResizeZoneCommit={interactiveMapState.handleZoneResizeCommit}
-            onResizeZonePreview={interactiveMapState.handleZoneResizePreview}
-            onSelectMarker={interactiveMapState.handleSelectMarker}
-            onSelectZone={interactiveMapState.handleZoneInteraction}
-            onZoneDraftDrag={interactiveMapState.handleZoneDraftDrag}
-            pendingZoneDraft={interactiveMapState.pendingZoneDraft}
-            pendingZonePreviewColor={getSectorColor(
-              interactiveMapState.pendingZoneSectorName,
+            isConsultationEnabled={!isInteractionMode}
+            isDeleteMode={isMarkerDeletionToolActive}
+            isMarkerCreationToolActive={isMarkerCreationToolActive}
+            isMoveMode={isMarkerMoveToolActive}
+            isZoneCreationToolActive={isZoneCreationToolActive}
+            isZoneEditToolActive={isZoneEditToolActive}
+            markers={markers}
+            onDeleteMarker={handleDeleteMarker}
+            onHoverZone={handleHoverZone}
+            onLeaveZone={handleLeaveZone}
+            onMarkerPlacement={handleMarkerPlacement}
+            onMoveMarker={handleMoveMarker}
+            onResizeZoneCommit={handleZoneResizeCommit}
+            onResizeZonePreview={handleZoneResizePreview}
+            onSelectMarker={handleSelectMarker}
+            onSelectZone={handleZoneInteraction}
+            onZoneDraftDrag={handleZoneDraftDrag}
+            pendingZoneDraft={pendingZoneDraft}
+            pendingZonePreviewColor={getSectorColorByName(
+              pendingZoneSectorName,
+              zoneSectorOptions,
             )}
             pendingZonePreviewLabel={pendingZonePreviewLabel}
-            selectedMarkerFocusToken={interactiveMapState.selectedMarkerFocusToken}
-            selectedMarkerId={interactiveMapState.selectedMarkerId}
+            selectedMarkerFocusToken={selectedMarkerFocusToken}
+            selectedMarkerId={selectedMarkerId}
             selectedMarkerPosition={selectedMarkerPosition}
-            selectedZone={interactiveMapState.selectedZone}
-            zones={interactiveMapState.zones}
+            selectedZone={selectedZone}
+            zones={zones}
           />
         </div>
       </div>
     </section>
   );
-}
-
-function getUiErrorMessage(
-  pendingZoneDraftError: string | null,
-  pendingMarkerDraftError: string | null,
-  saveErrorMessage: string | null,
-): string | null {
-  return pendingZoneDraftError ??
-    pendingMarkerDraftError ??
-    saveErrorMessage;
-}
-
-function getSelectedMarkerPosition(
-  selectedMarker: InteractiveMarker | null,
-): { x: number; y: number } | null {
-  if (selectedMarker === null) {
-    return null;
-  }
-
-  return {
-    x: selectedMarker.x,
-    y: selectedMarker.y,
-  };
-}
-
-function createSelectedZoneCloseHandler(
-  selectedZone: MapZone | null,
-  onToggleZoneSelection: (zoneId: number) => void,
-): () => void {
-  return function handleSelectedZoneClose(): void {
-    if (selectedZone === null) {
-      return;
-    }
-
-    onToggleZoneSelection(selectedZone.id);
-  };
 }

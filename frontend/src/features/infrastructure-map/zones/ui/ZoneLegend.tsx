@@ -31,16 +31,27 @@ export default function ZoneLegend({
       <div className="flex flex-wrap gap-2">
         {zones.map(function renderZoneChip(zone) {
           const isActive = zone.id === activeZoneId;
+          const chipStyle = isActive
+            ? {
+              background: zone.color,
+              borderColor: `color-mix(in srgb, ${zone.color} 70%, black)`,
+              color: "white",
+            }
+            : {
+              background: `color-mix(in srgb, ${zone.color} 16%, white)`,
+              borderColor:
+                `color-mix(in srgb, ${zone.color} 42%, rgba(16,38,26,0.1))`,
+              color: "#10261a",
+            };
 
           return (
             <button
               key={zone.id}
               className={joinClassNames(
                 "inline-flex items-center gap-2 rounded-[14px] border px-3.5 py-2 text-[0.82rem] font-semibold transition",
-                "border-schneider-900/8 bg-white text-schneider-900 hover:border-schneider-500/20 hover:bg-schneider-50",
-                isActive &&
-                  "border-schneider-600/20 bg-schneider-800 text-white",
+                "hover:brightness-[0.98]",
               )}
+              style={chipStyle}
               title={`${zone.sectorName} • Zone ${getZoneDisplayLabel(zone)}`}
               type="button"
               onClick={function handleZoneSelection() {

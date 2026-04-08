@@ -39,7 +39,7 @@ export function MarkerDraftCatalog({
               <CatalogCandidateButton
                 key={candidate.id}
                 candidate={candidate}
-                isSelected={markerId === candidate.equipmentId}
+                isSelected={markerId === candidate.id}
                 onSelect={onMarkerIdChange}
               />
             );
@@ -53,7 +53,7 @@ export function MarkerDraftCatalog({
 interface CatalogCandidateButtonProps {
   candidate: PlacementCandidate;
   isSelected: boolean;
-  onSelect: (equipmentId: string) => void;
+  onSelect: (candidateId: string) => void;
 }
 
 function CatalogCandidateButton({
@@ -67,9 +67,8 @@ function CatalogCandidateButton({
   );
   const candidateDisplayName = getResolvedPcDisplayName(
     candidate.technicalDetails,
-    candidate.equipmentId,
+    candidate.id,
   );
-  const shouldShowEquipmentId = candidateDisplayName !== candidate.equipmentId;
 
   return (
     <button
@@ -81,13 +80,10 @@ function CatalogCandidateButton({
       )}
       type="button"
       onClick={function handleCatalogCandidateSelection() {
-        onSelect(candidate.equipmentId);
+        onSelect(candidate.id);
       }}
     >
       <strong>{candidateDisplayName}</strong>
-      {shouldShowEquipmentId ? (
-        <span className="text-sm text-current/80">{candidate.equipmentId}</span>
-      ) : null}
       {candidateMeta.length > 0 ? (
         <span className="text-xs font-medium uppercase tracking-[0.08em] text-current/70">
           {candidateMeta}
@@ -128,7 +124,14 @@ function getCatalogEmptyStateMessage(
 }
 
 function buildCatalogCandidateMetaLabel(candidate: PlacementCandidate): string {
-  return [candidate.stationName, candidate.zoneCode ?? "", candidate.sector]
-    .filter((value) => value.length > 0)
-    .join(" • ");
+  return [
+    candidate.prodsheet?.trim().length
+      ? `Prodsheet ${candidate.prodsheet.trim()}`
+      : null,
+    candidate.sector.trim().length ? `Secteur ${candidate.sector.trim()}` : null,
+    candidate.stationName.trim().length ? `Nom ${candidate.stationName.trim()}` : null,
+    candidate.technicalDetails.serialNumber?.trim().length
+      ? `S/N ${candidate.technicalDetails.serialNumber.trim()}`
+      : null,
+  ].filter((value): value is string => value !== null).join(" / ");
 }

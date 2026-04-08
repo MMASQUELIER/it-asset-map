@@ -2,7 +2,8 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS sectors (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  name TEXT NOT NULL UNIQUE
+  name TEXT NOT NULL UNIQUE,
+  color TEXT NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS zones (
@@ -24,13 +25,12 @@ CREATE INDEX IF NOT EXISTS idx_zones_sector_id ON zones(sector_id);
 
 CREATE TABLE IF NOT EXISTS equipment_data (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  equipment_id TEXT NOT NULL UNIQUE,
   site TEXT,
   contact TEXT,
   pin_key TEXT,
   sector TEXT,
   floor_location TEXT,
-  zone_code TEXT,
+  prodsheet TEXT,
   manufacturing_station_names TEXT,
   last_inventory_date TEXT,
   asset_type TEXT,
@@ -39,8 +39,6 @@ CREATE TABLE IF NOT EXISTS equipment_data (
   sap TEXT,
   hostname TEXT,
   operating_system TEXT,
-  processor TEXT,
-  memory TEXT,
   storage TEXT,
   ip_address TEXT,
   old_ip_address TEXT,
@@ -67,11 +65,9 @@ CREATE TABLE IF NOT EXISTS equipment_data (
   secondary_comment TEXT,
   serial_number TEXT,
   status TEXT,
-  security_status TEXT
+  security_status TEXT,
+  source_sheet TEXT
 );
-
-CREATE INDEX IF NOT EXISTS idx_equipment_data_equipment_id
-  ON equipment_data(equipment_id);
 
 CREATE TABLE IF NOT EXISTS equipment (
   id TEXT PRIMARY KEY,

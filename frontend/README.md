@@ -1,6 +1,9 @@
-# Frontend
+# STACK
 
-Frontend React + Vite du plan d'atelier.
+
+Frontend React + Vite
+Backend Deno
+BD SQLITE
 
 ## Commandes
 

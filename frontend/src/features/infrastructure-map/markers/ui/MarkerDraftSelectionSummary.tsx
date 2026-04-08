@@ -23,7 +23,7 @@ export function MarkerDraftSelectionSummary({
     ? null
     : getResolvedPcDisplayName(
       selectedCandidate.technicalDetails,
-      selectedCandidate.equipmentId,
+      selectedCandidate.id,
     );
 
   return (
@@ -35,20 +35,18 @@ export function MarkerDraftSelectionSummary({
         </div>
 
         <div>
-          <span className={detailLabelTextClassName}>Identifiant</span>
-          <strong>
-            {selectedCandidate?.equipmentId ?? "En attente de selection"}
-          </strong>
+          <span className={detailLabelTextClassName}>Prodsheet</span>
+          <strong>{selectedCandidate?.prodsheet ?? "Non renseigne"}</strong>
         </div>
 
         <div>
-          <span className={detailLabelTextClassName}>Zone</span>
-          <strong>{zoneLabel}</strong>
+          <span className={detailLabelTextClassName}>Secteur</span>
+          <strong>{selectedCandidate?.sector || "Non renseigne"}</strong>
         </div>
 
         <div>
-          <span className={detailLabelTextClassName}>Coordonnees</span>
-          <strong>X {draft.x} / Y {draft.y}</strong>
+          <span className={detailLabelTextClassName}>S/N</span>
+          <strong>{selectedCandidate?.technicalDetails.serialNumber || "Non renseigne"}</strong>
         </div>
       </div>
 
@@ -56,18 +54,18 @@ export function MarkerDraftSelectionSummary({
         ? (
           <div className={detailsGridClassName}>
             <div>
-              <span className={detailLabelTextClassName}>Secteur</span>
-              <strong>{selectedCandidate.sector || "Non renseigne"}</strong>
+              <span className={detailLabelTextClassName}>Nom</span>
+              <strong>{selectedCandidate.stationName || "Non renseigne"}</strong>
             </div>
 
             <div>
-              <span className={detailLabelTextClassName}>Prodsched</span>
-              <strong>{selectedCandidate.zoneCode || "Non renseigne"}</strong>
+              <span className={detailLabelTextClassName}>Zone</span>
+              <strong>{zoneLabel}</strong>
             </div>
 
             <div>
-              <span className={detailLabelTextClassName}>Station</span>
-              <strong>{selectedCandidate.stationName || "Non renseignee"}</strong>
+              <span className={detailLabelTextClassName}>Coordonnees</span>
+              <strong>X {draft.x} / Y {draft.y}</strong>
             </div>
           </div>
         )

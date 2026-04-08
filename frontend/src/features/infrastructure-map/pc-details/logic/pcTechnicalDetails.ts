@@ -3,6 +3,7 @@ import type {
   MapZone,
   PcTechnicalDetails,
 } from "@/features/infrastructure-map/model/types";
+import { applyCatalogIssues } from "@/features/infrastructure-map/model/catalogIssues";
 
 type ZoneContext = Pick<MapZone, "code" | "sectorName">;
 
@@ -13,14 +14,14 @@ export function syncPcTechnicalDetailsWithZone(
   const zoneSector = getZoneSector(zone);
   const currentSector = getVisibleText(technicalDetails.sector);
   const currentFloorLocation = getVisibleText(technicalDetails.floorLocation);
-  const currentZoneCode = getVisibleText(technicalDetails.zoneCode);
+  const currentProdsheet = getVisibleText(technicalDetails.prodsheet);
 
-  return {
+  return applyCatalogIssues({
     ...technicalDetails,
     sector: resolveZoneValue(zoneSector, currentSector),
     floorLocation: resolveZoneValue(zoneSector, currentFloorLocation ?? currentSector),
-    zoneCode: resolveZoneValue(getZoneCode(zone), currentZoneCode),
-  };
+    prodsheet: resolveZoneValue(getZoneCode(zone), currentProdsheet),
+  });
 }
 
 export function applyEditablePcFieldUpdate(

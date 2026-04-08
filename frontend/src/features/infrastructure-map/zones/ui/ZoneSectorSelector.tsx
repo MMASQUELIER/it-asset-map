@@ -1,10 +1,11 @@
 import { useId } from "react";
+import type { SectorRecord } from "@/features/infrastructure-map/model/types";
 import { joinClassNames } from "@/features/infrastructure-map/ui/uiClassNames";
 
 interface ZoneSectorSelectorProps {
-  availableSectors: string[];
-  selectedSector: string;
   onSelectSector: (sector: string) => void;
+  availableSectors: SectorRecord[];
+  selectedSector: string;
 }
 
 export default function ZoneSectorSelector({
@@ -28,7 +29,9 @@ export default function ZoneSectorSelector({
         onChange={(event) => onSelectSector(event.target.value)}
       />
       <datalist id={suggestionsId}>
-        {availableSectors.map((sector) => <option key={sector} value={sector} />)}
+        {availableSectors.map((sector) => (
+          <option key={sector.id} value={sector.name} />
+        ))}
       </datalist>
       <p className="text-xs text-schneider-800/70">
         {availableSectors.length > 0

@@ -1,25 +1,29 @@
-import type { CSSProperties, FormEvent } from "react";
+import type { FormEvent } from "react";
 import { useState } from "react";
-import type { MapZone } from "@/features/infrastructure-map/model/types";
+import type {
+  MapZone,
+  SectorRecord,
+} from "@/features/infrastructure-map/model/types";
 import {
-  closeButtonClassName,
+  getSectorColorByName,
+} from "@/features/infrastructure-map/zones/logic/zoneAppearance";
+import {
   detailLabelTextClassName,
   detailsGridClassName,
-  eyebrowTextClassName,
+  fieldLabelTextClassName,
   fieldGroupClassName,
   panelActionRowClassName,
-  panelDescriptionTextClassName,
-  panelTitleTextClassName,
   primaryButtonClassName,
   secondaryButtonClassName,
   scrollableFloatingPanelClassName,
   textInputClassName,
 } from "@/features/infrastructure-map/ui/uiClassNames";
-import { getSectorColor } from "@/features/infrastructure-map/zones/logic/zoneAppearance";
+import { ZonePanelHeader } from "@/features/infrastructure-map/zones/ui/ZonePanelHeader";
+import { ZoneSectorBadge } from "@/features/infrastructure-map/zones/ui/ZoneSectorBadge";
 import ZoneSectorSelector from "@/features/infrastructure-map/zones/ui/ZoneSectorSelector";
 
 interface SelectedZonePanelProps {
-  availableSectors: string[];
+  availableSectors: SectorRecord[];
   isSaving: boolean;
   onClose: () => void;
   onInputChange: () => void;
@@ -62,17 +66,27 @@ function SelectedZonePanelForm({
   onSubmit,
   zone,
 }: SelectedZonePanelProps) {
-  const [sectorName, setSectorName] = useState(() => zone.sectorName);
-  const [code, setCode] = useState(() => zone.code);
-  const [name, setName] = useState(() => zone.name ?? "");
+  const [draft, setDraft] = useState(() => ({
+    code: zone.code,
+    name: zone.name ?? "",
+    sectorName: zone.sectorName,
+  }));
+  const isSubmitDisabled = draft.sectorName.trim().length === 0 ||
+    draft.code.trim().length !== 3 ||
+    isSaving;
+  const sectorColor = getSectorColorByName(draft.sectorName, availableSectors);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
-    onSubmit({
-      code,
-      name,
-      sectorName,
-    });
+    onSubmit(draft);
+  }
+
+  function updateDraft(field: "code" | "name" | "sectorName", value: string): void {
+    onInputChange();
+    setDraft((currentDraft) => ({
+      ...currentDraft,
+      [field]: value,
+    }));
   }
 
   return (
@@ -80,22 +94,23 @@ function SelectedZonePanelForm({
       className={`${scrollableFloatingPanelClassName} grid gap-4`}
       onSubmit={handleSubmit}
     >
-      <SelectedZoneHeader onClose={onClose} />
+      <ZonePanelHeader
+        description="Secteur, code et nom."
+        onClose={onClose}
+        title="Modifier"
+      />
 
       <label className={fieldGroupClassName}>
-        <span className="text-sm font-bold text-schneider-900">Secteur</span>
+        <span className={fieldLabelTextClassName}>Secteur</span>
         <ZoneSectorSelector
           availableSectors={availableSectors}
-          onSelectSector={(value) => {
-            onInputChange();
-            setSectorName(value);
-          }}
-          selectedSector={sectorName}
+          onSelectSector={(value) => updateDraft("sectorName", value)}
+          selectedSector={draft.sectorName}
         />
       </label>
 
       <label className={fieldGroupClassName}>
-        <span className="text-sm font-bold text-schneider-900">Code zone</span>
+        <span className={fieldLabelTextClassName}>Code zone</span>
         <input
           autoFocus
           className={textInputClassName}
@@ -103,25 +118,19 @@ function SelectedZonePanelForm({
           maxLength={3}
           placeholder="Ex. 250"
           type="text"
-          value={code}
-          onChange={(event) => {
-            onInputChange();
-            setCode(event.target.value);
-          }}
+          value={draft.code}
+          onChange={(event) => updateDraft("code", event.target.value)}
         />
       </label>
 
       <label className={fieldGroupClassName}>
-        <span className="text-sm font-bold text-schneider-900">Nom</span>
+        <span className={fieldLabelTextClassName}>Nom</span>
         <input
           className={textInputClassName}
           placeholder="Nom optionnel"
           type="text"
-          value={name}
-          onChange={(event) => {
-            onInputChange();
-            setName(event.target.value);
-          }}
+          value={draft.name}
+          onChange={(event) => updateDraft("name", event.target.value)}
         />
       </label>
 
@@ -142,14 +151,17 @@ function SelectedZonePanelForm({
 
         <div>
           <span className={detailLabelTextClassName}>Couleur secteur</span>
-          <SelectedZoneBadge sectorName={sectorName} />
+          <ZoneSectorBadge
+            sectorColor={sectorColor}
+            sectorName={draft.sectorName}
+          />
         </div>
       </div>
 
       <div className={panelActionRowClassName}>
         <button
           className={primaryButtonClassName}
-          disabled={sectorName.trim().length === 0 || code.trim().length !== 3 || isSaving}
+          disabled={isSubmitDisabled}
           type="submit"
         >
           {isSaving ? "Enregistrement..." : "Enregistrer"}
@@ -164,48 +176,4 @@ function SelectedZonePanelForm({
       </div>
     </form>
   );
-}
-
-interface SelectedZoneHeaderProps {
-  onClose: () => void;
-}
-
-function SelectedZoneHeader({ onClose }: SelectedZoneHeaderProps) {
-  return (
-    <div className="flex items-start justify-between gap-4">
-      <div>
-        <p className={eyebrowTextClassName}>Zone</p>
-        <h2 className={panelTitleTextClassName}>Modifier</h2>
-        <p className={panelDescriptionTextClassName}>Secteur, code et nom.</p>
-      </div>
-
-      <button className={closeButtonClassName} type="button" onClick={onClose}>
-        Fermer
-      </button>
-    </div>
-  );
-}
-
-interface SelectedZoneBadgeProps {
-  sectorName: string;
-}
-
-function SelectedZoneBadge({ sectorName }: SelectedZoneBadgeProps) {
-  return (
-    <strong
-      className="inline-flex min-h-10 items-center rounded-full border px-4 text-sm font-bold text-schneider-900"
-      style={getZoneBadgeStyle(sectorName)}
-    >
-      {sectorName}
-    </strong>
-  );
-}
-
-function getZoneBadgeStyle(sectorName: string): CSSProperties {
-  const sectorAccentColor = getSectorColor(sectorName);
-
-  return {
-    borderColor: `color-mix(in srgb, ${sectorAccentColor} 40%, rgba(16,38,26,0.1))`,
-    background: `color-mix(in srgb, ${sectorAccentColor} 18%, white)`,
-  } as CSSProperties;
 }

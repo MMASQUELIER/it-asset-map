@@ -116,19 +116,22 @@ export async function createEquipment(
 }
 
 export async function updateEquipment(
-  equipmentId: string,
+  equipmentRecordId: string,
   payload: UpdateEquipmentPayload,
 ): Promise<EquipmentRecord> {
-  return await requestJson<EquipmentRecord>(`/equipment/${equipmentId}`, {
+  return await requestJson<EquipmentRecord>(`/equipment/${equipmentRecordId}`, {
     body: JSON.stringify(payload),
     method: "PATCH",
   });
 }
 
-export async function deleteEquipment(equipmentId: string): Promise<void> {
-  await requestJson<void>(`/equipment/${encodeURIComponent(equipmentId)}`, {
-    method: "DELETE",
-  });
+export async function deleteEquipment(equipmentRecordId: string): Promise<void> {
+  await requestJson<void>(
+    `/equipment/${encodeURIComponent(equipmentRecordId)}`,
+    {
+      method: "DELETE",
+    },
+  );
 }
 
 async function requestJson<T>(

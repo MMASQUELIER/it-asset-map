@@ -9,6 +9,7 @@ import type {
   SectorRecord,
   ZoneRecord,
 } from "@/features/infrastructure-map/model/types";
+import { applyCatalogIssues } from "@/features/infrastructure-map/model/catalogIssues";
 import { syncPcTechnicalDetailsWithZone } from "@/features/infrastructure-map/pc-details/logic/pcTechnicalDetails";
 import { getSectorColor } from "@/features/infrastructure-map/zones/logic/zoneAppearance";
 
@@ -16,18 +17,19 @@ export function hydrateMapZones(
   zoneRecords: ZoneRecord[],
   sectors: SectorRecord[],
 ): MapZone[] {
-  const sectorNameById = new Map<number, string>(
-    sectors.map((sector) => [sector.id, sector.name]),
+  const sectorById = new Map<number, SectorRecord>(
+    sectors.map((sector) => [sector.id, sector]),
   );
 
   return zoneRecords
     .map((zoneRecord) => {
-      const sectorName = sectorNameById.get(zoneRecord.sectorId) ?? "";
+      const sector = sectorById.get(zoneRecord.sectorId);
+      const sectorName = sector?.name ?? "";
 
       return {
         bounds: createBounds(zoneRecord),
         code: zoneRecord.code,
-        color: getSectorColor(sectorName),
+        color: getSectorColor(sectorName, sector?.color),
         id: zoneRecord.id,
         name: zoneRecord.name,
         sectorId: zoneRecord.sectorId,
@@ -68,10 +70,10 @@ export function hydrateInteractiveMarkers(
     markers.push({
       equipmentDataId: equipmentRecord.equipmentDataId,
       id: equipmentRecord.id,
-      technicalDetails: syncPcTechnicalDetailsWithZone(
+      technicalDetails: applyCatalogIssues(syncPcTechnicalDetailsWithZone(
         mapEquipmentDataToTechnicalDetails(equipmentDataRecord),
         resolvedZone,
-      ),
+      )),
       x: equipmentRecord.x,
       y: equipmentRecord.y,
       zoneId: resolvedZone?.id ?? null,
@@ -95,10 +97,7 @@ export function updatePlacementCandidatesFromEquipmentData(
 export function mapEquipmentDataToTechnicalDetails(
   equipmentDataRecord: EquipmentDataRecord,
 ): PcTechnicalDetails {
-  return {
-    ...equipmentDataRecord,
-    catalogIssues: buildCatalogIssues(equipmentDataRecord),
-  };
+  return { ...equipmentDataRecord };
 }
 
 function createBounds(zoneRecord: ZoneRecord): RectangleBounds {
@@ -128,61 +127,37 @@ function createZoneByIdMap(zones: MapZone[]): Map<number, MapZone> {
 function mapEquipmentDataToPlacementCandidate(
   equipmentDataRecord: EquipmentDataRecord,
 ): PlacementCandidate {
+  const technicalDetails = applyCatalogIssues(
+    mapEquipmentDataToTechnicalDetails(equipmentDataRecord),
+  );
+
   return {
     equipmentDataId: equipmentDataRecord.id,
-    equipmentId: equipmentDataRecord.equipmentId,
-    hostname: equipmentDataRecord.hostname,
-    id: equipmentDataRecord.equipmentId,
+    hostname: technicalDetails.hostname,
+    id: String(equipmentDataRecord.id),
     label: buildCandidateLabel(
-      equipmentDataRecord.manufacturingStationNames,
-      equipmentDataRecord.zoneCode,
-      equipmentDataRecord.sector,
+      technicalDetails.manufacturingStationNames,
+      technicalDetails.prodsheet,
+      technicalDetails.sector,
     ),
-    sector: equipmentDataRecord.sector ?? "",
-    stationName: equipmentDataRecord.manufacturingStationNames ?? "",
-    technicalDetails: mapEquipmentDataToTechnicalDetails(equipmentDataRecord),
-    zoneCode: equipmentDataRecord.zoneCode,
+    sector: technicalDetails.sector ?? "",
+    stationName: technicalDetails.manufacturingStationNames ?? "",
+    technicalDetails,
+    prodsheet: technicalDetails.prodsheet,
   };
 }
 
 function buildCandidateLabel(
   stationName: string | undefined,
-  zoneCode: string | undefined,
+  prodsheet: string | undefined,
   sector: string | undefined,
 ): string {
-  const labelParts = [stationName, zoneCode, sector].filter((value) =>
+  const labelParts = [stationName, prodsheet, sector].filter((value) =>
     value !== undefined && value.trim().length > 0
   );
 
   return labelParts.length > 0
-    ? labelParts.join(" • ")
+    ? labelParts.join(" / ")
     : "Donnees CMDB incompletes";
 }
 
-function buildCatalogIssues(
-  equipmentDataRecord: EquipmentDataRecord,
-): string[] | undefined {
-  const issues = [
-    createMissingFieldIssue("nom machine", equipmentDataRecord.hostname),
-    createMissingFieldIssue("code zone", equipmentDataRecord.zoneCode),
-    createMissingFieldIssue(
-      "poste de fabrication",
-      equipmentDataRecord.manufacturingStationNames,
-    ),
-    createMissingFieldIssue(
-      "emplacement",
-      equipmentDataRecord.floorLocation ?? equipmentDataRecord.sector,
-    ),
-  ].filter((issue): issue is string => issue !== null);
-
-  return issues.length === 0 ? undefined : issues;
-}
-
-function createMissingFieldIssue(
-  label: string,
-  value: string | undefined,
-): string | null {
-  return typeof value === "string" && value.trim().length > 0
-    ? null
-    : `CMDB incomplete : ${label} non renseigne.`;
-}

@@ -16,7 +16,7 @@ import type {
 export interface InfrastructureMapState {
   activeTool: InteractionTool;
   availablePlacementCandidates: PlacementCandidate[];
-  availableSectors: string[];
+  availableSectors: SectorRecord[];
   highlightedZoneId: number | null;
   clearRuntimeError: () => void;
   clearPendingDrafts: () => void;
@@ -70,7 +70,7 @@ export interface InfrastructureMapState {
   isZoneEditToolActive: boolean;
   pendingMarkerDraft: MarkerDraft | null;
   pendingMarkerDraftError: string | null;
-  pendingEquipmentId: string;
+  pendingMarkerId: string;
   saveErrorMessage: string | null;
   sectors: SectorRecord[];
   markers: InteractiveMarker[];
@@ -78,7 +78,7 @@ export interface InfrastructureMapState {
   selectedMarkerFocusToken: number;
   selectedMarkerId: string | null;
   selectedZone: MapZone | null;
-  setPendingEquipmentId: (value: string) => void;
+  setPendingMarkerId: (value: string) => void;
   pendingZoneDraft: ZoneDraft | null;
   pendingZoneDraftError: string | null;
   pendingZoneCode: string;

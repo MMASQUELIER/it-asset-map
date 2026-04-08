@@ -1,8 +1,6 @@
-import type { Dispatch, SetStateAction } from "react";
 import { useRef, useState } from "react";
 import {
   createEquipment,
-  createSector,
   createZone,
   deleteEquipment,
   deleteZone,
@@ -12,7 +10,6 @@ import {
 } from "@/features/infrastructure-map/api/client";
 import useInteractionMode from "@/features/infrastructure-map/editor/model/useInteractionMode";
 import { assignMarkersWithinBoundsToZone, moveMarkerToCoordinates, reconcileMarkersWithZoneBounds } from "@/features/infrastructure-map/markers/logic/interactiveMarkers";
-import { isMarkerCompatibleWithZone } from "@/features/infrastructure-map/markers/logic/interactive-markers/markerSectorCompatibility";
 import useMarkerDraft from "@/features/infrastructure-map/markers/model/useMarkerDraft";
 import { updatePlacementCandidatesFromEquipmentData } from "@/features/infrastructure-map/model/resourceHydration";
 import type {
@@ -23,9 +20,20 @@ import type {
   PlacementCandidate,
   SectorRecord,
 } from "@/features/infrastructure-map/model/types";
-import { applyEditablePcFieldUpdate, syncPcTechnicalDetailsWithZone } from "@/features/infrastructure-map/pc-details/logic/pcTechnicalDetails";
-import { normalizeAppErrorMessage } from "@/features/infrastructure-map/shared/errorMessages";
+import { applyEditablePcFieldUpdate } from "@/features/infrastructure-map/pc-details/logic/pcTechnicalDetails";
 import { createInteractionModeHandlers } from "@/features/infrastructure-map/state/handlers/createInteractionModeHandlers";
+import {
+  ensureSectorExists,
+  getHighlightedZoneId,
+  getMutationErrorMessage,
+  haveSameBounds,
+  mapZoneRecordToMapZone,
+  normalizeOptionalText,
+  reconcileMarkersAfterZoneUpdate,
+  removeZoneFromState,
+  updateMarkerTechnicalDetails,
+  updatePlacementCandidateTechnicalDetails,
+} from "@/features/infrastructure-map/state/infrastructureMapState.helpers";
 import type { InfrastructureMapState } from "@/features/infrastructure-map/state/infrastructureMapState.shared";
 import { useSelectedMarker } from "@/features/infrastructure-map/state/useSelectedMarker";
 import { useZoneHoverState } from "@/features/infrastructure-map/state/useZoneHoverState";
@@ -35,7 +43,6 @@ import {
   resizeZoneBoundsFromHandle,
   sortZonesById,
 } from "@/features/infrastructure-map/zones/logic/interactiveZones";
-import { getSectorColor } from "@/features/infrastructure-map/zones/logic/zoneAppearance";
 import useZoneDraft from "@/features/infrastructure-map/zones/model/useZoneDraft";
 import useZoneSelection from "@/features/infrastructure-map/zones/model/useZoneSelection";
 
@@ -113,7 +120,7 @@ export default function useInfrastructureMapState({
       })
       .catch((error) => {
         onRollback?.();
-        setSaveErrorMessage(getErrorMessage(error));
+        setSaveErrorMessage(getMutationErrorMessage(error));
       })
       .finally(() => {
         setIsSavingChanges(false);
@@ -133,28 +140,21 @@ export default function useInfrastructureMapState({
       currentMarkers.map((marker) =>
         marker.equipmentDataId !== equipmentDataId
           ? marker
-          : {
-            ...marker,
-            technicalDetails: applyEditablePcFieldUpdate(
-              marker.technicalDetails,
-              fieldId,
-              value,
-            ),
-          }
+          : updateMarkerTechnicalDetails(
+            marker,
+            applyEditablePcFieldUpdate(marker.technicalDetails, fieldId, value),
+            findZoneById(zones, marker.zoneId),
+          )
       )
     );
     setPlacementCandidates((currentCandidates) =>
       currentCandidates.map((candidate) =>
         candidate.equipmentDataId !== equipmentDataId
           ? candidate
-          : {
-            ...candidate,
-            technicalDetails: applyEditablePcFieldUpdate(
-              candidate.technicalDetails,
-              fieldId,
-              value,
-            ),
-          }
+          : updatePlacementCandidateTechnicalDetails(
+            candidate,
+            applyEditablePcFieldUpdate(candidate.technicalDetails, fieldId, value),
+          )
       )
     );
 
@@ -180,16 +180,11 @@ export default function useInfrastructureMapState({
 
             const resolvedZone = findZoneById(zones, marker.zoneId);
 
-            return {
-              ...marker,
-              technicalDetails: syncPcTechnicalDetailsWithZone(
-                {
-                  ...updatedEquipmentData,
-                  catalogIssues: marker.technicalDetails.catalogIssues,
-                },
-                resolvedZone,
-              ),
-            };
+            return updateMarkerTechnicalDetails(
+              marker,
+              updatedEquipmentData,
+              resolvedZone,
+            );
           })
         );
       },
@@ -218,7 +213,7 @@ export default function useInfrastructureMapState({
 
     const nextMarker: InteractiveMarker = {
       equipmentDataId: nextMarkerDraft.equipmentDataId,
-      id: nextMarkerDraft.equipmentId,
+      id: nextMarkerDraft.markerId,
       technicalDetails: nextMarkerDraft.technicalDetails,
       x: nextMarkerDraft.x,
       y: nextMarkerDraft.y,
@@ -377,7 +372,7 @@ export default function useInfrastructureMapState({
           yMax: nextZoneDraft.bounds.y + nextZoneDraft.bounds.height,
           yMin: nextZoneDraft.bounds.y,
         });
-        const nextZone = mapZoneRecordToMapZone(createdZoneRecord, sector.name);
+        const nextZone = mapZoneRecordToMapZone(createdZoneRecord, sector);
 
         setZones((currentZones) => sortZonesById([...currentZones, nextZone]));
         setMarkers((currentMarkers) =>
@@ -417,7 +412,7 @@ export default function useInfrastructureMapState({
           name: normalizeOptionalText(input.name),
           sectorId: sector.id,
         });
-        const nextZone = mapZoneRecordToMapZone(updatedZoneRecord, sector.name);
+        const nextZone = mapZoneRecordToMapZone(updatedZoneRecord, sector);
 
         setZones((currentZones) =>
           currentZones.map((zone) =>
@@ -535,7 +530,7 @@ export default function useInfrastructureMapState({
   return {
     activeTool: interactionMode.activeTool,
     availablePlacementCandidates: markerDraft.availablePlacementCandidates,
-    availableSectors: sectors.map((sector) => sector.name),
+    availableSectors: sectors,
     clearRuntimeError,
     clearPendingDrafts,
     handleCloseInteractionMode: interactionHandlers.handleCloseInteractionMode,
@@ -579,7 +574,7 @@ export default function useInfrastructureMapState({
     isZoneCreationToolActive: interactionMode.isZoneCreationToolActive,
     isZoneEditToolActive: interactionMode.isZoneEditToolActive,
     markers,
-    pendingEquipmentId: markerDraft.pendingEquipmentId,
+    pendingMarkerId: markerDraft.pendingMarkerId,
     pendingMarkerDraft: markerDraft.pendingMarkerDraft,
     pendingMarkerDraftError: markerDraft.pendingMarkerDraftError,
     pendingZoneCode: zoneDraft.pendingZoneCode,
@@ -593,180 +588,10 @@ export default function useInfrastructureMapState({
     selectedMarkerFocusToken: selectedMarkerState.selectedMarkerFocusToken,
     selectedMarkerId: selectedMarkerState.selectedMarkerId,
     selectedZone: zoneSelection.selectedZone,
-    setPendingEquipmentId(value: string) {
+    setPendingMarkerId(value: string) {
       clearRuntimeError();
-      markerDraft.setPendingEquipmentId(value);
+      markerDraft.setPendingMarkerId(value);
     },
     zones,
   };
-}
-
-async function ensureSectorExists(
-  sectorName: string,
-  sectors: SectorRecord[],
-  setSectors: Dispatch<SetStateAction<SectorRecord[]>>,
-): Promise<SectorRecord> {
-  const normalizedSectorName = normalizeComparableText(sectorName);
-  const existingSector = sectors.find((sector) =>
-    normalizeComparableText(sector.name) === normalizedSectorName
-  );
-
-  if (existingSector !== undefined) {
-    return existingSector;
-  }
-
-  const createdSector = await createSector(sectorName.trim());
-
-  setSectors((currentSectors) =>
-    [...currentSectors, createdSector].sort((firstSector, secondSector) =>
-      firstSector.name.localeCompare(secondSector.name)
-    )
-  );
-
-  return createdSector;
-}
-
-function mapZoneRecordToMapZone(
-  zoneRecord: {
-    code: string;
-    id: number;
-    name?: string;
-    sectorId: number;
-    xMax: number;
-    xMin: number;
-    yMax: number;
-    yMin: number;
-  },
-  sectorName: string,
-): MapZone {
-  return {
-    bounds: {
-      height: zoneRecord.yMax - zoneRecord.yMin,
-      width: zoneRecord.xMax - zoneRecord.xMin,
-      x: zoneRecord.xMin,
-      y: zoneRecord.yMin,
-    },
-    code: zoneRecord.code,
-    color: getSectorColor(sectorName),
-    id: zoneRecord.id,
-    name: zoneRecord.name,
-    sectorId: zoneRecord.sectorId,
-    sectorName,
-  };
-}
-
-function removeZoneFromState(
-  zones: MapZone[],
-  markers: InteractiveMarker[],
-  zoneId: number,
-): {
-  nextMarkers: InteractiveMarker[];
-  nextZones: MapZone[];
-} {
-  return {
-    nextMarkers: markers.map((marker) =>
-      marker.zoneId !== zoneId
-        ? marker
-        : {
-          ...marker,
-          technicalDetails: syncPcTechnicalDetailsWithZone(
-            marker.technicalDetails,
-            null,
-          ),
-          zoneId: null,
-        }
-    ),
-    nextZones: zones.filter((zone) => zone.id !== zoneId),
-  };
-}
-
-function reconcileMarkersAfterZoneUpdate(
-  markers: InteractiveMarker[],
-  previousZone: MapZone,
-  nextZone: MapZone,
-): InteractiveMarker[] {
-  const markersWithUpdatedZoneContext = markers.map((marker) => {
-    if (marker.zoneId !== nextZone.id) {
-      return marker;
-    }
-
-    if (!isMarkerCompatibleWithZone(marker, nextZone)) {
-      return {
-        ...marker,
-        technicalDetails: syncPcTechnicalDetailsWithZone(
-          marker.technicalDetails,
-          null,
-        ),
-        zoneId: null,
-      };
-    }
-
-    return {
-      ...marker,
-      technicalDetails: syncPcTechnicalDetailsWithZone(
-        marker.technicalDetails,
-        nextZone,
-      ),
-    };
-  });
-
-  if (haveSameBounds(previousZone.bounds, nextZone.bounds)) {
-    return assignMarkersWithinBoundsToZone(
-      markersWithUpdatedZoneContext,
-      nextZone,
-      nextZone.bounds,
-    );
-  }
-
-  return reconcileMarkersWithZoneBounds(
-    assignMarkersWithinBoundsToZone(
-      markersWithUpdatedZoneContext,
-      nextZone,
-      nextZone.bounds,
-    ),
-    previousZone,
-    nextZone.bounds,
-  );
-}
-
-function haveSameBounds(
-  firstBounds: MapZone["bounds"],
-  secondBounds: MapZone["bounds"],
-): boolean {
-  return firstBounds.x === secondBounds.x &&
-    firstBounds.y === secondBounds.y &&
-    firstBounds.width === secondBounds.width &&
-    firstBounds.height === secondBounds.height;
-}
-
-function getHighlightedZoneId(
-  hoveredZoneId: number | null,
-  selectedMarker: InteractiveMarker | null,
-  selectedZoneId: number | null,
-): number | null {
-  if (hoveredZoneId !== null) {
-    return hoveredZoneId;
-  }
-
-  if (selectedMarker !== null && selectedMarker.zoneId !== null) {
-    return selectedMarker.zoneId;
-  }
-
-  return selectedZoneId;
-}
-
-function normalizeOptionalText(value: string): string | null {
-  const normalizedValue = value.trim();
-  return normalizedValue.length === 0 ? null : normalizedValue;
-}
-
-function normalizeComparableText(value: string): string {
-  return value.trim().toUpperCase();
-}
-
-function getErrorMessage(error: unknown): string {
-  return normalizeAppErrorMessage(
-    error,
-    "Impossible d'enregistrer la modification.",
-  );
 }

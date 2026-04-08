@@ -34,7 +34,7 @@ const EQUIPMENT_DATA_SELECT_SQL = `
 
 export async function listEquipmentDataRecords(): Promise<EquipmentDataDto[]> {
   const rows = readSqliteRows<EquipmentDataRow>(
-    `${EQUIPMENT_DATA_SELECT_SQL} ORDER BY equipment_id ASC`,
+    `${EQUIPMENT_DATA_SELECT_SQL} ORDER BY id ASC`,
   );
 
   return rows.map(mapEquipmentDataRowToDto);
@@ -73,6 +73,74 @@ export async function updateEquipmentDataRecord(
   ).run(...values, id);
 
   return result.changes > 0;
+}
+
+export async function syncEquipmentDataProdsheetById(
+  id: number,
+  prodsheet: string,
+): Promise<boolean> {
+  const result = getSqliteDatabase().prepare(
+    "UPDATE equipment_data SET prodsheet = ? WHERE id = ?",
+  ).run(prodsheet, id);
+
+  return result.changes > 0;
+}
+
+export async function syncEquipmentDataLocationById(
+  id: number,
+  location: string,
+): Promise<boolean> {
+  const result = getSqliteDatabase().prepare(
+    "UPDATE equipment_data SET sector = ?, floor_location = ? WHERE id = ?",
+  ).run(location, location, id);
+
+  return result.changes > 0;
+}
+
+export async function syncEquipmentDataProdsheetByZoneId(
+  zoneId: number,
+  prodsheet: string,
+): Promise<void> {
+  getSqliteDatabase().prepare(`
+    UPDATE equipment_data
+    SET prodsheet = ?
+    WHERE id IN (
+      SELECT equipment_data_id
+      FROM equipment
+      WHERE zone_id = ?
+    )
+  `).run(prodsheet, zoneId);
+}
+
+export async function syncEquipmentDataLocationByZoneId(
+  zoneId: number,
+  location: string,
+): Promise<void> {
+  getSqliteDatabase().prepare(`
+    UPDATE equipment_data
+    SET sector = ?, floor_location = ?
+    WHERE id IN (
+      SELECT equipment_data_id
+      FROM equipment
+      WHERE zone_id = ?
+    )
+  `).run(location, location, zoneId);
+}
+
+export async function syncEquipmentDataLocationBySectorId(
+  sectorId: number,
+  location: string,
+): Promise<void> {
+  getSqliteDatabase().prepare(`
+    UPDATE equipment_data
+    SET sector = ?, floor_location = ?
+    WHERE id IN (
+      SELECT equipment.equipment_data_id
+      FROM equipment
+      INNER JOIN zones ON zones.id = equipment.zone_id
+      WHERE zones.sector_id = ?
+    )
+  `).run(location, location, sectorId);
 }
 
 export async function deleteEquipmentDataRecord(id: number): Promise<boolean> {
@@ -125,16 +193,9 @@ function buildUpdateDefinition(
 }
 
 function mapEquipmentDataRowToDto(row: EquipmentDataRow): EquipmentDataDto {
-  const equipmentData: EquipmentDataDto = {
-    equipmentId: row.equipmentId ?? "",
-    id: row.id,
-  };
+  const equipmentData: EquipmentDataDto = { id: row.id };
 
   for (const field of EQUIPMENT_DATA_FIELDS) {
-    if (field === "equipmentId") {
-      continue;
-    }
-
     const value = row[field];
 
     if (value !== null) {

@@ -5,9 +5,7 @@ import {
   listEquipmentDataRecords,
   updateEquipmentDataRecord,
 } from "@/db/repositories/equipmentDataRepository.ts";
-import { isDuplicateEntryError } from "@/db/errors.ts";
 import {
-  ConflictError,
   NotFoundError,
 } from "@/features/infrastructure-map/shared/errors.ts";
 import {
@@ -26,18 +24,7 @@ export async function createEquipmentData(
   payload: unknown,
 ): Promise<EquipmentDataDto> {
   const input = normalizeCreateEquipmentDataInput(payload);
-
-  try {
-    return await createEquipmentDataRecord(input);
-  } catch (error) {
-    if (isDuplicateEntryError(error)) {
-      throw new ConflictError(
-        "An equipment data record with this equipmentId already exists.",
-      );
-    }
-
-    throw error;
-  }
+  return await createEquipmentDataRecord(input);
 }
 
 export async function updateEquipmentData(
@@ -55,12 +42,6 @@ export async function updateEquipmentData(
   } catch (error) {
     if (error instanceof NotFoundError) {
       throw error;
-    }
-
-    if (isDuplicateEntryError(error)) {
-      throw new ConflictError(
-        "An equipment data record with this equipmentId already exists.",
-      );
     }
 
     throw error;

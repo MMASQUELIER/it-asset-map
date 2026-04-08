@@ -5,6 +5,10 @@ import {
   listZoneRecords,
   updateZoneRecord,
 } from "@/db/repositories/zonesRepository.ts";
+import {
+  syncEquipmentDataLocationByZoneId,
+  syncEquipmentDataProdsheetByZoneId,
+} from "@/db/repositories/equipmentDataRepository.ts";
 import { findSectorRecordById } from "@/db/repositories/sectorsRepository.ts";
 import {
   isCheckConstraintError,
@@ -69,6 +73,20 @@ export async function updateZone(
 
   if (zone === null) {
     throw new NotFoundError("Zone not found.");
+  }
+
+  if (
+    normalizedInput.code !== undefined ||
+    normalizedInput.sectorId !== undefined
+  ) {
+    const sector = await findSectorRecordById(zone.sectorId);
+
+    if (sector === null) {
+      throw new NotFoundError("Sector not found.");
+    }
+
+    await syncEquipmentDataProdsheetByZoneId(id, zone.code);
+    await syncEquipmentDataLocationByZoneId(id, sector.name);
   }
 
   return zone;

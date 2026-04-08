@@ -1,4 +1,4 @@
-import InfrastructureMap from "@/features/infrastructure-map";
+import InfrastructureMap from "@/features/infrastructure-map/InfrastructureMap";
 
 export default function App() {
   return (

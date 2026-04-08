@@ -11,11 +11,10 @@ export function normalizeCreateEquipmentDataInput(
   payload: unknown,
 ): EquipmentDataCreateInput {
   const input = ensureEquipmentDataPayloadRecord(payload);
-  const equipmentId = normalizeRequiredText(input.equipmentId, "equipmentId");
-  const normalizedInput: EquipmentDataCreateInput = { equipmentId };
+  const normalizedInput: EquipmentDataCreateInput = {};
 
   for (const field of EQUIPMENT_DATA_FIELDS) {
-    if (field === "equipmentId" || !Object.hasOwn(input, field)) {
+    if (!Object.hasOwn(input, field)) {
       continue;
     }
 
@@ -24,6 +23,12 @@ export function normalizeCreateEquipmentDataInput(
     if (normalizedValue !== null) {
       normalizedInput[field] = normalizedValue;
     }
+  }
+
+  if (Object.keys(normalizedInput).length === 0) {
+    throw new ValidationError(
+      "At least one equipment data field must be provided.",
+    );
   }
 
   return normalizedInput;
@@ -38,9 +43,7 @@ export function normalizeEquipmentDataPatch(payload: unknown): EquipmentDataPatc
       continue;
     }
 
-    patch[field] = field === "equipmentId"
-      ? normalizeRequiredText(input[field], field)
-      : normalizeOptionalFieldValue(input[field], field);
+    patch[field] = normalizeOptionalFieldValue(input[field], field);
   }
 
   if (Object.keys(patch).length === 0) {
@@ -60,20 +63,6 @@ function ensureEquipmentDataPayloadRecord(
   }
 
   return payload as Record<string, unknown>;
-}
-
-function normalizeRequiredText(value: unknown, fieldName: string): string {
-  if (typeof value !== "string") {
-    throw new ValidationError(`Field "${fieldName}" must be a string.`);
-  }
-
-  const normalizedValue = value.trim();
-
-  if (normalizedValue.length === 0) {
-    throw new ValidationError(`Field "${fieldName}" is required.`);
-  }
-
-  return normalizedValue;
 }
 
 function normalizeOptionalFieldValue(

@@ -2,7 +2,7 @@ export const EDITABLE_PC_FIELD_IDS = [
   "contact",
   "pinKey",
   "sector",
-  "zoneCode",
+  "prodsheet",
   "manufacturingStationNames",
   "lastInventoryDate",
   "assetType",
@@ -43,7 +43,7 @@ export interface PcTechnicalDetails {
   pinKey?: string;
   sector?: string;
   floorLocation?: string;
-  zoneCode?: string;
+  prodsheet?: string;
   manufacturingStationNames?: string;
   lastInventoryDate?: string;
   assetType?: string;

@@ -3,6 +3,10 @@ interface PcCatalogIssuesProps {
 }
 
 export function PcCatalogIssues({ issues }: PcCatalogIssuesProps) {
+  const missingFieldsLabel = `${issues.length} champ${
+    issues.length > 1 ? "s" : ""
+  } important${issues.length > 1 ? "s" : ""} a renseigner.`;
+
   return (
     <section className="grid gap-2 rounded-[24px] border border-amber-300/60 bg-amber-50/90 p-4 text-sm text-amber-950">
       <div className="grid gap-1">
@@ -10,7 +14,7 @@ export function PcCatalogIssues({ issues }: PcCatalogIssuesProps) {
           Catalogue incomplet
         </strong>
         <p className="m-0 leading-6 text-amber-900/85">
-          Certaines informations du poste sont manquantes.
+          {missingFieldsLabel}
         </p>
       </div>
 

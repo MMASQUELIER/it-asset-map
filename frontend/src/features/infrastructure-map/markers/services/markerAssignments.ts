@@ -67,7 +67,7 @@ function isPlacementCandidateAlreadyPlaced(
   markers: InteractiveMarker[],
 ): boolean {
   for (const marker of markers) {
-    if (marker.id === candidate.equipmentId) {
+    if (marker.id === candidate.id) {
       return true;
     }
   }

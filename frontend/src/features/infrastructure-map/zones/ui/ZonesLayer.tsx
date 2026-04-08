@@ -13,14 +13,26 @@ interface ZonesLayerProps {
   zones: MapZone[];
 }
 
-function createZoneIcon(zoneLabel: string, isActive: boolean): L.DivIcon {
+function createZoneIcon(
+  zoneLabel: string,
+  zoneColor: string,
+  isActive: boolean,
+): L.DivIcon {
+  const zoneIconStyle = isActive
+    ? [
+      `border-color: color-mix(in srgb, ${zoneColor} 80%, black);`,
+      `background: ${zoneColor};`,
+      "color: white;",
+    ].join(" ")
+    : [
+      `border-color: color-mix(in srgb, ${zoneColor} 58%, rgba(255,255,255,0.92));`,
+      `background: color-mix(in srgb, ${zoneColor} 22%, white);`,
+      "color: #10261a;",
+    ].join(" ");
+
   return L.divIcon({
     className: "border-0 bg-transparent",
-    html: `<span class="inline-flex min-w-[56px] max-w-[96px] items-center justify-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full border px-3 py-1.5 text-[0.82rem] font-black tracking-[0.02em] shadow-[0_10px_22px_rgba(22,67,39,0.18)] ${
-      isActive
-        ? "border-schneider-500/25 bg-schneider-500 text-white"
-        : "border-white/90 bg-white/96 text-[#174b28]"
-    }">${zoneLabel}</span>`,
+    html: `<span class="inline-flex min-w-[56px] max-w-[96px] items-center justify-center overflow-hidden text-ellipsis whitespace-nowrap rounded-full border px-3 py-1.5 text-[0.82rem] font-black tracking-[0.02em] shadow-[0_10px_22px_rgba(22,67,39,0.18)]" style="${zoneIconStyle}">${zoneLabel}</span>`,
     iconSize: [84, 32],
     iconAnchor: [42, 16],
   });
@@ -55,7 +67,7 @@ export default function ZonesLayer({
             <Marker
               bubblingMouseEvents={true}
               eventHandlers={eventHandlers}
-              icon={createZoneIcon(getZoneDisplayLabel(zone), isActive)}
+              icon={createZoneIcon(getZoneDisplayLabel(zone), zone.color, isActive)}
               position={getZoneCenter(zone.bounds)}
             />
           </Fragment>
@@ -85,7 +97,7 @@ function createZonePathOptions(
   return {
     color,
     fillColor: color,
-    fillOpacity: isActive ? 0.24 : 0.1,
-    weight: isActive ? 2.8 : 2,
+    fillOpacity: isActive ? 0.32 : 0.18,
+    weight: isActive ? 3 : 2.2,
   };
 }

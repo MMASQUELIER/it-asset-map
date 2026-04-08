@@ -4,6 +4,7 @@ import type {
   MapZone,
   MarkerDraft,
   PlacementCandidate,
+  SectorRecord,
   ZoneDraft,
 } from "@/features/infrastructure-map/model/types";
 import MapDraftPanels from "@/features/infrastructure-map/editor/ui/MapDraftPanels";
@@ -12,7 +13,7 @@ import SelectedZonePanel from "@/features/infrastructure-map/zones/ui/SelectedZo
 
 interface InfrastructureMapOverlaysProps {
   availablePlacementCandidates: PlacementCandidate[];
-  availableSectors: string[];
+  availableSectors: SectorRecord[];
   isInteractionMode: boolean;
   isSaving: boolean;
   isZoneEditToolActive: boolean;

@@ -1,21 +1,19 @@
-import type { Context, Hono } from "hono";
+import type { Hono } from "hono";
 import { backendConfig } from "@/config/env.ts";
 import { readMapFile } from "@/features/infrastructure-map/map-image/repository.ts";
+import { createRouteHandler } from "@/features/infrastructure-map/shared/http.ts";
+
+const mapImagePath = "/api/map-image";
 
 export function registerMapImageRoutes(apiApp: Hono): void {
-  apiApp.get("/api/map-image", handleGetMap);
-}
+  apiApp.get(
+    mapImagePath,
+    createRouteHandler("Unable to load the map image.", async (context) => {
+      const mapFileBuffer = await readMapFile(backendConfig.mapFilePath);
 
-async function handleGetMap(context: Context) {
-  try {
-    const mapFileBuffer = new Uint8Array(
-      await readMapFile(backendConfig.mapFilePath),
-    );
-
-    return context.body(mapFileBuffer, 200, {
-      "Content-Type": "image/png",
-    });
-  } catch {
-    return context.json({ error: "Unable to load the map image." }, 500);
-  }
+      return context.body(mapFileBuffer, 200, {
+        "Content-Type": "image/png",
+      });
+    }),
+  );
 }

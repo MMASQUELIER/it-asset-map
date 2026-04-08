@@ -1,6 +1,7 @@
 import type { PcTechnicalDetails } from "@/features/infrastructure-map/model/types/pc";
 
 export interface SectorRecord {
+  color: string;
   id: number;
   name: string;
 }
@@ -25,6 +26,5 @@ export interface EquipmentRecord {
 }
 
 export interface EquipmentDataRecord extends Omit<PcTechnicalDetails, "catalogIssues"> {
-  equipmentId: string;
   id: number;
 }

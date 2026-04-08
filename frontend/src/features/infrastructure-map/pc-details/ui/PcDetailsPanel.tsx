@@ -3,32 +3,19 @@ import type {
   InteractiveMarker,
   MapZone,
 } from "@/features/infrastructure-map/model/types";
-import {
-  getResolvedPcConnectionType,
-  getResolvedPcDisplayName,
-  getResolvedPcStatus,
-} from "@/features/infrastructure-map/model/pcValueResolvers";
 import { PcDetailFieldCard } from "@/features/infrastructure-map/pc-details/ui/components/PcDetailFieldCard";
 import { PcCatalogIssues } from "@/features/infrastructure-map/pc-details/ui/components/PcCatalogIssues";
 import { PcDetailsPanelHeader } from "@/features/infrastructure-map/pc-details/ui/components/PcDetailsPanelHeader";
 import { PcDetailsSection } from "@/features/infrastructure-map/pc-details/ui/components/PcDetailsSection";
 import { useCopiedField } from "@/features/infrastructure-map/pc-details/ui/components/useCopiedField";
 import {
-  filterVisiblePcDetailFields,
-  filterVisiblePcDetailSections,
-} from "@/features/infrastructure-map/pc-details/ui/content/filterVisiblePcDetails";
-import {
-  buildPcDetailSections,
-  buildPcSubtitle,
-  buildPcSummaryFields,
   type VisiblePcDetailField,
 } from "@/features/infrastructure-map/pc-details/ui/pcDetailsContent";
-import { formatPcDetailValue } from "@/features/infrastructure-map/pc-details/ui/content/valueFormatting";
+import { buildPcDetailsPanelState } from "@/features/infrastructure-map/pc-details/ui/pcDetailsPanelState";
 import {
   joinClassNames,
   scrollableFloatingPanelClassName,
 } from "@/features/infrastructure-map/ui/uiClassNames";
-import { getZoneDisplayLabel } from "@/features/infrastructure-map/zones/logic/zoneAppearance";
 
 interface PcDetailsPanelProps {
   marker: InteractiveMarker;
@@ -50,33 +37,22 @@ export default function PcDetailsPanel({
 }: PcDetailsPanelProps) {
   const { copiedFieldId, handleCopy } = useCopiedField();
   const [detailSearchQuery, setDetailSearchQuery] = useState("");
-  const visibleSummaryFields = filterVisiblePcDetailFields(
-    buildPcSummaryFields(marker),
-    detailSearchQuery,
-  );
-  const visibleDetailSections = filterVisiblePcDetailSections(
-    buildPcDetailSections(marker),
-    detailSearchQuery,
-  );
-  const visibleFieldCount = getVisibleFieldCount(
-    visibleSummaryFields.length,
+  const {
+    catalogIssues,
+    connectionLabel,
+    markerDisplayName,
+    shouldForceOpenSections,
+    statusLabel,
+    subtitle,
     visibleDetailSections,
+    visibleFieldCount,
+    visibleSummaryFields,
+    zoneLabel,
+  } = buildPcDetailsPanelState(
+    marker,
+    zone,
+    detailSearchQuery,
   );
-  const markerDisplayName = getResolvedPcDisplayName(
-    marker.technicalDetails,
-    marker.id,
-  );
-  const connectionLabel = formatPcDetailValue(
-    "wifi-wired-connection",
-    getResolvedPcConnectionType(marker.technicalDetails),
-  );
-  const statusLabel = formatPcDetailValue(
-    "status",
-    getResolvedPcStatus(marker.technicalDetails),
-  ) ?? "Non renseigne";
-  const zoneLabel = zone === null ? "Hors zone" : `Zone ${getZoneDisplayLabel(zone)}`;
-  const catalogIssues = marker.technicalDetails.catalogIssues ?? [];
-  const shouldForceOpenSections = detailSearchQuery.trim().length > 0;
 
   async function handleFieldSave(
     field: VisiblePcDetailField,
@@ -107,7 +83,7 @@ export default function PcDetailsPanel({
         onSearchQueryChange={setDetailSearchQuery}
         searchQuery={detailSearchQuery}
         statusLabel={statusLabel}
-        subtitle={buildPcSubtitle(marker)}
+        subtitle={subtitle}
         title={markerDisplayName}
         visibleFieldCount={visibleFieldCount}
         zone={zone}
@@ -163,17 +139,4 @@ export default function PcDetailsPanel({
         )}
     </aside>
   );
-}
-
-function getVisibleFieldCount(
-  visibleSummaryFieldCount: number,
-  visibleDetailSections: ReturnType<typeof filterVisiblePcDetailSections>,
-): number {
-  return visibleSummaryFieldCount +
-    visibleDetailSections.reduce(
-      function countVisibleSectionFields(total, section) {
-        return total + section.items.length;
-      },
-      0,
-    );
 }

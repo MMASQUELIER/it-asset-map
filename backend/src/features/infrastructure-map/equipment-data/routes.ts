@@ -1,7 +1,8 @@
-import type { Context, Hono } from "hono";
+import type { Hono } from "hono";
 import {
+  createJsonRoute,
+  createNoContentRoute,
   getNumericRouteParam,
-  handleRouteError,
   readJsonBody,
 } from "@/features/infrastructure-map/shared/http.ts";
 import {
@@ -11,63 +12,42 @@ import {
   updateEquipmentData,
 } from "@/features/infrastructure-map/equipment-data/service.ts";
 
+const equipmentDataPath = "/api/equipment-data";
+const equipmentDataByIdPath = `${equipmentDataPath}/:equipmentDataId`;
+
 export function registerEquipmentDataRoutes(apiApp: Hono): void {
-  apiApp.get("/api/equipment-data", handleListEquipmentData);
-  apiApp.post("/api/equipment-data", handleCreateEquipmentData);
-  apiApp.patch("/api/equipment-data/:equipmentDataId", handleUpdateEquipmentData);
-  apiApp.delete(
-    "/api/equipment-data/:equipmentDataId",
-    handleDeleteEquipmentData,
+  apiApp.get(
+    equipmentDataPath,
+    createJsonRoute(
+      "Unable to load equipment data.",
+      () => listEquipmentData(),
+    ),
   );
-}
-
-async function handleListEquipmentData(context: Context) {
-  try {
-    return context.json(await listEquipmentData());
-  } catch (error) {
-    return handleRouteError(context, error, "Unable to load equipment data.");
-  }
-}
-
-async function handleCreateEquipmentData(context: Context) {
-  try {
-    const payload = await readJsonBody(context);
-    return context.json(await createEquipmentData(payload), 201);
-  } catch (error) {
-    return handleRouteError(
-      context,
-      error,
+  apiApp.post(
+    equipmentDataPath,
+    createJsonRoute(
       "Unable to create the equipment data record.",
-    );
-  }
-}
-
-async function handleUpdateEquipmentData(context: Context) {
-  try {
-    const equipmentDataId = getNumericRouteParam(context, "equipmentDataId");
-    const payload = await readJsonBody(context);
-
-    return context.json(await updateEquipmentData(equipmentDataId, payload));
-  } catch (error) {
-    return handleRouteError(
-      context,
-      error,
+      async (context) => createEquipmentData(await readJsonBody(context)),
+      201,
+    ),
+  );
+  apiApp.patch(
+    equipmentDataByIdPath,
+    createJsonRoute(
       "Unable to update the equipment data record.",
-    );
-  }
-}
-
-async function handleDeleteEquipmentData(context: Context) {
-  try {
-    const equipmentDataId = getNumericRouteParam(context, "equipmentDataId");
-
-    await deleteEquipmentData(equipmentDataId);
-    return context.body(null, 204);
-  } catch (error) {
-    return handleRouteError(
-      context,
-      error,
+      async (context) =>
+        updateEquipmentData(
+          getNumericRouteParam(context, "equipmentDataId"),
+          await readJsonBody(context),
+        ),
+    ),
+  );
+  apiApp.delete(
+    equipmentDataByIdPath,
+    createNoContentRoute(
       "Unable to delete the equipment data record.",
-    );
-  }
+      (context) =>
+        deleteEquipmentData(getNumericRouteParam(context, "equipmentDataId")),
+    ),
+  );
 }

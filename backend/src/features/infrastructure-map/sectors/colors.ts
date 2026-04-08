@@ -1,11 +1,5 @@
-import type {
-  MapZone,
-  SectorRecord,
-} from "@/features/infrastructure-map/model/types";
-
-type ZoneDisplaySource = Pick<MapZone, "code" | "name">;
-
 const DEFAULT_SECTOR_COLOR = "#4f6d7a";
+const LEGACY_SECTOR_COLOR_PATTERN = /^hsl\(\d{1,3}\s+58%\s+46%\)$/i;
 const SECTOR_COLOR_CANDIDATES = [
   "hsl(0 84% 54%)",
   "hsl(24 90% 54%)",
@@ -56,52 +50,7 @@ interface RgbColor {
   red: number;
 }
 
-export function getZoneDisplayLabel(zone: ZoneDisplaySource): string {
-  const code = zone.code.trim();
-
-  if (code.length > 0) {
-    return code;
-  }
-
-  const fallbackLabel = (zone.name ?? "").trim();
-  return fallbackLabel.length > 0 ? fallbackLabel : "Zone";
-}
-
-export function getSectorColor(
-  sectorName: string,
-  explicitColor?: string,
-): string {
-  return getResolvedSectorColor(sectorName, explicitColor);
-}
-
-export function getSectorColorByName(
-  sectorName: string,
-  sectors: SectorRecord[],
-): string {
-  const matchingSector = sectors.find((sector) =>
-    normalizeSectorName(sector.name) === normalizeSectorName(sectorName)
-  );
-
-  if (matchingSector !== undefined) {
-    return getResolvedSectorColor(sectorName, matchingSector.color);
-  }
-
-  return buildAvailableSectorColor(
-    sectorName,
-    sectors.map((sector) => sector.color),
-  );
-}
-
-function getResolvedSectorColor(
-  sectorName: string,
-  color?: string,
-): string {
-  const explicitColor = color?.trim();
-
-  if (explicitColor && explicitColor.length > 0) {
-    return explicitColor;
-  }
-
+export function buildSectorColor(sectorName: string): string {
   const normalizedSectorName = normalizeSectorName(sectorName);
 
   if (normalizedSectorName.length === 0) {
@@ -111,7 +60,7 @@ function getResolvedSectorColor(
   return pickRotatedCandidate(normalizedSectorName, SECTOR_COLOR_CANDIDATES);
 }
 
-function buildAvailableSectorColor(
+export function buildAvailableSectorColor(
   sectorName: string,
   usedColors: string[],
 ): string {
@@ -141,6 +90,11 @@ function buildAvailableSectorColor(
   }
 
   return buildFallbackSectorColor(normalizedSectorName, normalizedUsedColors);
+}
+
+export function isLegacySectorColor(color: string | null | undefined): boolean {
+  const normalizedColor = normalizeColorValue(color ?? "");
+  return LEGACY_SECTOR_COLOR_PATTERN.test(normalizedColor);
 }
 
 function buildFallbackSectorColor(

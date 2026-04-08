@@ -1,5 +1,4 @@
 import type { InteractiveMarker } from "@/features/infrastructure-map/model/types";
-import { getResolvedPcDisplayName } from "@/features/infrastructure-map/model/pcValueResolvers";
 import { DETAIL_SECTION_DEFINITIONS } from "@/features/infrastructure-map/pc-details/ui/content/detailSections";
 import { SUMMARY_FIELD_DEFINITIONS } from "@/features/infrastructure-map/pc-details/ui/content/summaryFields";
 import type {
@@ -20,20 +19,27 @@ export type {
 const EMPTY_EDITABLE_FIELD_LABEL = "Non renseigne";
 
 export function buildPcSubtitle(marker: InteractiveMarker): string {
-  const markerDisplayName = getResolvedPcDisplayName(
-    marker.technicalDetails,
-    marker.id,
-  );
-
   return [
-    markerDisplayName === marker.id ? undefined : marker.id,
-    formatPcDetailValue("zone-code", marker.technicalDetails.zoneCode),
-    formatPcDetailValue(
-      "manufacturing-station-name",
-      marker.technicalDetails.manufacturingStationNames,
+    buildSubtitleMeta(
+      "Prodsheet",
+      formatPcDetailValue("prodsheet", marker.technicalDetails.prodsheet),
     ),
-    formatPcDetailValue("model", marker.technicalDetails.model),
-  ].filter(isVisibleText).join(" • ");
+    buildSubtitleMeta(
+      "Secteur",
+      formatPcDetailValue("location", marker.technicalDetails.sector),
+    ),
+    buildSubtitleMeta(
+      "Nom",
+      formatPcDetailValue(
+        "manufacturing-station-name",
+        marker.technicalDetails.manufacturingStationNames,
+      ),
+    ),
+    buildSubtitleMeta(
+      "S/N",
+      formatPcDetailValue("serial-number", marker.technicalDetails.serialNumber),
+    ),
+  ].filter(isVisibleText).join(" / ");
 }
 
 export function buildPcSummaryFields(
@@ -62,15 +68,20 @@ function buildVisibleFields(
   for (const field of fields) {
     const rawFieldValue = field.getValue(marker);
     const fieldValue = formatPcDetailValue(field.id, rawFieldValue);
-    const isEditableField = field.editableFieldId !== undefined;
+    const editableFieldId = marker.zoneId !== null &&
+        (field.editableFieldId === "prodsheet" ||
+          field.editableFieldId === "sector")
+      ? undefined
+      : field.editableFieldId;
+    const isEditableField = editableFieldId !== undefined;
 
     if (!isVisibleText(fieldValue) && !isEditableField) {
       continue;
     }
 
     visibleFields.push({
-      editableFieldId: field.editableFieldId,
-      editValue: field.editableFieldId === undefined
+      editableFieldId,
+      editValue: editableFieldId === undefined
         ? undefined
         : field.getEditValue?.(marker) ?? rawFieldValue ?? "",
       id: field.id,
@@ -81,4 +92,11 @@ function buildVisibleFields(
   }
 
   return visibleFields;
+}
+
+function buildSubtitleMeta(
+  label: string,
+  value: string | undefined,
+): string | undefined {
+  return isVisibleText(value) ? `${label} ${value}` : undefined;
 }

@@ -1,24 +1,28 @@
-import type { CSSProperties, FormEvent } from "react";
-import type { ZoneDraft } from "@/features/infrastructure-map/model/types";
+import type { FormEvent } from "react";
+import type {
+  SectorRecord,
+  ZoneDraft,
+} from "@/features/infrastructure-map/model/types";
 import {
-  closeButtonClassName,
+  getSectorColorByName,
+} from "@/features/infrastructure-map/zones/logic/zoneAppearance";
+import {
   detailLabelTextClassName,
   detailsGridClassName,
-  eyebrowTextClassName,
+  fieldLabelTextClassName,
   fieldGroupClassName,
   panelActionRowClassName,
-  panelDescriptionTextClassName,
-  panelTitleTextClassName,
   primaryButtonClassName,
   scrollableFloatingPanelClassName,
   secondaryButtonClassName,
   textInputClassName,
 } from "@/features/infrastructure-map/ui/uiClassNames";
-import { getSectorColor } from "@/features/infrastructure-map/zones/logic/zoneAppearance";
+import { ZonePanelHeader } from "@/features/infrastructure-map/zones/ui/ZonePanelHeader";
 import ZoneSectorSelector from "@/features/infrastructure-map/zones/ui/ZoneSectorSelector";
+import { ZoneSectorBadge } from "@/features/infrastructure-map/zones/ui/ZoneSectorBadge";
 
 interface ZoneDraftFormProps {
-  availableSectors: string[];
+  availableSectors: SectorRecord[];
   draft: ZoneDraft;
   onCancel: () => void;
   onCodeChange: (value: string) => void;
@@ -44,6 +48,7 @@ export default function ZoneDraftForm({
 }: ZoneDraftFormProps) {
   const isSubmitDisabled = zoneSectorName.trim().length === 0 ||
     zoneCode.trim().length !== 3;
+  const sectorColor = getSectorColorByName(zoneSectorName, availableSectors);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
@@ -55,10 +60,14 @@ export default function ZoneDraftForm({
       className={`${scrollableFloatingPanelClassName} grid gap-4`}
       onSubmit={handleSubmit}
     >
-      <ZoneDraftHeader onClose={onCancel} />
+      <ZonePanelHeader
+        description="Secteur et code sur 3 chiffres."
+        onClose={onCancel}
+        title="Ajouter"
+      />
 
       <label className={fieldGroupClassName}>
-        <span className="text-sm font-bold text-schneider-900">Secteur</span>
+        <span className={fieldLabelTextClassName}>Secteur</span>
         <ZoneSectorSelector
           availableSectors={availableSectors}
           onSelectSector={onSectorChange}
@@ -67,7 +76,7 @@ export default function ZoneDraftForm({
       </label>
 
       <label className={fieldGroupClassName}>
-        <span className="text-sm font-bold text-schneider-900">Code zone</span>
+        <span className={fieldLabelTextClassName}>Code zone</span>
         <input
           autoFocus
           className={textInputClassName}
@@ -81,7 +90,7 @@ export default function ZoneDraftForm({
       </label>
 
       <label className={fieldGroupClassName}>
-        <span className="text-sm font-bold text-schneider-900">Nom</span>
+        <span className={fieldLabelTextClassName}>Nom</span>
         <input
           className={textInputClassName}
           placeholder="Nom optionnel"
@@ -108,7 +117,11 @@ export default function ZoneDraftForm({
 
         <div>
           <span className={detailLabelTextClassName}>Couleur secteur</span>
-          <ZoneSectorBadge sectorName={zoneSectorName} />
+          <ZoneSectorBadge
+            emptyLabel="Saisissez un secteur"
+            sectorColor={sectorColor}
+            sectorName={zoneSectorName}
+          />
         </div>
       </div>
 
@@ -130,48 +143,4 @@ export default function ZoneDraftForm({
       </div>
     </form>
   );
-}
-
-interface ZoneDraftHeaderProps {
-  onClose: () => void;
-}
-
-function ZoneDraftHeader({ onClose }: ZoneDraftHeaderProps) {
-  return (
-    <div className="flex items-start justify-between gap-4">
-      <div>
-        <p className={eyebrowTextClassName}>Zone</p>
-        <h2 className={panelTitleTextClassName}>Ajouter</h2>
-        <p className={panelDescriptionTextClassName}>Secteur et code sur 3 chiffres.</p>
-      </div>
-
-      <button className={closeButtonClassName} type="button" onClick={onClose}>
-        Fermer
-      </button>
-    </div>
-  );
-}
-
-interface ZoneSectorBadgeProps {
-  sectorName: string;
-}
-
-function ZoneSectorBadge({ sectorName }: ZoneSectorBadgeProps) {
-  return (
-    <strong
-      className="inline-flex min-h-10 items-center rounded-full border px-4 text-sm font-bold text-schneider-900"
-      style={getZoneSectorBadgeStyle(sectorName)}
-    >
-      {sectorName.length > 0 ? sectorName : "Saisissez un secteur"}
-    </strong>
-  );
-}
-
-function getZoneSectorBadgeStyle(sectorName: string): CSSProperties {
-  const sectorAccentColor = getSectorColor(sectorName);
-
-  return {
-    borderColor: `color-mix(in srgb, ${sectorAccentColor} 40%, rgba(16,38,26,0.1))`,
-    background: `color-mix(in srgb, ${sectorAccentColor} 18%, white)`,
-  } as CSSProperties;
 }

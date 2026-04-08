@@ -6,11 +6,12 @@ import {
 import type { SectorDto } from "@/features/infrastructure-map/sectors/types.ts";
 
 interface SectorRecord {
+  color: string;
   id: number;
   name: string;
 }
 
-const SECTOR_SELECT_SQL = "SELECT id, name FROM sectors";
+const SECTOR_SELECT_SQL = "SELECT id, name, color FROM sectors";
 
 export async function listSectorRecords(): Promise<SectorDto[]> {
   const rows = readSqliteRows<SectorRecord>(
@@ -44,10 +45,11 @@ export async function findSectorRecordByName(
 
 export async function createSectorRecord(
   name: string,
+  color: string,
 ): Promise<SectorDto> {
   const result = getSqliteDatabase().prepare(
-    "INSERT INTO sectors (name) VALUES (?)",
-  ).run(name);
+    "INSERT INTO sectors (name, color) VALUES (?, ?)",
+  ).run(name, color);
 
   return await findCreatedSectorRecord(Number(result.lastInsertRowid));
 }
@@ -73,6 +75,7 @@ export async function deleteSectorRecord(id: number): Promise<boolean> {
 
 function mapSectorRecord(row: SectorRecord): SectorDto {
   return {
+    color: row.color,
     id: row.id,
     name: row.name,
   };

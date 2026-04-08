@@ -1,13 +1,14 @@
 import type {
   MarkerDraft,
   PlacementCandidate,
+  SectorRecord,
   ZoneDraft,
 } from "@/features/infrastructure-map/model/types";
 import MarkerDraftForm from "@/features/infrastructure-map/markers/ui/MarkerDraftForm";
 import ZoneDraftForm from "@/features/infrastructure-map/zones/ui/ZoneDraftForm";
 
 interface MapDraftPanelsProps {
-  availableSectors: string[];
+  availableSectors: SectorRecord[];
   markerDraft: MarkerDraft | null;
   markerDraftId: string;
   markerPlacementCandidates: PlacementCandidate[];

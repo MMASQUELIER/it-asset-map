@@ -33,8 +33,8 @@ export const markerSearchFields: SearchField[] = [
     weight: 82,
   },
   {
-    getValue: (marker) => marker.technicalDetails.zoneCode,
-    label: "Prodsched",
+    getValue: (marker) => marker.technicalDetails.prodsheet,
+    label: "Prodsheet",
     weight: 80,
   },
   {
