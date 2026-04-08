@@ -6,7 +6,6 @@ import type {
 import MarkerDraftForm from "@/features/infrastructure-map/markers/ui/MarkerDraftForm";
 import ZoneDraftForm from "@/features/infrastructure-map/zones/ui/ZoneDraftForm";
 
-/** Props des panneaux flottants d'edition des drafts. */
 interface MapDraftPanelsProps {
   availableSectors: string[];
   markerDraft: MarkerDraft | null;
@@ -25,9 +24,6 @@ interface MapDraftPanelsProps {
   zoneDraftSectorName: string;
 }
 
-/**
- * Affiche les formulaires de draft actuellement ouverts sur la carte.
- */
 export default function MapDraftPanels({
   availableSectors,
   markerDraft,
@@ -51,82 +47,30 @@ export default function MapDraftPanels({
 
   return (
     <>
-      {renderMarkerDraftForm(
-        markerDraft,
-        markerPlacementCandidates,
-        markerDraftId,
-        onCancel,
-        onMarkerIdChange,
-        onMarkerSubmit,
-      )}
-      {renderZoneDraftForm(
-        zoneDraft,
-        availableSectors,
-        onCancel,
-        onZoneCodeChange,
-        onZoneNameChange,
-        onZoneSectorChange,
-        onZoneSubmit,
-        zoneDraftCode,
-        zoneDraftName,
-        zoneDraftSectorName,
-      )}
+      {markerDraft !== null ? (
+        <MarkerDraftForm
+          availableCandidates={markerPlacementCandidates}
+          draft={markerDraft}
+          markerId={markerDraftId}
+          onCancel={onCancel}
+          onMarkerIdChange={onMarkerIdChange}
+          onSubmit={onMarkerSubmit}
+        />
+      ) : null}
+      {zoneDraft !== null ? (
+        <ZoneDraftForm
+          availableSectors={availableSectors}
+          draft={zoneDraft}
+          onCancel={onCancel}
+          onCodeChange={onZoneCodeChange}
+          onNameChange={onZoneNameChange}
+          onSectorChange={onZoneSectorChange}
+          onSubmit={onZoneSubmit}
+          zoneCode={zoneDraftCode}
+          zoneName={zoneDraftName}
+          zoneSectorName={zoneDraftSectorName}
+        />
+      ) : null}
     </>
-  );
-}
-
-function renderMarkerDraftForm(
-  markerDraft: MarkerDraft | null,
-  markerPlacementCandidates: PlacementCandidate[],
-  markerDraftId: string,
-  onCancel: () => void,
-  onMarkerIdChange: (value: string) => void,
-  onMarkerSubmit: () => void,
-) {
-  if (markerDraft === null) {
-    return null;
-  }
-
-  return (
-    <MarkerDraftForm
-      availableCandidates={markerPlacementCandidates}
-      draft={markerDraft}
-      markerId={markerDraftId}
-      onCancel={onCancel}
-      onMarkerIdChange={onMarkerIdChange}
-      onSubmit={onMarkerSubmit}
-    />
-  );
-}
-
-function renderZoneDraftForm(
-  zoneDraft: ZoneDraft | null,
-  availableSectors: string[],
-  onCancel: () => void,
-  onZoneCodeChange: (value: string) => void,
-  onZoneNameChange: (value: string) => void,
-  onZoneSectorChange: (value: string) => void,
-  onZoneSubmit: () => void,
-  zoneDraftCode: string,
-  zoneDraftName: string,
-  zoneDraftSectorName: string,
-) {
-  if (zoneDraft === null) {
-    return null;
-  }
-
-  return (
-    <ZoneDraftForm
-      availableSectors={availableSectors}
-      draft={zoneDraft}
-      onCancel={onCancel}
-      onCodeChange={onZoneCodeChange}
-      onNameChange={onZoneNameChange}
-      onSectorChange={onZoneSectorChange}
-      onSubmit={onZoneSubmit}
-      zoneCode={zoneDraftCode}
-      zoneName={zoneDraftName}
-      zoneSectorName={zoneDraftSectorName}
-    />
   );
 }

@@ -1,6 +1,6 @@
 export interface EquipmentDataDto {
   assetType?: string;
-  // Legacy aliases are still exposed for backward compatibility with older CMDB rows.
+  // Anciennes cles encore acceptees pour les lignes CMDB non normalisees.
   comment?: string;
   connectedToSwitchName?: string;
   connectedToSwitchPort?: string;

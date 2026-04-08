@@ -1,7 +1,7 @@
 import { createApiApp } from "@/app/createApiApp.ts";
 import { backendConfig } from "@/config/env.ts";
 import { ensureDatabaseReady } from "@/db/ensureDatabaseReady.ts";
-import { closePrismaClient } from "@/db/prisma.ts";
+import { closeSqliteDatabase } from "@/db/sqlite.ts";
 
 try {
   await ensureDatabaseReady();
@@ -12,5 +12,5 @@ try {
   const server = Deno.serve({ port: backendConfig.apiPort }, apiApp.fetch);
   await server.finished;
 } finally {
-  await closePrismaClient();
+  closeSqliteDatabase();
 }

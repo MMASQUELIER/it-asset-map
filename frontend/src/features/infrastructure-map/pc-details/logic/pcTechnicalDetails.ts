@@ -6,9 +6,6 @@ import type {
 
 type ZoneContext = Pick<MapZone, "code" | "sectorName">;
 
-/**
- * Resynchronise les champs techniques qui doivent suivre la zone courante.
- */
 export function syncPcTechnicalDetailsWithZone(
   technicalDetails: PcTechnicalDetails,
   zone: ZoneContext | null,

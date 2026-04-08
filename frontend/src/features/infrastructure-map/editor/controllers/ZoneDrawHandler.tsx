@@ -2,7 +2,6 @@ import { useEffect, useRef } from "react";
 import type { LatLng } from "leaflet";
 import { useMap, useMapEvents } from "react-leaflet";
 
-/** Props du controleur de dessin de zone par glisser-deposer. */
 interface ZoneDrawHandlerProps {
   isEnabled: boolean;
   onDraftDrag: (
@@ -13,15 +12,8 @@ interface ZoneDrawHandlerProps {
   ) => void;
 }
 
-/** Distance minimale avant de transformer un clic en dessin de zone. */
 const DRAG_START_THRESHOLD = 4;
 
-/**
- * Transforme un glisser sur la carte en rectangle de draft de zone.
- *
- * Le composant n'affiche rien: il enregistre seulement les evenements Leaflet
- * necessaires au mode de creation de zone.
- */
 export default function ZoneDrawHandler({
   isEnabled,
   onDraftDrag,
@@ -107,10 +99,6 @@ export default function ZoneDrawHandler({
   return null;
 }
 
-/**
- * Verifie si le pointeur a suffisamment bouge pour considerer le geste
- * comme un vrai dessin de zone.
- */
 function hasReachedDragThreshold(start: LatLng, current: LatLng): boolean {
   return (
     Math.abs(current.lng - start.lng) >= DRAG_START_THRESHOLD ||

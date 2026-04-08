@@ -1,4 +1,5 @@
 import type { InteractiveMarker } from "@/features/infrastructure-map/model/types";
+import { getResolvedPcDisplayName } from "@/features/infrastructure-map/model/pcValueResolvers";
 import { DETAIL_SECTION_DEFINITIONS } from "@/features/infrastructure-map/pc-details/ui/content/detailSections";
 import { SUMMARY_FIELD_DEFINITIONS } from "@/features/infrastructure-map/pc-details/ui/content/summaryFields";
 import type {
@@ -19,7 +20,13 @@ export type {
 const EMPTY_EDITABLE_FIELD_LABEL = "Non renseigne";
 
 export function buildPcSubtitle(marker: InteractiveMarker): string {
+  const markerDisplayName = getResolvedPcDisplayName(
+    marker.technicalDetails,
+    marker.id,
+  );
+
   return [
+    markerDisplayName === marker.id ? undefined : marker.id,
     formatPcDetailValue("zone-code", marker.technicalDetails.zoneCode),
     formatPcDetailValue(
       "manufacturing-station-name",

@@ -39,6 +39,14 @@ export function InfrastructureMapControls({
   selectedMarkerId,
   zones,
 }: InfrastructureMapControlsProps) {
+  const shouldShowFeedbackNotice = errorMessage !== null || isSavingChanges;
+  const feedbackMessage = errorMessage ?? "Enregistrement en cours...";
+  const feedbackTone = errorMessage !== null ? "error" : "info";
+  const feedbackClassName = joinClassNames(
+    "w-full",
+    errorMessage === null && "border-schneider-900/10 bg-schneider-50/70",
+  );
+
   return (
     <div className="grid gap-3 p-4 sm:p-5 lg:p-6">
       <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,0.9fr)]">
@@ -57,15 +65,12 @@ export function InfrastructureMapControls({
         />
       </div>
 
-      {errorMessage !== null || isSavingChanges
+      {shouldShowFeedbackNotice
         ? (
           <FeedbackNotice
-            className={joinClassNames(
-              "w-full",
-              errorMessage === null && "border-schneider-900/10 bg-schneider-50/70",
-            )}
-            message={errorMessage ?? "Enregistrement en cours..."}
-            tone={errorMessage !== null ? "error" : "info"}
+            className={feedbackClassName}
+            message={feedbackMessage}
+            tone={feedbackTone}
           />
         )
         : null}

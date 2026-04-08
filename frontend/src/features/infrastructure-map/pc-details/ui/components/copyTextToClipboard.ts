@@ -7,7 +7,7 @@ export async function copyTextToClipboard(value: string): Promise<boolean> {
       await navigator.clipboard.writeText(value);
       return true;
     } catch {
-      // Replie sur la methode historique ci-dessous si l'API moderne echoue.
+      // On retombe juste sur la copie classique ci-dessous.
     }
   }
 

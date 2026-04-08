@@ -19,9 +19,6 @@ export interface InteractionModeState {
 
 const INITIAL_TOOL: InteractionTool = "select-zone";
 
-/**
- * Centralise le mode interaction et l'outil actif de l'editeur de carte.
- */
 export default function useInteractionMode(): InteractionModeState {
   const [isInteractionMode, setIsInteractionMode] = useState(false);
   const [activeTool, setActiveTool] = useState<InteractionTool>(INITIAL_TOOL);

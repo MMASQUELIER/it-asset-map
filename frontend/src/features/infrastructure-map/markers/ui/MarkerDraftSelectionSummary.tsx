@@ -1,5 +1,6 @@
 import type { MarkerDraft, PlacementCandidate } from "@/features/infrastructure-map/model/types";
 import { getCatalogIssueSummary } from "@/features/infrastructure-map/model/catalogIssues";
+import { getResolvedPcDisplayName } from "@/features/infrastructure-map/model/pcValueResolvers";
 import {
   detailLabelTextClassName,
   detailsGridClassName,
@@ -18,21 +19,25 @@ export function MarkerDraftSelectionSummary({
   const catalogIssueSummary = getCatalogIssueSummary(
     selectedCandidate?.technicalDetails.catalogIssues,
   );
+  const selectedCandidateDisplayName = selectedCandidate === null
+    ? null
+    : getResolvedPcDisplayName(
+      selectedCandidate.technicalDetails,
+      selectedCandidate.equipmentId,
+    );
 
   return (
     <>
       <div className={detailsGridClassName}>
         <div>
           <span className={detailLabelTextClassName}>PC selectionne</span>
-          <strong>{selectedCandidate?.equipmentId ?? "Aucun PC selectionne"}</strong>
+          <strong>{selectedCandidateDisplayName ?? "Aucun PC selectionne"}</strong>
         </div>
 
         <div>
-          <span className={detailLabelTextClassName}>Hostname</span>
+          <span className={detailLabelTextClassName}>Identifiant</span>
           <strong>
-            {selectedCandidate?.hostname ??
-              catalogIssueSummary ??
-              "En attente de selection"}
+            {selectedCandidate?.equipmentId ?? "En attente de selection"}
           </strong>
         </div>
 

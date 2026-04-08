@@ -1,28 +1,28 @@
-import { Prisma } from "@/db/prisma.ts";
-
-interface DatabaseKnownRequestError {
+interface SqliteDriverError {
   code?: string;
-}
-
-export function isDatabaseKnownRequestError(
-  error: unknown,
-): error is Prisma.PrismaClientKnownRequestError | DatabaseKnownRequestError {
-  return error instanceof Prisma.PrismaClientKnownRequestError ||
-    (typeof error === "object" && error !== null && "code" in error);
+  message: string;
 }
 
 export function isDuplicateEntryError(error: unknown): boolean {
-  return isDatabaseKnownRequestError(error) && error.code === "P2002";
+  return hasSqliteConstraintMessage(error, /^UNIQUE constraint failed:/i);
 }
 
 export function isForeignKeyConstraintError(error: unknown): boolean {
-  return isDatabaseKnownRequestError(error) && error.code === "P2003";
+  return hasSqliteConstraintMessage(error, /^FOREIGN KEY constraint failed$/i);
 }
 
 export function isCheckConstraintError(error: unknown): boolean {
-  return isDatabaseKnownRequestError(error) && error.code === "P2004";
+  return hasSqliteConstraintMessage(error, /^CHECK constraint failed:/i);
 }
 
-export function isRecordNotFoundError(error: unknown): boolean {
-  return isDatabaseKnownRequestError(error) && error.code === "P2025";
+function hasSqliteConstraintMessage(error: unknown, pattern: RegExp): boolean {
+  return isSqliteDriverError(error) &&
+    error.code === "ERR_SQLITE_ERROR" &&
+    pattern.test(error.message);
+}
+
+function isSqliteDriverError(error: unknown): error is SqliteDriverError {
+  return typeof error === "object" &&
+    error !== null &&
+    typeof (error as { message?: unknown }).message === "string";
 }

@@ -1,65 +1,41 @@
-import { isRecordNotFoundError } from "@/db/errors.ts";
-import { getPrismaClient, Prisma } from "@/db/prisma.ts";
+import {
+  getSqliteDatabase,
+  readSqliteRow,
+  readSqliteRows,
+} from "@/db/sqlite.ts";
 import { normalizeEquipmentDataAliases } from "@/features/infrastructure-map/equipment-data/aliases.ts";
-import { EQUIPMENT_DATA_FIELDS } from "@/features/infrastructure-map/equipment-data/types.ts";
+import {
+  EQUIPMENT_DATA_COLUMN_BY_FIELD,
+  EQUIPMENT_DATA_FIELDS,
+} from "@/features/infrastructure-map/equipment-data/types.ts";
 import type {
   EquipmentDataCreateInput,
+  EquipmentDataField,
   EquipmentDataDto,
   EquipmentDataPatch,
 } from "@/features/infrastructure-map/equipment-data/types.ts";
 
-interface EquipmentDataRow {
-  assetType: string | null;
-  comment: string | null;
-  connectedToSwitchName: string | null;
-  connectedToSwitchPort: string | null;
-  connectionType: string | null;
-  contact: string | null;
-  directoryAccount: string | null;
-  equipmentId: string;
-  floorLocation: string | null;
-  gateway: string | null;
-  hostname: string | null;
-  id: bigint;
-  idPort: string | null;
-  ipAddress: string | null;
-  ipFilter: string | null;
-  lastInventoryDate: string | null;
-  macAddress: string | null;
-  manufacturer: string | null;
-  manufacturingStationNames: string | null;
-  memory: string | null;
-  model: string | null;
-  networkScope: string | null;
-  newIpAddress: string | null;
-  newPortAuto: string | null;
-  oldIpAddress: string | null;
-  operatingSystem: string | null;
-  pinKey: string | null;
-  processor: string | null;
-  sap: string | null;
-  secondaryComment: string | null;
-  sector: string | null;
-  securityStatus: string | null;
-  serialNumber: string | null;
-  site: string | null;
-  status: string | null;
-  storage: string | null;
-  subnetMask: string | null;
-  switchIpAddress: string | null;
-  switchName: string | null;
-  switchPort: string | null;
-  ticketBrassage: string | null;
-  vlan: string | null;
-  vlanNew: string | null;
-  wifiOrWiredConnection: string | null;
-  zoneCode: string | null;
-}
+type EquipmentDataRow = {
+  id: number;
+} & {
+  [Field in EquipmentDataField]: string | null;
+};
+
+const EQUIPMENT_DATA_SELECT_LIST = [
+  "id",
+  ...EQUIPMENT_DATA_FIELDS.map((field) =>
+    `${EQUIPMENT_DATA_COLUMN_BY_FIELD[field]} AS ${field}`
+  ),
+].join(", ");
+const EQUIPMENT_DATA_SELECT_SQL = `
+  SELECT ${EQUIPMENT_DATA_SELECT_LIST}
+  FROM equipment_data
+`;
 
 export async function listEquipmentDataRecords(): Promise<EquipmentDataDto[]> {
-  const rows = await getPrismaClient().equipmentData.findMany({
-    orderBy: { equipmentId: "asc" },
-  });
+  const rows = readSqliteRows<EquipmentDataRow>(
+    `${EQUIPMENT_DATA_SELECT_SQL} ORDER BY equipment_id ASC`,
+  );
 
   return rows.map(mapEquipmentDataRowToDto);
 }
@@ -67,134 +43,118 @@ export async function listEquipmentDataRecords(): Promise<EquipmentDataDto[]> {
 export async function findEquipmentDataRecordById(
   id: number,
 ): Promise<EquipmentDataDto | null> {
-  const row = await getPrismaClient().equipmentData.findUnique({
-    where: { id: BigInt(id) },
-  });
+  const row = readSqliteRow<EquipmentDataRow>(
+    `${EQUIPMENT_DATA_SELECT_SQL} WHERE id = ?`,
+    id,
+  );
 
-  return row === null ? null : mapEquipmentDataRowToDto(row);
+  return row === undefined ? null : mapEquipmentDataRowToDto(row);
 }
 
 export async function createEquipmentDataRecord(
   input: EquipmentDataCreateInput,
 ): Promise<EquipmentDataDto> {
-  const data = omitUndefinedValues(input) as Prisma.EquipmentDataCreateInput;
-  const row = await getPrismaClient().equipmentData.create({ data });
+  const { columns, values } = buildInsertDefinition(input);
+  const placeholders = columns.map(() => "?").join(", ");
+  const result = getSqliteDatabase().prepare(
+    `INSERT INTO equipment_data (${columns.join(", ")}) VALUES (${placeholders})`,
+  ).run(...values);
 
-  return mapEquipmentDataRowToDto(row);
+  return await findCreatedEquipmentDataRecord(Number(result.lastInsertRowid));
 }
 
 export async function updateEquipmentDataRecord(
   id: number,
   patch: EquipmentDataPatch,
 ): Promise<boolean> {
-  const data = buildEquipmentDataUpdateInput(patch);
+  const { assignments, values } = buildUpdateDefinition(patch);
+  const result = getSqliteDatabase().prepare(
+    `UPDATE equipment_data SET ${assignments.join(", ")} WHERE id = ?`,
+  ).run(...values, id);
 
-  try {
-    await getPrismaClient().equipmentData.update({
-      data,
-      where: { id: BigInt(id) },
-    });
-    return true;
-  } catch (error) {
-    if (isRecordNotFoundError(error)) {
-      return false;
-    }
-
-    throw error;
-  }
+  return result.changes > 0;
 }
 
 export async function deleteEquipmentDataRecord(id: number): Promise<boolean> {
-  try {
-    await getPrismaClient().equipmentData.delete({
-      where: { id: BigInt(id) },
-    });
-    return true;
-  } catch (error) {
-    if (isRecordNotFoundError(error)) {
-      return false;
-    }
+  const result = getSqliteDatabase().prepare(
+    "DELETE FROM equipment_data WHERE id = ?",
+  ).run(id);
 
-    throw error;
-  }
+  return result.changes > 0;
 }
 
-function buildEquipmentDataUpdateInput(
+function buildInsertDefinition(
+  input: EquipmentDataCreateInput,
+): { columns: string[]; values: string[] } {
+  const columns: string[] = [];
+  const values: string[] = [];
+
+  for (const field of EQUIPMENT_DATA_FIELDS) {
+    const value = input[field];
+
+    if (value === undefined) {
+      continue;
+    }
+
+    columns.push(EQUIPMENT_DATA_COLUMN_BY_FIELD[field]);
+    values.push(value);
+  }
+
+  return { columns, values };
+}
+
+function buildUpdateDefinition(
   patch: EquipmentDataPatch,
-): Prisma.EquipmentDataUpdateInput {
-  const data: Record<string, string | null> = {};
+): {
+  assignments: string[];
+  values: Array<string | null>;
+} {
+  const assignments: string[] = [];
+  const values: Array<string | null> = [];
 
   for (const field of EQUIPMENT_DATA_FIELDS) {
     if (!Object.hasOwn(patch, field)) {
       continue;
     }
 
-    data[field] = patch[field] ?? null;
+    assignments.push(`${EQUIPMENT_DATA_COLUMN_BY_FIELD[field]} = ?`);
+    values.push(patch[field] ?? null);
   }
 
-  return data as Prisma.EquipmentDataUpdateInput;
-}
-
-function omitUndefinedValues<T extends Record<string, unknown>>(
-  input: T,
-): Record<string, unknown> {
-  const filteredInput: Record<string, unknown> = {};
-
-  for (const [key, value] of Object.entries(input)) {
-    if (value !== undefined) {
-      filteredInput[key] = value;
-    }
-  }
-
-  return filteredInput;
+  return { assignments, values };
 }
 
 function mapEquipmentDataRowToDto(row: EquipmentDataRow): EquipmentDataDto {
-  return normalizeEquipmentDataAliases({
-    assetType: row.assetType ?? undefined,
-    comment: row.comment ?? undefined,
-    connectedToSwitchName: row.connectedToSwitchName ?? undefined,
-    connectedToSwitchPort: row.connectedToSwitchPort ?? undefined,
-    connectionType: row.connectionType ?? undefined,
-    contact: row.contact ?? undefined,
-    directoryAccount: row.directoryAccount ?? undefined,
-    equipmentId: row.equipmentId,
-    floorLocation: row.floorLocation ?? undefined,
-    gateway: row.gateway ?? undefined,
-    hostname: row.hostname ?? undefined,
-    id: Number(row.id),
-    idPort: row.idPort ?? undefined,
-    ipAddress: row.ipAddress ?? undefined,
-    ipFilter: row.ipFilter ?? undefined,
-    lastInventoryDate: row.lastInventoryDate ?? undefined,
-    macAddress: row.macAddress ?? undefined,
-    manufacturer: row.manufacturer ?? undefined,
-    manufacturingStationNames: row.manufacturingStationNames ?? undefined,
-    memory: row.memory ?? undefined,
-    model: row.model ?? undefined,
-    networkScope: row.networkScope ?? undefined,
-    newIpAddress: row.newIpAddress ?? undefined,
-    newPortAuto: row.newPortAuto ?? undefined,
-    oldIpAddress: row.oldIpAddress ?? undefined,
-    operatingSystem: row.operatingSystem ?? undefined,
-    pinKey: row.pinKey ?? undefined,
-    processor: row.processor ?? undefined,
-    sap: row.sap ?? undefined,
-    secondaryComment: row.secondaryComment ?? undefined,
-    sector: row.sector ?? undefined,
-    securityStatus: row.securityStatus ?? undefined,
-    serialNumber: row.serialNumber ?? undefined,
-    site: row.site ?? undefined,
-    status: row.status ?? undefined,
-    storage: row.storage ?? undefined,
-    subnetMask: row.subnetMask ?? undefined,
-    switchIpAddress: row.switchIpAddress ?? undefined,
-    switchName: row.switchName ?? undefined,
-    switchPort: row.switchPort ?? undefined,
-    ticketBrassage: row.ticketBrassage ?? undefined,
-    vlan: row.vlan ?? undefined,
-    vlanNew: row.vlanNew ?? undefined,
-    wifiOrWiredConnection: row.wifiOrWiredConnection ?? undefined,
-    zoneCode: row.zoneCode ?? undefined,
-  });
+  const equipmentData: EquipmentDataDto = {
+    equipmentId: row.equipmentId ?? "",
+    id: row.id,
+  };
+
+  for (const field of EQUIPMENT_DATA_FIELDS) {
+    if (field === "equipmentId") {
+      continue;
+    }
+
+    const value = row[field];
+
+    if (value !== null) {
+      equipmentData[field] = value;
+    }
+  }
+
+  return normalizeEquipmentDataAliases(equipmentData);
+}
+
+async function findCreatedEquipmentDataRecord(
+  id: number,
+): Promise<EquipmentDataDto> {
+  const equipmentData = await findEquipmentDataRecordById(id);
+
+  if (equipmentData === null) {
+    throw new Error(
+      "Failed to load the equipment data record that was just created.",
+    );
+  }
+
+  return equipmentData;
 }

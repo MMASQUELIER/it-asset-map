@@ -4,6 +4,7 @@ import type {
   MarkerDraft,
   PlacementCandidate,
 } from "@/features/infrastructure-map/model/types";
+import { isPcTechnicalDetails } from "@/features/infrastructure-map/model/pcValueResolvers";
 import { searchPlacementCandidates } from "@/features/infrastructure-map/markers/services/placementCandidateSearch";
 import {
   closeButtonClassName,
@@ -19,7 +20,11 @@ import {
 import { MarkerDraftCatalog } from "@/features/infrastructure-map/markers/ui/MarkerDraftCatalog";
 import { MarkerDraftSelectionSummary } from "@/features/infrastructure-map/markers/ui/MarkerDraftSelectionSummary";
 
-/** Props du formulaire de creation de marqueur. */
+type CatalogFilterMode = "all" | "pc-only";
+
+const DEFAULT_CATALOG_FILTER_MODE: CatalogFilterMode = "pc-only";
+const CATALOG_SEARCH_LIMIT = 8;
+
 interface MarkerDraftFormProps {
   availableCandidates: PlacementCandidate[];
   draft: MarkerDraft;
@@ -29,7 +34,6 @@ interface MarkerDraftFormProps {
   onSubmit: () => void;
 }
 
-/** Formulaire de confirmation pour l'ajout d'un nouveau marqueur. */
 export default function MarkerDraftForm({
   availableCandidates,
   draft,
@@ -39,12 +43,20 @@ export default function MarkerDraftForm({
   onSubmit,
 }: MarkerDraftFormProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [catalogFilterMode, setCatalogFilterMode] = useState<CatalogFilterMode>(
+    DEFAULT_CATALOG_FILTER_MODE,
+  );
   const deferredSearchQuery = useDeferredValue(searchQuery);
+  const isPcOnlyFilterActive = catalogFilterMode === "pc-only";
   const selectedCandidate = getSelectedCandidate(availableCandidates, markerId);
-  const matchingCandidates = searchPlacementCandidates(
+  const visibleCandidates = getVisibleCatalogCandidates(
     availableCandidates,
+    catalogFilterMode,
+  );
+  const matchingCandidates = searchPlacementCandidates(
+    visibleCandidates,
     deferredSearchQuery,
-    8,
+    CATALOG_SEARCH_LIMIT,
   );
 
   function handleSubmit(event: FormEvent<HTMLFormElement>): void {
@@ -57,10 +69,12 @@ export default function MarkerDraftForm({
       className={`${scrollableFloatingPanelClassName} grid gap-4`}
       onSubmit={handleSubmit}
     >
-      {renderMarkerDraftHeader(onCancel)}
+      <MarkerDraftHeader onClose={onCancel} />
 
       <label className={fieldGroupClassName}>
-        <span className="text-sm font-bold text-schneider-900">Rechercher un PC</span>
+        <span className="text-sm font-bold text-schneider-900">
+          {getSearchLabel(isPcOnlyFilterActive)}
+        </span>
         <input
           autoFocus
           className={textInputClassName}
@@ -71,12 +85,22 @@ export default function MarkerDraftForm({
         />
       </label>
 
+      <CatalogFilterCard
+        isPcOnlyFilterActive={isPcOnlyFilterActive}
+        onToggle={function handlePcOnlyFilterToggle() {
+          setCatalogFilterMode((currentMode) =>
+            currentMode === "pc-only" ? "all" : "pc-only"
+          );
+        }}
+      />
+
       <MarkerDraftSelectionSummary
         draft={draft}
         selectedCandidate={selectedCandidate}
       />
       <MarkerDraftCatalog
-        availableCandidates={availableCandidates}
+        availableCandidates={visibleCandidates}
+        isPcOnlyFilterActive={isPcOnlyFilterActive}
         markerId={markerId}
         matchingCandidates={matchingCandidates}
         onMarkerIdChange={onMarkerIdChange}
@@ -110,7 +134,63 @@ function getSelectedCandidate(
     null;
 }
 
-function renderMarkerDraftHeader(onCancel: () => void) {
+function getVisibleCatalogCandidates(
+  availableCandidates: PlacementCandidate[],
+  catalogFilterMode: CatalogFilterMode,
+): PlacementCandidate[] {
+  if (catalogFilterMode === "all") {
+    return availableCandidates;
+  }
+
+  return availableCandidates.filter((candidate) =>
+    isPcTechnicalDetails(candidate.technicalDetails)
+  );
+}
+
+function getSearchLabel(isPcOnlyFilterActive: boolean): string {
+  return isPcOnlyFilterActive
+    ? "Rechercher un PC"
+    : "Rechercher un equipement";
+}
+
+interface CatalogFilterCardProps {
+  isPcOnlyFilterActive: boolean;
+  onToggle: () => void;
+}
+
+function CatalogFilterCard({
+  isPcOnlyFilterActive,
+  onToggle,
+}: CatalogFilterCardProps) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-[18px] border border-schneider-950/10 bg-schneider-50/72 px-3.5 py-3">
+      <div className="grid gap-0.5">
+        <span className="text-[0.76rem] font-bold uppercase tracking-[0.12em] text-schneider-800/70">
+          Filtre catalogue
+        </span>
+        <span className="text-sm text-schneider-800/72">
+          {isPcOnlyFilterActive ? "Seulement les PC" : "Tous les equipements"}
+        </span>
+      </div>
+      <button
+        aria-pressed={isPcOnlyFilterActive}
+        className={
+          isPcOnlyFilterActive ? primaryButtonClassName : secondaryButtonClassName
+        }
+        type="button"
+        onClick={onToggle}
+      >
+        PC uniquement
+      </button>
+    </div>
+  );
+}
+
+interface MarkerDraftHeaderProps {
+  onClose: () => void;
+}
+
+function MarkerDraftHeader({ onClose }: MarkerDraftHeaderProps) {
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
@@ -118,7 +198,7 @@ function renderMarkerDraftHeader(onCancel: () => void) {
         <h2 className={panelTitleTextClassName}>Ajouter</h2>
       </div>
 
-      <button className={closeButtonClassName} type="button" onClick={onCancel}>
+      <button className={closeButtonClassName} type="button" onClick={onClose}>
         Fermer
       </button>
     </div>

@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
-/** Petit delai avant de retirer le survol, pour eviter le scintillement. */
 const LEAVE_ZONE_DELAY_MS = 40;
 
-/** Etat et handlers du survol de zone. */
 interface ZoneHoverState {
   hoveredZoneId: number | null;
   handleHoverZone: (zoneId: number) => void;
@@ -11,10 +9,6 @@ interface ZoneHoverState {
   clearHoveredZoneIfMatches: (zoneId: number) => void;
 }
 
-/**
- * Gere le cycle de vie du survol de zone, y compris le delai de sortie
- * necessaire pour eviter les effets de flicker entre overlays voisins.
- */
 export function useZoneHoverState(): ZoneHoverState {
   const [hoveredZoneId, setHoveredZoneId] = useState<number | null>(null);
   const leaveZoneTimeoutRef = useRef<number | null>(null);

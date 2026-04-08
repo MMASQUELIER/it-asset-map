@@ -5,6 +5,7 @@ import type {
 } from "@/features/infrastructure-map/model/types";
 import {
   getResolvedPcConnectionType,
+  getResolvedPcDisplayName,
   getResolvedPcStatus,
 } from "@/features/infrastructure-map/model/pcValueResolvers";
 import { PcDetailFieldCard } from "@/features/infrastructure-map/pc-details/ui/components/PcDetailFieldCard";
@@ -57,13 +58,25 @@ export default function PcDetailsPanel({
     buildPcDetailSections(marker),
     detailSearchQuery,
   );
-  const visibleFieldCount = visibleSummaryFields.length +
-    visibleDetailSections.reduce(
-      function countVisibleSectionFields(total, section) {
-        return total + section.items.length;
-      },
-      0,
-    );
+  const visibleFieldCount = getVisibleFieldCount(
+    visibleSummaryFields.length,
+    visibleDetailSections,
+  );
+  const markerDisplayName = getResolvedPcDisplayName(
+    marker.technicalDetails,
+    marker.id,
+  );
+  const connectionLabel = formatPcDetailValue(
+    "wifi-wired-connection",
+    getResolvedPcConnectionType(marker.technicalDetails),
+  );
+  const statusLabel = formatPcDetailValue(
+    "status",
+    getResolvedPcStatus(marker.technicalDetails),
+  ) ?? "Non renseigne";
+  const zoneLabel = zone === null ? "Hors zone" : `Zone ${getZoneDisplayLabel(zone)}`;
+  const catalogIssues = marker.technicalDetails.catalogIssues ?? [];
+  const shouldForceOpenSections = detailSearchQuery.trim().length > 0;
 
   async function handleFieldSave(
     field: VisiblePcDetailField,
@@ -89,28 +102,20 @@ export default function PcDetailsPanel({
       )}
     >
       <PcDetailsPanelHeader
-        connectionLabel={formatPcDetailValue(
-          "wifi-wired-connection",
-          getResolvedPcConnectionType(marker.technicalDetails),
-        )}
-        markerId={marker.id}
+        connectionLabel={connectionLabel}
         onClose={onClose}
         onSearchQueryChange={setDetailSearchQuery}
         searchQuery={detailSearchQuery}
-        statusLabel={formatPcDetailValue(
-          "status",
-          getResolvedPcStatus(marker.technicalDetails),
-        ) ?? "Non renseigne"}
+        statusLabel={statusLabel}
         subtitle={buildPcSubtitle(marker)}
+        title={markerDisplayName}
         visibleFieldCount={visibleFieldCount}
         zone={zone}
-        zoneLabel={zone === null
-          ? "Hors zone"
-          : `Zone ${getZoneDisplayLabel(zone)}`}
+        zoneLabel={zoneLabel}
       />
 
-      {(marker.technicalDetails.catalogIssues ?? []).length > 0
-        ? <PcCatalogIssues issues={marker.technicalDetails.catalogIssues ?? []} />
+      {catalogIssues.length > 0
+        ? <PcCatalogIssues issues={catalogIssues} />
         : null}
 
       {visibleSummaryFields.length > 0
@@ -143,7 +148,7 @@ export default function PcDetailsPanel({
             <PcDetailsSection
               key={section.title}
               copiedFieldId={copiedFieldId}
-              forceOpen={detailSearchQuery.trim().length > 0}
+              forceOpen={shouldForceOpenSections}
               items={section.items}
               onCopy={handleCopy}
               onSaveField={handleFieldSave}
@@ -158,4 +163,17 @@ export default function PcDetailsPanel({
         )}
     </aside>
   );
+}
+
+function getVisibleFieldCount(
+  visibleSummaryFieldCount: number,
+  visibleDetailSections: ReturnType<typeof filterVisiblePcDetailSections>,
+): number {
+  return visibleSummaryFieldCount +
+    visibleDetailSections.reduce(
+      function countVisibleSectionFields(total, section) {
+        return total + section.items.length;
+      },
+      0,
+    );
 }

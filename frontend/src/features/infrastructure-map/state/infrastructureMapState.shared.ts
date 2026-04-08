@@ -13,7 +13,6 @@ import type {
   ZoneResizeHandle,
 } from "@/features/infrastructure-map/shared/interactionTypes";
 
-/** Etat public et callbacks exposes par le hook principal de la carte. */
 export interface InfrastructureMapState {
   activeTool: InteractionTool;
   availablePlacementCandidates: PlacementCandidate[];

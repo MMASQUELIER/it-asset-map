@@ -67,7 +67,7 @@ export interface PcTechnicalDetails {
   connectedToSwitchName?: string;
   switchIpAddress?: string;
   connectedToSwitchPort?: string;
-  // Legacy aliases still accepted for rows not yet normalized in CMDB.
+  // Anciennes cles encore lues tant que la CMDB n'est pas totalement alignee.
   connectionType?: string;
   wifiOrWiredConnection?: string;
   ticketBrassage?: string;

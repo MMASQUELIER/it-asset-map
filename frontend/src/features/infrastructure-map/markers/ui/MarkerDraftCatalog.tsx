@@ -1,9 +1,11 @@
 import type { PlacementCandidate } from "@/features/infrastructure-map/model/types";
 import { getCatalogIssueSummary } from "@/features/infrastructure-map/model/catalogIssues";
+import { getResolvedPcDisplayName } from "@/features/infrastructure-map/model/pcValueResolvers";
 import { joinClassNames } from "@/features/infrastructure-map/ui/uiClassNames";
 
 interface MarkerDraftCatalogProps {
   availableCandidates: PlacementCandidate[];
+  isPcOnlyFilterActive: boolean;
   markerId: string;
   matchingCandidates: PlacementCandidate[];
   onMarkerIdChange: (value: string) => void;
@@ -11,12 +13,14 @@ interface MarkerDraftCatalogProps {
 
 export function MarkerDraftCatalog({
   availableCandidates,
+  isPcOnlyFilterActive,
   markerId,
   matchingCandidates,
   onMarkerIdChange,
 }: MarkerDraftCatalogProps) {
-  const emptyMessage = getMarkerDraftCatalogMessage(
+  const emptyStateMessage = getCatalogEmptyStateMessage(
     availableCandidates,
+    isPcOnlyFilterActive,
     matchingCandidates,
   );
 
@@ -25,8 +29,8 @@ export function MarkerDraftCatalog({
       className="grid gap-3 rounded-[24px] border border-schneider-950/10 bg-white/92 p-3.5"
       role="list"
     >
-      {emptyMessage !== null
-        ? <p className="text-sm text-schneider-800/70">{emptyMessage}</p>
+      {emptyStateMessage !== null
+        ? <p className="text-sm text-schneider-800/70">{emptyStateMessage}</p>
         : null}
       {matchingCandidates.length > 0 ? (
         <div className="grid max-h-64 gap-2 overflow-y-auto pr-1">
@@ -57,11 +61,15 @@ function CatalogCandidateButton({
   isSelected,
   onSelect,
 }: CatalogCandidateButtonProps) {
-  const candidateMeta = buildCatalogCandidateMeta(candidate);
+  const candidateMeta = buildCatalogCandidateMetaLabel(candidate);
   const catalogIssueSummary = getCatalogIssueSummary(
     candidate.technicalDetails.catalogIssues,
   );
-  const candidateLabel = getCatalogCandidateLabel(candidate, catalogIssueSummary);
+  const candidateDisplayName = getResolvedPcDisplayName(
+    candidate.technicalDetails,
+    candidate.equipmentId,
+  );
+  const shouldShowEquipmentId = candidateDisplayName !== candidate.equipmentId;
 
   return (
     <button
@@ -76,8 +84,10 @@ function CatalogCandidateButton({
         onSelect(candidate.equipmentId);
       }}
     >
-      <strong>{candidate.equipmentId}</strong>
-      <span className="text-sm text-current/80">{candidateLabel}</span>
+      <strong>{candidateDisplayName}</strong>
+      {shouldShowEquipmentId ? (
+        <span className="text-sm text-current/80">{candidate.equipmentId}</span>
+      ) : null}
       {candidateMeta.length > 0 ? (
         <span className="text-xs font-medium uppercase tracking-[0.08em] text-current/70">
           {candidateMeta}
@@ -97,38 +107,28 @@ function CatalogCandidateButton({
   );
 }
 
-function getMarkerDraftCatalogMessage(
+function getCatalogEmptyStateMessage(
   availableCandidates: PlacementCandidate[],
+  isPcOnlyFilterActive: boolean,
   matchingCandidates: PlacementCandidate[],
 ): string | null {
   if (availableCandidates.length === 0) {
-    return "Aucun PC du catalogue n'est disponible pour cette position.";
+    return isPcOnlyFilterActive
+      ? "Aucun PC du catalogue n'est disponible pour cette position."
+      : "Aucun equipement du catalogue n'est disponible pour cette position.";
   }
 
   if (matchingCandidates.length === 0) {
-    return "Aucun PC du catalogue ne correspond a cette recherche.";
+    return isPcOnlyFilterActive
+      ? "Aucun PC du catalogue ne correspond a cette recherche."
+      : "Aucun equipement du catalogue ne correspond a cette recherche.";
   }
 
   return null;
 }
 
-function buildCatalogCandidateMeta(candidate: PlacementCandidate): string {
+function buildCatalogCandidateMetaLabel(candidate: PlacementCandidate): string {
   return [candidate.stationName, candidate.zoneCode ?? "", candidate.sector]
     .filter((value) => value.length > 0)
     .join(" • ");
-}
-
-function getCatalogCandidateLabel(
-  candidate: PlacementCandidate,
-  catalogIssueSummary: string | null,
-): string {
-  if (candidate.hostname !== undefined) {
-    return candidate.hostname;
-  }
-
-  if (catalogIssueSummary !== null) {
-    return catalogIssueSummary;
-  }
-
-  return "Hostname non renseigne";
 }

@@ -5,12 +5,12 @@ import {
 import type { SearchField } from "@/features/infrastructure-map/markers/logic/marker-search/types";
 
 export const markerSearchFields: SearchField[] = [
-  { getValue: (marker) => marker.id, label: "Identifiant", weight: 120 },
   {
     getValue: (marker) => marker.technicalDetails.hostname,
     label: "Nom machine",
-    weight: 100,
+    weight: 130,
   },
+  { getValue: (marker) => marker.id, label: "Identifiant", weight: 96 },
   {
     getValue: (marker) => marker.technicalDetails.ipAddress,
     label: "Adresse IP",

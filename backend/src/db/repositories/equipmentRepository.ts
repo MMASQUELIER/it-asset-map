@@ -1,5 +1,8 @@
-import { isRecordNotFoundError } from "@/db/errors.ts";
-import { getPrismaClient, Prisma } from "@/db/prisma.ts";
+import {
+  getSqliteDatabase,
+  readSqliteRow,
+  readSqliteRows,
+} from "@/db/sqlite.ts";
 import type {
   CreateEquipmentInput,
   EquipmentDto,
@@ -7,17 +10,27 @@ import type {
 } from "@/features/infrastructure-map/equipment/types.ts";
 
 interface EquipmentRecord {
-  equipmentDataId: bigint;
+  equipmentDataId: number;
   id: string;
   x: number;
   y: number;
-  zoneId: bigint | null;
+  zoneId: number | null;
 }
 
+const EQUIPMENT_SELECT_SQL = `
+  SELECT
+    id,
+    equipment_data_id AS equipmentDataId,
+    x,
+    y,
+    zone_id AS zoneId
+  FROM equipment
+`;
+
 export async function listEquipmentRecords(): Promise<EquipmentDto[]> {
-  const rows = await getPrismaClient().equipment.findMany({
-    orderBy: { id: "asc" },
-  });
+  const rows = readSqliteRows<EquipmentRecord>(
+    `${EQUIPMENT_SELECT_SQL} ORDER BY id ASC`,
+  );
 
   return rows.map(mapEquipmentRecord);
 }
@@ -25,83 +38,89 @@ export async function listEquipmentRecords(): Promise<EquipmentDto[]> {
 export async function findEquipmentRecordById(
   id: string,
 ): Promise<EquipmentDto | null> {
-  const row = await getPrismaClient().equipment.findUnique({
-    where: { id },
-  });
+  const row = readSqliteRow<EquipmentRecord>(
+    `${EQUIPMENT_SELECT_SQL} WHERE id = ?`,
+    id,
+  );
 
-  return row === null ? null : mapEquipmentRecord(row);
+  return row === undefined ? null : mapEquipmentRecord(row);
 }
 
 export async function createEquipmentRecord(
   input: CreateEquipmentInput,
 ): Promise<EquipmentDto> {
-  const row = await getPrismaClient().equipment.create({
-    data: {
-      equipmentDataId: BigInt(input.equipmentDataId),
-      id: input.id,
-      x: input.x,
-      y: input.y,
-      zoneId: input.zoneId === null ? null : BigInt(input.zoneId),
-    } satisfies Prisma.EquipmentUncheckedCreateInput,
-  });
+  getSqliteDatabase().prepare(`
+    INSERT INTO equipment (
+      id,
+      equipment_data_id,
+      x,
+      y,
+      zone_id
+    ) VALUES (?, ?, ?, ?, ?)
+  `).run(
+    input.id,
+    input.equipmentDataId,
+    input.x,
+    input.y,
+    input.zoneId,
+  );
 
-  return mapEquipmentRecord(row);
+  return await findCreatedEquipmentRecord(input.id);
 }
 
 export async function updateEquipmentRecord(
   id: string,
   patch: UpdateEquipmentInput,
 ): Promise<boolean> {
-  const data: Prisma.EquipmentUncheckedUpdateInput = {};
+  const assignments: string[] = [];
+  const values: Array<number | null> = [];
 
   if (patch.x !== undefined) {
-    data.x = patch.x;
+    assignments.push("x = ?");
+    values.push(patch.x);
   }
 
   if (patch.y !== undefined) {
-    data.y = patch.y;
+    assignments.push("y = ?");
+    values.push(patch.y);
   }
 
   if (patch.zoneId !== undefined) {
-    data.zoneId = patch.zoneId === null ? null : BigInt(patch.zoneId);
+    assignments.push("zone_id = ?");
+    values.push(patch.zoneId);
   }
 
-  try {
-    await getPrismaClient().equipment.update({
-      data,
-      where: { id },
-    });
-    return true;
-  } catch (error) {
-    if (isRecordNotFoundError(error)) {
-      return false;
-    }
+  const result = getSqliteDatabase().prepare(
+    `UPDATE equipment SET ${assignments.join(", ")} WHERE id = ?`,
+  ).run(...values, id);
 
-    throw error;
-  }
+  return result.changes > 0;
 }
 
 export async function deleteEquipmentRecord(id: string): Promise<boolean> {
-  try {
-    await getPrismaClient().equipment.delete({
-      where: { id },
-    });
-    return true;
-  } catch (error) {
-    if (isRecordNotFoundError(error)) {
-      return false;
-    }
+  const result = getSqliteDatabase().prepare(
+    "DELETE FROM equipment WHERE id = ?",
+  ).run(id);
 
-    throw error;
-  }
+  return result.changes > 0;
 }
 
 function mapEquipmentRecord(row: EquipmentRecord): EquipmentDto {
   return {
-    equipmentDataId: Number(row.equipmentDataId),
+    equipmentDataId: row.equipmentDataId,
     id: row.id,
     x: row.x,
     y: row.y,
-    zoneId: row.zoneId === null ? null : Number(row.zoneId),
+    zoneId: row.zoneId,
   };
+}
+
+async function findCreatedEquipmentRecord(id: string): Promise<EquipmentDto> {
+  const equipment = await findEquipmentRecordById(id);
+
+  if (equipment === null) {
+    throw new Error("Failed to load the equipment that was just created.");
+  }
+
+  return equipment;
 }

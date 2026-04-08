@@ -1,5 +1,18 @@
 import type { PcTechnicalDetails } from "@/features/infrastructure-map/model/types/pc";
 
+export function getResolvedPcDisplayName(
+  technicalDetails: PcTechnicalDetails,
+  fallbackId: string,
+): string {
+  return getFirstVisibleText(technicalDetails.hostname, fallbackId) ?? fallbackId;
+}
+
+export function isPcTechnicalDetails(
+  technicalDetails: PcTechnicalDetails,
+): boolean {
+  return getVisibleText(technicalDetails.assetType)?.toUpperCase() === "PC";
+}
+
 export function getResolvedPcLocation(
   technicalDetails: PcTechnicalDetails,
 ): string | undefined {

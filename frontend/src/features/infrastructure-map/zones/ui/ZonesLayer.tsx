@@ -5,7 +5,6 @@ import type { MapZone } from "@/features/infrastructure-map/model/types";
 import { getZoneCenter, toLeafletBounds } from "@/features/infrastructure-map/shared/mapGeometry";
 import { getZoneDisplayLabel } from "@/features/infrastructure-map/zones/logic/zoneAppearance";
 
-/** Props used to render the interactive zone layer. */
 interface ZonesLayerProps {
   activeZoneId: number | null;
   onHoverZone: (zoneId: number) => void;
@@ -14,13 +13,6 @@ interface ZonesLayerProps {
   zones: MapZone[];
 }
 
-/**
- * Builds the zone badge shown at the centre of a rectangle.
- *
- * @param zoneLabel Zone label to display.
- * @param isActive Whether the zone is highlighted.
- * @returns Leaflet div icon.
- */
 function createZoneIcon(zoneLabel: string, isActive: boolean): L.DivIcon {
   return L.divIcon({
     className: "border-0 bg-transparent",
@@ -34,12 +26,6 @@ function createZoneIcon(zoneLabel: string, isActive: boolean): L.DivIcon {
   });
 }
 
-/**
- * Renders every zone rectangle and its badge on top of the map.
- *
- * @param props Zones to display and hover/selection callbacks.
- * @returns Zone layer elements.
- */
 export default function ZonesLayer({
   activeZoneId,
   onHoverZone,
@@ -79,15 +65,6 @@ export default function ZonesLayer({
   );
 }
 
-/**
- * Creates the shared Leaflet event handlers for a zone rectangle and badge.
- *
- * @param zoneId Zone identifier.
- * @param onHoverZone Hover callback.
- * @param onLeaveZone Leave callback.
- * @param onSelectZone Selection callback.
- * @returns Leaflet event handler map.
- */
 function createZoneEventHandlers(
   zoneId: number,
   onHoverZone: (zoneId: number) => void,
@@ -101,13 +78,6 @@ function createZoneEventHandlers(
   };
 }
 
-/**
- * Returns the visual style for one zone rectangle.
- *
- * @param color Base zone color.
- * @param isActive Whether the zone is highlighted.
- * @returns Leaflet path options.
- */
 function createZonePathOptions(
   color: string,
   isActive: boolean,

@@ -145,10 +145,6 @@ export default function useMarkerDraft({
   };
 }
 
-/**
- * Retrouve la zone cible du draft de marqueur si le draft est rattache a une
- * zone existante.
- */
 function getPendingMarkerZone(
   pendingMarkerDraft: MarkerDraft | null,
   zones: MapZone[],

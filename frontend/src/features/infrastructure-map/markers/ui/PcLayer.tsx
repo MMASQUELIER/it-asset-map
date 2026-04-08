@@ -8,8 +8,8 @@ import {
   buildPcMarkerIcon,
   buildPcMarkerTooltipClassName,
 } from "@/features/infrastructure-map/markers/ui/pcMarkerPresentation";
+import { getResolvedPcDisplayName } from "@/features/infrastructure-map/model/pcValueResolvers";
 
-/** Props used to render the PC marker layer. */
 interface PcLayerProps {
   activeZoneId: number | null;
   isConsultationEnabled: boolean;
@@ -25,12 +25,6 @@ interface PcLayerProps {
   zones: MapZone[];
 }
 
-/**
- * Renders every interactive PC marker on the map.
- *
- * @param props Marker data and interaction callbacks.
- * @returns Leaflet marker elements.
- */
 export default function PcLayer({
   activeZoneId,
   isConsultationEnabled,
@@ -66,6 +60,10 @@ export default function PcLayer({
           isSelectedMarker,
         );
         const zIndexOffset = isSelectedMarker ? 450 : (isActiveZone ? 300 : 0);
+        const markerDisplayName = getResolvedPcDisplayName(
+          marker.technicalDetails,
+          marker.id,
+        );
 
         return (
           <Marker
@@ -125,7 +123,7 @@ export default function PcLayer({
               offset={[0, -8]}
               permanent={isActiveZone || isSelectedMarker}
             >
-              {marker.id}
+              {markerDisplayName}
             </Tooltip>
           </Marker>
         );

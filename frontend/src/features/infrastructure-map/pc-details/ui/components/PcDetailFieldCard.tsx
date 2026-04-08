@@ -59,7 +59,7 @@ export function PcDetailFieldCard({
       await onSaveField(field, draftValue);
       setIsEditing(false);
     } catch {
-      // The shared map notice already displays save errors in a single place.
+      // L'erreur est deja remontee dans la notice globale de la carte.
     } finally {
       setIsSaving(false);
     }

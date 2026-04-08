@@ -3,14 +3,12 @@ import { Marker } from "react-leaflet";
 import type { RectangleBounds } from "@/features/infrastructure-map/model/types";
 import type { ZoneResizeHandle } from "@/features/infrastructure-map/shared/interactionTypes";
 
-/** Props used to resize the currently selected zone. */
 interface ZoneResizeHandlesProps {
   bounds: RectangleBounds;
   onResizeCommit: (handle: ZoneResizeHandle, x: number, y: number) => void;
   onResizePreview: (handle: ZoneResizeHandle, x: number, y: number) => void;
 }
 
-/** Resize handles rendered around the selected zone. */
 const HANDLE_POSITIONS: ZoneResizeHandle[] = [
   "top-left",
   "top-right",
@@ -18,7 +16,6 @@ const HANDLE_POSITIONS: ZoneResizeHandle[] = [
   "bottom-right",
 ];
 
-/** Shared icon used by every resize handle. */
 const HANDLE_ICON = L.divIcon({
   className: "bg-transparent border-0",
   html:
@@ -27,12 +24,6 @@ const HANDLE_ICON = L.divIcon({
   iconAnchor: [8, 8],
 });
 
-/**
- * Renders draggable handles on the selected zone corners.
- *
- * @param props Selected zone bounds and resize callback.
- * @returns Draggable Leaflet markers.
- */
 export default function ZoneResizeHandles({
   bounds,
   onResizeCommit,
@@ -63,13 +54,6 @@ export default function ZoneResizeHandles({
   );
 }
 
-/**
- * Resolves the Leaflet coordinate of one resize handle.
- *
- * @param bounds Current zone bounds.
- * @param handle Handle identifier.
- * @returns Leaflet coordinate for that handle.
- */
 function getHandlePosition(
   bounds: RectangleBounds,
   handle: ZoneResizeHandle,

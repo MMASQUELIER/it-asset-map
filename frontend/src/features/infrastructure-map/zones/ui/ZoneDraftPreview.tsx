@@ -3,19 +3,12 @@ import { Marker, Rectangle } from "react-leaflet";
 import type { RectangleBounds } from "@/features/infrastructure-map/model/types";
 import { getZoneCenter, toLeafletBounds } from "@/features/infrastructure-map/shared/mapGeometry";
 
-/** Props used to render a temporary zone preview. */
 interface ZoneDraftPreviewProps {
   bounds: RectangleBounds;
   color: string;
   label: string;
 }
 
-/**
- * Builds the temporary badge displayed at the center of a zone draft.
- *
- * @param label Zone identifier shown inside the badge.
- * @returns Leaflet div icon.
- */
 function createPreviewIcon(label: string): L.DivIcon {
   return L.divIcon({
     className: "border-0 bg-transparent",
@@ -26,12 +19,6 @@ function createPreviewIcon(label: string): L.DivIcon {
   });
 }
 
-/**
- * Displays the temporary rectangle drawn while a zone is being created.
- *
- * @param props Draft bounds and style information.
- * @returns Zone preview elements.
- */
 export default function ZoneDraftPreview({
   bounds,
   color,

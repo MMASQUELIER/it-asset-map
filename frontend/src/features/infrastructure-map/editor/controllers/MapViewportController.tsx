@@ -2,7 +2,6 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import { useMap } from "react-leaflet";
 
-/** Props used to keep the viewport aligned with the selected marker. */
 interface MapViewportControllerProps {
   focusX: number | null;
   focusY: number | null;
@@ -10,15 +9,6 @@ interface MapViewportControllerProps {
   imageBounds: L.LatLngBoundsExpression;
 }
 
-/**
- * Applies one-time initial fitting and selected-marker focus transitions.
- *
- * @param focusX Selected marker X coordinate.
- * @param focusY Selected marker Y coordinate.
- * @param focusToken Token incremented whenever focus must be reapplied.
- * @param imageBounds Full image bounds.
- * @returns Nothing. The component only synchronises Leaflet side effects.
- */
 export default function MapViewportController({
   focusX,
   focusY,

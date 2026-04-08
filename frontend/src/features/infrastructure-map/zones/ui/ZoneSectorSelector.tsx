@@ -1,19 +1,12 @@
 import { useId } from "react";
 import { joinClassNames } from "@/features/infrastructure-map/ui/uiClassNames";
 
-/** Props used by the sector picker shared by zone creation and edition. */
 interface ZoneSectorSelectorProps {
   availableSectors: string[];
   selectedSector: string;
   onSelectSector: (sector: string) => void;
 }
 
-/**
- * Renders the available sectors as quick action buttons.
- *
- * @param props Available sectors and selection callback.
- * @returns Sector picker UI.
- */
 export default function ZoneSectorSelector({
   availableSectors,
   selectedSector,

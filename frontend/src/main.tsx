@@ -3,9 +3,6 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./styles.css";
 
-/**
- * Retourne le noeud racine utilise pour monter l'application React.
- */
 function getRootElement(): HTMLElement {
   const rootElement = document.getElementById("root");
 

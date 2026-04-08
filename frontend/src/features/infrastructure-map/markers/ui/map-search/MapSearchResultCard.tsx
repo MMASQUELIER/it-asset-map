@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import type { MarkerSearchResult } from "@/features/infrastructure-map/markers/logic/markerSearch";
 import { getCatalogIssueSummary } from "@/features/infrastructure-map/model/catalogIssues";
+import { getResolvedPcDisplayName } from "@/features/infrastructure-map/model/pcValueResolvers";
 import type { MapZone } from "@/features/infrastructure-map/model/types";
 import { joinClassNames } from "@/features/infrastructure-map/ui/uiClassNames";
 import { getZoneDisplayLabel } from "@/features/infrastructure-map/zones/logic/zoneAppearance";
@@ -21,7 +22,15 @@ export function MapSearchResultCard({
   const catalogIssueSummary = getCatalogIssueSummary(
     result.marker.technicalDetails.catalogIssues,
   );
-  const secondaryLabel = getSearchResultSecondaryLabel(result, catalogIssueSummary);
+  const markerDisplayName = getResolvedPcDisplayName(
+    result.marker.technicalDetails,
+    result.marker.id,
+  );
+  const secondaryLabel = getSearchResultSecondaryLabel(
+    result,
+    markerDisplayName,
+    catalogIssueSummary,
+  );
   const zoneLabel = getSearchResultZoneLabel(zone);
 
   return (
@@ -39,8 +48,8 @@ export function MapSearchResultCard({
       }}
     >
       <span className="flex flex-wrap items-center justify-between gap-3">
-        <strong className="text-sm font-black uppercase tracking-[0.08em]">
-          {result.marker.id}
+        <strong className="text-sm font-black tracking-[0.02em] break-all">
+          {markerDisplayName}
         </strong>
         <span
           className="inline-flex items-center rounded-full border px-3 py-1 text-[0.72rem] font-black uppercase tracking-[0.12em]"
@@ -64,15 +73,14 @@ export function MapSearchResultCard({
 
 function getSearchResultSecondaryLabel(
   result: MarkerSearchResult,
+  markerDisplayName: string,
   catalogIssueSummary: string | null,
 ): string {
-  const hostname = result.marker.technicalDetails.hostname;
-
-  if (hostname === undefined || hostname === result.marker.id) {
-    return catalogIssueSummary ?? result.matchedValue;
+  if (markerDisplayName !== result.marker.id) {
+    return result.marker.id;
   }
 
-  return hostname;
+  return catalogIssueSummary ?? result.matchedValue;
 }
 
 function getSearchResultZoneLabel(zone: MapZone | null): string {

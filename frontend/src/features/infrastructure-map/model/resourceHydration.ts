@@ -40,21 +40,7 @@ export function hydrateMapZones(
 export function buildPlacementCandidates(
   equipmentDataRecords: EquipmentDataRecord[],
 ): PlacementCandidate[] {
-  return equipmentDataRecords.map((equipmentDataRecord) => ({
-    equipmentDataId: equipmentDataRecord.id,
-    equipmentId: equipmentDataRecord.equipmentId,
-    hostname: equipmentDataRecord.hostname,
-    id: equipmentDataRecord.equipmentId,
-    label: buildCandidateLabel(
-      equipmentDataRecord.manufacturingStationNames,
-      equipmentDataRecord.zoneCode,
-      equipmentDataRecord.sector,
-    ),
-    sector: equipmentDataRecord.sector ?? "",
-    stationName: equipmentDataRecord.manufacturingStationNames ?? "",
-    technicalDetails: mapEquipmentDataToTechnicalDetails(equipmentDataRecord),
-    zoneCode: equipmentDataRecord.zoneCode,
-  }));
+  return equipmentDataRecords.map(mapEquipmentDataToPlacementCandidate);
 }
 
 export function hydrateInteractiveMarkers(
@@ -62,13 +48,8 @@ export function hydrateInteractiveMarkers(
   equipmentDataRecords: EquipmentDataRecord[],
   zones: MapZone[],
 ): InteractiveMarker[] {
-  const equipmentDataById = new Map<number, EquipmentDataRecord>(
-    equipmentDataRecords.map((equipmentDataRecord) => [
-      equipmentDataRecord.id,
-      equipmentDataRecord,
-    ]),
-  );
-  const zoneById = new Map<number, MapZone>(zones.map((zone) => [zone.id, zone]));
+  const equipmentDataById = createEquipmentDataByIdMap(equipmentDataRecords);
+  const zoneById = createZoneByIdMap(zones);
   const markers: InteractiveMarker[] = [];
 
   for (const equipmentRecord of equipmentRecords) {
@@ -107,21 +88,7 @@ export function updatePlacementCandidatesFromEquipmentData(
   return candidates.map((candidate) =>
     candidate.equipmentDataId !== equipmentDataRecord.id
       ? candidate
-      : {
-        equipmentDataId: equipmentDataRecord.id,
-        equipmentId: equipmentDataRecord.equipmentId,
-        hostname: equipmentDataRecord.hostname,
-        id: equipmentDataRecord.equipmentId,
-        label: buildCandidateLabel(
-          equipmentDataRecord.manufacturingStationNames,
-          equipmentDataRecord.zoneCode,
-          equipmentDataRecord.sector,
-        ),
-        sector: equipmentDataRecord.sector ?? "",
-        stationName: equipmentDataRecord.manufacturingStationNames ?? "",
-        technicalDetails: mapEquipmentDataToTechnicalDetails(equipmentDataRecord),
-        zoneCode: equipmentDataRecord.zoneCode,
-      }
+      : mapEquipmentDataToPlacementCandidate(equipmentDataRecord)
   );
 }
 
@@ -140,6 +107,41 @@ function createBounds(zoneRecord: ZoneRecord): RectangleBounds {
     width: zoneRecord.xMax - zoneRecord.xMin,
     x: zoneRecord.xMin,
     y: zoneRecord.yMin,
+  };
+}
+
+function createEquipmentDataByIdMap(
+  equipmentDataRecords: EquipmentDataRecord[],
+): Map<number, EquipmentDataRecord> {
+  return new Map(
+    equipmentDataRecords.map((equipmentDataRecord) => [
+      equipmentDataRecord.id,
+      equipmentDataRecord,
+    ]),
+  );
+}
+
+function createZoneByIdMap(zones: MapZone[]): Map<number, MapZone> {
+  return new Map(zones.map((zone) => [zone.id, zone]));
+}
+
+function mapEquipmentDataToPlacementCandidate(
+  equipmentDataRecord: EquipmentDataRecord,
+): PlacementCandidate {
+  return {
+    equipmentDataId: equipmentDataRecord.id,
+    equipmentId: equipmentDataRecord.equipmentId,
+    hostname: equipmentDataRecord.hostname,
+    id: equipmentDataRecord.equipmentId,
+    label: buildCandidateLabel(
+      equipmentDataRecord.manufacturingStationNames,
+      equipmentDataRecord.zoneCode,
+      equipmentDataRecord.sector,
+    ),
+    sector: equipmentDataRecord.sector ?? "",
+    stationName: equipmentDataRecord.manufacturingStationNames ?? "",
+    technicalDetails: mapEquipmentDataToTechnicalDetails(equipmentDataRecord),
+    zoneCode: equipmentDataRecord.zoneCode,
   };
 }
 

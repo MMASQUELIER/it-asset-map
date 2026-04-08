@@ -15,7 +15,9 @@ import {
   textInputClassName,
 } from "@/features/infrastructure-map/ui/uiClassNames";
 
-/** Props used by the equipment search panel. */
+const SEARCH_RESULT_LIMIT = 6;
+const EMPTY_RESULT_TEXT = "Aucun resultat.";
+
 interface MapSearchPanelProps {
   markers: InteractiveMarker[];
   onSelectMarker: (markerId: string) => void;
@@ -23,12 +25,6 @@ interface MapSearchPanelProps {
   zones: MapZone[];
 }
 
-/**
- * Lets the user search for a marker and focus the map on the best match.
- *
- * @param props Markers, zones and selection callbacks.
- * @returns Search panel UI.
- */
 export default function MapSearchPanel({
   markers,
   onSelectMarker,
@@ -39,9 +35,9 @@ export default function MapSearchPanel({
   const trimmedSearchQuery = searchQuery.trim();
   const searchResults = trimmedSearchQuery.length === 0
     ? []
-    : searchMarkers(markers, searchQuery);
+    : searchMarkers(markers, searchQuery, SEARCH_RESULT_LIMIT);
   const selectedMarker = findSelectedMarker(markers, selectedMarkerId);
-  const zonesById = new Map(zones.map((zone) => [zone.id, zone]));
+  const zonesById = createZoneByIdMap(zones);
 
   function handleSearchSubmit(event: FormEvent<HTMLFormElement>): void {
     event.preventDefault();
@@ -63,7 +59,7 @@ export default function MapSearchPanel({
       if (searchResults.length === 0) {
         return (
           <p className="rounded-[18px] border border-schneider-900/8 bg-schneider-50/78 px-4 py-3 text-sm text-schneider-800/75">
-            Aucun resultat.
+            {EMPTY_RESULT_TEXT}
           </p>
         );
       }
@@ -155,6 +151,10 @@ function findSelectedMarker(
   }
 
   return markers.find((marker) => marker.id === selectedMarkerId) ?? null;
+}
+
+function createZoneByIdMap(zones: MapZone[]): Map<number, MapZone> {
+  return new Map(zones.map((zone) => [zone.id, zone]));
 }
 
 function getMarkerZone(

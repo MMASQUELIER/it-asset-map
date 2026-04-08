@@ -56,6 +56,14 @@ export function LoadedInfrastructureMap({
     interactiveMapState.pendingMarkerDraftError,
     interactiveMapState.saveErrorMessage,
   );
+  const selectedMarkerPosition = getSelectedMarkerPosition(
+    interactiveMapState.selectedMarker,
+  );
+  const pendingZonePreviewLabel = interactiveMapState.pendingZoneCode || "Zone";
+  const handleSelectedZoneClose = createSelectedZoneCloseHandler(
+    interactiveMapState.selectedZone,
+    interactiveMapState.handleZoneInteraction,
+  );
 
   return (
     <section className={mapCardClassName}>
@@ -93,12 +101,7 @@ export function LoadedInfrastructureMap({
             onCloseSelectedMarker={interactiveMapState.handleCloseSelectedMarker}
             onMarkerIdChange={interactiveMapState.setPendingEquipmentId}
             onMarkerSubmit={interactiveMapState.handleMarkerDraftSave}
-            onSelectedZoneClose={() =>
-              interactiveMapState.selectedZone !== null
-                ? interactiveMapState.handleZoneInteraction(
-                  interactiveMapState.selectedZone.id,
-                )
-                : undefined}
+            onSelectedZoneClose={handleSelectedZoneClose}
             onSelectedZoneInputChange={interactiveMapState.clearRuntimeError}
             onSelectedZoneSubmit={interactiveMapState.handleSelectedZoneSave}
             onZoneCodeChange={interactiveMapState.handleZoneDraftCodeChange}
@@ -139,15 +142,10 @@ export function LoadedInfrastructureMap({
             pendingZonePreviewColor={getSectorColor(
               interactiveMapState.pendingZoneSectorName,
             )}
-            pendingZonePreviewLabel={interactiveMapState.pendingZoneCode || "Zone"}
+            pendingZonePreviewLabel={pendingZonePreviewLabel}
             selectedMarkerFocusToken={interactiveMapState.selectedMarkerFocusToken}
             selectedMarkerId={interactiveMapState.selectedMarkerId}
-            selectedMarkerPosition={interactiveMapState.selectedMarker === null
-              ? null
-              : {
-                x: interactiveMapState.selectedMarker.x,
-                y: interactiveMapState.selectedMarker.y,
-              }}
+            selectedMarkerPosition={selectedMarkerPosition}
             selectedZone={interactiveMapState.selectedZone}
             zones={interactiveMapState.zones}
           />
@@ -165,4 +163,30 @@ function getUiErrorMessage(
   return pendingZoneDraftError ??
     pendingMarkerDraftError ??
     saveErrorMessage;
+}
+
+function getSelectedMarkerPosition(
+  selectedMarker: InteractiveMarker | null,
+): { x: number; y: number } | null {
+  if (selectedMarker === null) {
+    return null;
+  }
+
+  return {
+    x: selectedMarker.x,
+    y: selectedMarker.y,
+  };
+}
+
+function createSelectedZoneCloseHandler(
+  selectedZone: MapZone | null,
+  onToggleZoneSelection: (zoneId: number) => void,
+): () => void {
+  return function handleSelectedZoneClose(): void {
+    if (selectedZone === null) {
+      return;
+    }
+
+    onToggleZoneSelection(selectedZone.id);
+  };
 }

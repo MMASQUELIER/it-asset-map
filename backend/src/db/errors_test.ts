@@ -1,24 +1,38 @@
 import { assertEquals } from "@std/assert";
 import {
   isCheckConstraintError,
-  isDatabaseKnownRequestError,
   isDuplicateEntryError,
   isForeignKeyConstraintError,
-  isRecordNotFoundError,
 } from "@/db/errors.ts";
 
-Deno.test("database error helpers classify Prisma error codes", () => {
-  assertEquals(isDatabaseKnownRequestError({ code: "P2002" }), true);
-  assertEquals(isDuplicateEntryError({ code: "P2002" }), true);
+Deno.test("database error helpers classify SQLite constraint failures", () => {
   assertEquals(
-    isForeignKeyConstraintError({ code: "P2003" }),
+    isDuplicateEntryError({
+      code: "ERR_SQLITE_ERROR",
+      message: "UNIQUE constraint failed: sectors.name",
+    }),
     true,
   );
   assertEquals(
-    isCheckConstraintError({ code: "P2004" }),
+    isForeignKeyConstraintError({
+      code: "ERR_SQLITE_ERROR",
+      message: "FOREIGN KEY constraint failed",
+    }),
     true,
   );
-  assertEquals(isRecordNotFoundError({ code: "P2025" }), true);
-  assertEquals(isDuplicateEntryError({ code: "P2003" }), false);
-  assertEquals(isDatabaseKnownRequestError("P2002"), false);
+  assertEquals(
+    isCheckConstraintError({
+      code: "ERR_SQLITE_ERROR",
+      message: "CHECK constraint failed: x_min < x_max",
+    }),
+    true,
+  );
+  assertEquals(
+    isDuplicateEntryError({
+      code: "ERR_SQLITE_ERROR",
+      message: "FOREIGN KEY constraint failed",
+    }),
+    false,
+  );
+  assertEquals(isDuplicateEntryError("P2002"), false);
 });

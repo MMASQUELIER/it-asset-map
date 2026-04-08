@@ -1,51 +1,22 @@
-import { runPrismaCommand } from "@/db/prismaCli.ts";
+import { getSqliteDatabase, hasSqliteTable } from "@/db/sqlite.ts";
 
 export async function ensureDatabaseReady(): Promise<void> {
-  if (await shouldBaselineExistingSchema()) {
-    await assertOnlyInitialPrismaMigrationExists();
-    console.log(
-      "Existing schema detected, skipping the initial Prisma migration because the schema is already present.",
-    );
+  if (hasRequiredTables()) {
+    console.log("SQLite schema is ready.");
     return;
   }
 
-  await runPrismaCommand(["migrate", "deploy"]);
-  console.log("Prisma migrations are up to date.");
-}
-
-async function shouldBaselineExistingSchema(): Promise<boolean> {
-  const { getPrismaClient } = await import("@/db/prisma.ts");
-  const rows = await getPrismaClient().$queryRawUnsafe<Array<{ tableName: string }>>(
-    `
-      SELECT table_name AS tableName
-      FROM information_schema.tables
-      WHERE table_schema = DATABASE()
-        AND table_name IN ('_prisma_migrations', 'sectors', 'zones', 'equipment_data', 'equipment')
-    `,
-  );
-  const tableNames = new Set(rows.map((row) => row.tableName));
-  const hasPrismaMigrationsTable = tableNames.has("_prisma_migrations");
-  const hasLegacySchema = ["sectors", "zones", "equipment_data", "equipment"].some(
-    (tableName) => tableNames.has(tableName),
+  const database = getSqliteDatabase();
+  const schemaSql = await Deno.readTextFile(
+    new URL("../../db/schema.sql", import.meta.url),
   );
 
-  return hasLegacySchema && !hasPrismaMigrationsTable;
+  database.exec(schemaSql);
+  console.log("SQLite schema initialized.");
 }
 
-async function assertOnlyInitialPrismaMigrationExists(): Promise<void> {
-  const migrationVersions: string[] = [];
-
-  for await (const entry of Deno.readDir(new URL("../../prisma/migrations/", import.meta.url))) {
-    if (!entry.isDirectory) {
-      continue;
-    }
-
-    migrationVersions.push(entry.name);
-  }
-
-  if (migrationVersions.length > 1) {
-    throw new Error(
-      "The database already contains the legacy schema, but Prisma now has additional migrations pending. Baseline the existing database before applying newer Prisma migrations.",
-    );
-  }
+function hasRequiredTables(): boolean {
+  return ["sectors", "zones", "equipment_data", "equipment"].every(
+    hasSqliteTable,
+  );
 }

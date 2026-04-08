@@ -18,7 +18,6 @@ import {
 import { getSectorColor } from "@/features/infrastructure-map/zones/logic/zoneAppearance";
 import ZoneSectorSelector from "@/features/infrastructure-map/zones/ui/ZoneSectorSelector";
 
-/** Props du panneau d'edition rapide de la zone selectionnee. */
 interface SelectedZonePanelProps {
   availableSectors: string[];
   isSaving: boolean;
@@ -32,7 +31,6 @@ interface SelectedZonePanelProps {
   zone: MapZone;
 }
 
-/** Affiche un editeur compact pour la zone actuellement selectionnee. */
 export default function SelectedZonePanel({
   availableSectors,
   isSaving,
@@ -82,7 +80,7 @@ function SelectedZonePanelForm({
       className={`${scrollableFloatingPanelClassName} grid gap-4`}
       onSubmit={handleSubmit}
     >
-      {renderSelectedZoneHeader(onClose)}
+      <SelectedZoneHeader onClose={onClose} />
 
       <label className={fieldGroupClassName}>
         <span className="text-sm font-bold text-schneider-900">Secteur</span>
@@ -144,7 +142,7 @@ function SelectedZonePanelForm({
 
         <div>
           <span className={detailLabelTextClassName}>Couleur secteur</span>
-          {renderSelectedZoneBadge(sectorName)}
+          <SelectedZoneBadge sectorName={sectorName} />
         </div>
       </div>
 
@@ -168,7 +166,11 @@ function SelectedZonePanelForm({
   );
 }
 
-function renderSelectedZoneHeader(onClose: () => void) {
+interface SelectedZoneHeaderProps {
+  onClose: () => void;
+}
+
+function SelectedZoneHeader({ onClose }: SelectedZoneHeaderProps) {
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
@@ -184,19 +186,23 @@ function renderSelectedZoneHeader(onClose: () => void) {
   );
 }
 
-function renderSelectedZoneBadge(zoneSector: string) {
+interface SelectedZoneBadgeProps {
+  sectorName: string;
+}
+
+function SelectedZoneBadge({ sectorName }: SelectedZoneBadgeProps) {
   return (
     <strong
       className="inline-flex min-h-10 items-center rounded-full border px-4 text-sm font-bold text-schneider-900"
-      style={getSelectedZoneBadgeStyle(zoneSector)}
+      style={getZoneBadgeStyle(sectorName)}
     >
-      {zoneSector}
+      {sectorName}
     </strong>
   );
 }
 
-function getSelectedZoneBadgeStyle(zoneSector: string): CSSProperties {
-  const sectorAccentColor = getSectorColor(zoneSector);
+function getZoneBadgeStyle(sectorName: string): CSSProperties {
+  const sectorAccentColor = getSectorColor(sectorName);
 
   return {
     borderColor: `color-mix(in srgb, ${sectorAccentColor} 40%, rgba(16,38,26,0.1))`,

@@ -6,9 +6,6 @@ import {
 } from "@/features/infrastructure-map/model/pcValueResolvers";
 import type { DetailSectionDefinition } from "@/features/infrastructure-map/pc-details/ui/content/types";
 
-/**
- * Configuration des panneaux repliables de la vue detail d'un PC.
- */
 export const DETAIL_SECTION_DEFINITIONS: DetailSectionDefinition[] = [
   {
     title: "Identification",

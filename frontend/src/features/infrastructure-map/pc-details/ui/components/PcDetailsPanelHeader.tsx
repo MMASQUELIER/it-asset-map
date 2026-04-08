@@ -11,12 +11,12 @@ import {
 
 interface PcDetailsPanelHeaderProps {
   connectionLabel?: string;
-  markerId: string;
   onClose: () => void;
   onSearchQueryChange: (value: string) => void;
   searchQuery: string;
   statusLabel: string;
   subtitle: string;
+  title: string;
   visibleFieldCount: number;
   zone: MapZone | null;
   zoneLabel: string;
@@ -24,12 +24,12 @@ interface PcDetailsPanelHeaderProps {
 
 export function PcDetailsPanelHeader({
   connectionLabel,
-  markerId,
   onClose,
   onSearchQueryChange,
   searchQuery,
   statusLabel,
   subtitle,
+  title,
   visibleFieldCount,
   zone,
   zoneLabel,
@@ -50,7 +50,7 @@ export function PcDetailsPanelHeader({
               "text-[1.45rem] leading-tight tracking-[-0.03em] break-words",
             )}
           >
-            {markerId}
+            {title}
           </h2>
           {renderSubtitle(subtitle)}
         </div>

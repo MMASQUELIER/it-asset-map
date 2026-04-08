@@ -17,7 +17,6 @@ import {
 import { getSectorColor } from "@/features/infrastructure-map/zones/logic/zoneAppearance";
 import ZoneSectorSelector from "@/features/infrastructure-map/zones/ui/ZoneSectorSelector";
 
-/** Props du formulaire de creation de zone. */
 interface ZoneDraftFormProps {
   availableSectors: string[];
   draft: ZoneDraft;
@@ -31,7 +30,6 @@ interface ZoneDraftFormProps {
   zoneSectorName: string;
 }
 
-/** Formulaire de confirmation pour la creation d'une nouvelle zone. */
 export default function ZoneDraftForm({
   availableSectors,
   draft,
@@ -57,7 +55,7 @@ export default function ZoneDraftForm({
       className={`${scrollableFloatingPanelClassName} grid gap-4`}
       onSubmit={handleSubmit}
     >
-      {renderZoneDraftHeader(onCancel)}
+      <ZoneDraftHeader onClose={onCancel} />
 
       <label className={fieldGroupClassName}>
         <span className="text-sm font-bold text-schneider-900">Secteur</span>
@@ -110,7 +108,7 @@ export default function ZoneDraftForm({
 
         <div>
           <span className={detailLabelTextClassName}>Couleur secteur</span>
-          {renderZoneSectorBadge(zoneSectorName)}
+          <ZoneSectorBadge sectorName={zoneSectorName} />
         </div>
       </div>
 
@@ -134,7 +132,11 @@ export default function ZoneDraftForm({
   );
 }
 
-function renderZoneDraftHeader(onCancel: () => void) {
+interface ZoneDraftHeaderProps {
+  onClose: () => void;
+}
+
+function ZoneDraftHeader({ onClose }: ZoneDraftHeaderProps) {
   return (
     <div className="flex items-start justify-between gap-4">
       <div>
@@ -143,26 +145,30 @@ function renderZoneDraftHeader(onCancel: () => void) {
         <p className={panelDescriptionTextClassName}>Secteur et code sur 3 chiffres.</p>
       </div>
 
-      <button className={closeButtonClassName} type="button" onClick={onCancel}>
+      <button className={closeButtonClassName} type="button" onClick={onClose}>
         Fermer
       </button>
     </div>
   );
 }
 
-function renderZoneSectorBadge(zoneSector: string) {
+interface ZoneSectorBadgeProps {
+  sectorName: string;
+}
+
+function ZoneSectorBadge({ sectorName }: ZoneSectorBadgeProps) {
   return (
     <strong
       className="inline-flex min-h-10 items-center rounded-full border px-4 text-sm font-bold text-schneider-900"
-      style={getZoneSectorBadgeStyle(zoneSector)}
+      style={getZoneSectorBadgeStyle(sectorName)}
     >
-      {zoneSector.length > 0 ? zoneSector : "Saisissez un secteur"}
+      {sectorName.length > 0 ? sectorName : "Saisissez un secteur"}
     </strong>
   );
 }
 
-function getZoneSectorBadgeStyle(zoneSector: string): CSSProperties {
-  const sectorAccentColor = getSectorColor(zoneSector);
+function getZoneSectorBadgeStyle(sectorName: string): CSSProperties {
+  const sectorAccentColor = getSectorColor(sectorName);
 
   return {
     borderColor: `color-mix(in srgb, ${sectorAccentColor} 40%, rgba(16,38,26,0.1))`,

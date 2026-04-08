@@ -5,19 +5,12 @@ import {
 } from "@/features/infrastructure-map/ui/uiClassNames";
 import { getZoneDisplayLabel } from "@/features/infrastructure-map/zones/logic/zoneAppearance";
 
-/** Props used by the zone legend shown above the map. */
 interface ZoneLegendProps {
   activeZoneId: number | null;
   onSelectZone: (zoneId: number) => void;
   zones: MapZone[];
 }
 
-/**
- * Displays one clickable chip per zone.
- *
- * @param props Available zones and selection callback.
- * @returns Zone legend UI.
- */
 export default function ZoneLegend({
   activeZoneId,
   onSelectZone,
