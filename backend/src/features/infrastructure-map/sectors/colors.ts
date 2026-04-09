@@ -1,5 +1,4 @@
 const DEFAULT_SECTOR_COLOR = "#4f6d7a";
-const LEGACY_SECTOR_COLOR_PATTERN = /^hsl\(\d{1,3}\s+58%\s+46%\)$/i;
 const SECTOR_COLOR_CANDIDATES = [
   "hsl(0 84% 54%)",
   "hsl(24 90% 54%)",
@@ -90,11 +89,6 @@ export function buildAvailableSectorColor(
   }
 
   return buildFallbackSectorColor(normalizedSectorName, normalizedUsedColors);
-}
-
-export function isLegacySectorColor(color: string | null | undefined): boolean {
-  const normalizedColor = normalizeColorValue(color ?? "");
-  return LEGACY_SECTOR_COLOR_PATTERN.test(normalizedColor);
 }
 
 function buildFallbackSectorColor(

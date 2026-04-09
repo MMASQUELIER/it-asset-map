@@ -1,5 +1,6 @@
 export interface SectorDto {
-  color: string;
+  [x: string]: any;
+  color: any;
   id: number;
   name: string;
 }

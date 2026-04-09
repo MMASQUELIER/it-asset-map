@@ -1,4 +1,4 @@
-import { Hono } from "@hono/hono";
+import { Hono } from "hono";
 import { registerInfrastructureMapRoutes } from "@/features/infrastructure-map/index.ts";
 
 export function createApiApp(): Hono {
