@@ -17,7 +17,7 @@ Le contenu a été réorganisé en plusieurs pages pour séparer clairement :
 3. [Architecture technique](wiki/03-architecture-technique.md)
 4. [Modèle de données et flux métier](wiki/04-modele-de-donnees-et-flux.md)
 5. [Choix techniques et problèmes rencontrés](wiki/05-choix-techniques-et-problemes-rencontres.md)
-6. [Limites, perspectives et bilan](wiki/06-limites-perspectives-et-bilan.md)
+6. [Limites, perspectives et bilan](wiki/06-perspectives-et-bilan.md)
 
 ## Vue d'ensemble rapide
 

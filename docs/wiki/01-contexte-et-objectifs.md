@@ -5,7 +5,7 @@
 ## Sujet
 Veille et prototypage d'un outil de cartographie interactive pour le repérage des postes informatiques en zone de production.
 
-## Contexte métier
+## Contexte
 Le site de l'Isle d'Espagnac dispose déjà :
 - d'un fichier Excel recensant les postes informatiques ;
 - d'un plan du site utilisé comme repère visuel.
@@ -14,9 +14,9 @@ Ces deux supports existent séparément. Les données techniques sont donc disso
 
 ## Limites de l'existant
 - Il n'existe pas de lien direct entre un poste et sa position sur le plan.
-- La recherche visuelle reste manuelle.
+- Mauvaise UX 
 - Le repérage est moins intuitif pour les nouveaux arrivants.
-- Les mises à jour sont moins ergonomiques qu'avec un outil unifié.
+- Les mises à jour sont moins ergonomiques qu'avec un outil dédié.
 
 ## Problématique
 Comment améliorer le repérage et la consultation des informations relatives aux postes informatiques en reliant les données à un plan interactif du site, tout en facilitant l'ajout, la suppression et la modification des positions ?
@@ -33,8 +33,8 @@ Comment améliorer le repérage et la consultation des informations relatives au
 Le projet a été mené selon une logique de veille puis de prototypage :
 - analyse du besoin ;
 - étude des solutions possibles ;
-- choix d'une stack adaptée au périmètre ;
+- choix d'une stack adaptée au projet ;
 - réalisation d'un prototype frontend / backend ;
-- documentation du fonctionnement, des limites et des choix techniques.
+- documentation du fonctionnement et des choix techniques.
 
 [Page suivante : Solution fonctionnelle](./02-solution-fonctionnelle.md)

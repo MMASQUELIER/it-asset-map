@@ -110,4 +110,4 @@ Le prototype a donc dû gérer :
 - [fields.ts](../../frontend/src/features/infrastructure-map/markers/logic/marker-search/fields.ts)
 
 [Page précédente : Modèle de données et flux métier](./04-modele-de-donnees-et-flux.md)  
-[Page suivante : Limites, perspectives et bilan](./06-limites-perspectives-et-bilan.md)
+[Page suivante : Limites, perspectives et bilan](./06-perspectives-et-bilan.md)

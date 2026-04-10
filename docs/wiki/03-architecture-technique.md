@@ -100,7 +100,7 @@ sequenceDiagram
 
 ## Organisation générale du code
 - Le frontend assemble les données et gère les interactions.
-- Le backend expose une API REST légère.
+- Le backend expose une API
 - SQLite stocke les secteurs, les zones, les fiches techniques et les positions.
 - Le plan est lu comme un fichier image via l'API.
 
