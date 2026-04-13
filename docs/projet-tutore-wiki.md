@@ -3,14 +3,6 @@
 ## Présentation
 Ce wiki documente le prototype **IT Asset Map** réalisé pour le repérage des postes informatiques en zone de production sur le site de l'Isle d'Espagnac.
 
-Le contenu a été réorganisé en plusieurs pages pour séparer clairement :
-- le contexte du projet ;
-- la solution fonctionnelle ;
-- l'architecture technique ;
-- le modèle de données ;
-- les choix techniques et les difficultés rencontrées ;
-- les limites et les perspectives.
-
 ## Sommaire
 1. [Contexte et objectifs](wiki/01-contexte-et-objectifs.md)
 2. [Solution fonctionnelle](wiki/02-solution-fonctionnelle.md)
@@ -36,12 +28,7 @@ Le contenu a été réorganisé en plusieurs pages pour séparer clairement :
 - le modèle de données et les cardinalités ;
 - les flux métier importants ;
 - les choix techniques et les difficultés rencontrées ;
-- les limites actuelles et les pistes d'évolution.
-
-## Conventions utilisées
-- Les schémas sont cohérents avec l'implémentation réelle du dépôt.
-- Les relations de données sont notées avec `1`, `0..1` et `0..n`.
-- Le terme *plan* désigne l'image du site chargée dans Leaflet.
+- les pistes d'évolution.
 
 ## Navigation rapide
 - [Contexte et objectifs](wiki/01-contexte-et-objectifs.md)

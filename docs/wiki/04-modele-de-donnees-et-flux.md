@@ -14,45 +14,80 @@
 ## Schéma relationnel
 ```mermaid
 erDiagram
-  SECTORS ||--o{ ZONES : "1 -> 0..n"
-  ZONES o{--o| EQUIPMENT : "0..n <- 0..1"
-  EQUIPMENT_DATA o|--|| EQUIPMENT : "0..1 -> 1"
+	zones }o--|| sectors : references
+	equipment ||--|| equipment_data : references
+	equipment }o--|| zones : references
 
-  SECTORS {
-    INTEGER id PK
-    TEXT name UK
-    TEXT color
-  }
+	sectors {
+		INTEGER id
+		TEXT name
+		TEXT color
+	}
 
-  ZONES {
-    INTEGER id PK
-    INTEGER sector_id FK
-    TEXT code UK
-    TEXT name
-    INTEGER x_min
-    INTEGER y_min
-    INTEGER x_max
-    INTEGER y_max
-  }
+	zones {
+		INTEGER id
+		INTEGER sector_id
+		TEXT code
+		TEXT name
+		INTEGER x_min
+		INTEGER y_min
+		INTEGER x_max
+		INTEGER y_max
+	}
 
-  EQUIPMENT_DATA {
-    INTEGER id PK
-    TEXT hostname
-    TEXT ip_address
-    TEXT serial_number
-    TEXT switch_name
-    TEXT floor_location
-    TEXT sector
-    TEXT prodsheet
-  }
+	equipment_data {
+		INTEGER id
+		TEXT site
+		TEXT contact
+		TEXT pin_key
+		TEXT sector
+		TEXT floor_location
+		TEXT prodsheet
+		TEXT manufacturing_station_names
+		TEXT last_inventory_date
+		TEXT asset_type
+		TEXT manufacturer
+		TEXT model
+		TEXT sap
+		TEXT hostname
+		TEXT operating_system
+		TEXT storage
+		TEXT ip_address
+		TEXT old_ip_address
+		TEXT new_ip_address
+		TEXT subnet_mask
+		TEXT mac_address
+		TEXT vlan
+		TEXT vlan_new
+		TEXT network_scope
+		TEXT gateway
+		TEXT id_port
+		TEXT switch_port
+		TEXT new_port_auto
+		TEXT switch_name
+		TEXT connected_to_switch_name
+		TEXT switch_ip_address
+		TEXT connected_to_switch_port
+		TEXT connection_type
+		TEXT wifi_or_wired_connection
+		TEXT ticket_brassage
+		TEXT ip_filter
+		TEXT directory_account
+		TEXT comment_text
+		TEXT secondary_comment
+		TEXT serial_number
+		TEXT status
+		TEXT security_status
+		TEXT source_sheet
+	}
 
-  EQUIPMENT {
-    TEXT id PK
-    INTEGER equipment_data_id FK
-    INTEGER x
-    INTEGER y
-    INTEGER zone_id FK
-  }
+	equipment {
+		TEXT id
+		INTEGER equipment_data_id
+		INTEGER x
+		INTEGER y
+		INTEGER zone_id
+	}
 ```
 
 ## Contraintes importantes

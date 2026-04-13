@@ -34,7 +34,7 @@ flowchart LR
 - [InfrastructureMapCanvas.tsx](../../frontend/src/features/infrastructure-map/ui/InfrastructureMapCanvas.tsx)
 
 ## Chargement initial
-Dans l'implémentation actuelle, le frontend charge en parallèle :
+le frontend charge en parallèle :
 - les secteurs ;
 - les zones ;
 - les fiches techniques ;

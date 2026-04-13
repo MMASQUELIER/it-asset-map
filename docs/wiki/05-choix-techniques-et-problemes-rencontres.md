@@ -8,8 +8,6 @@ Le projet n'a pas été construit directement avec sa forme finale. Plusieurs ch
 - le temps disponible ;
 - le niveau de complexité acceptable pour un prototype.
 
-Cette page restitue le cheminement du projet et les arbitrages effectués pendant sa réalisation. Les éléments décrivant l'historique des solutions envisagées montre donc du déroulement du projet 
-
 ## 1. Choix d'une stack web légère
 Le premier arbitrage a porté sur la stack globale.
 
@@ -17,7 +15,6 @@ Le choix s'est porté sur une application web légère, car elle permet :
 - une interface visuelle adaptée au besoin ;
 - une démonstration simple ;
 - une séparation claire frontend / backend ;
-- une complexité plus maîtrisée qu'une solution plus lourde.
 
 ## 2. Choix de Leaflet pour le plan
 Leaflet a été retenu car il répond directement au besoin du prototype :
@@ -26,7 +23,6 @@ Leaflet a été retenu car il répond directement au besoin du prototype :
 - placer et déplacer des marqueurs ;
 - rester simple à mettre en place.
 
-Dans ce projet, Leaflet est utilisé comme moteur de plan interactif, pas comme client de cartographie géographique.
 
 **Références code :**
 - [InfrastructureMapCanvas.tsx](../../frontend/src/features/infrastructure-map/ui/InfrastructureMapCanvas.tsx)
@@ -38,7 +34,7 @@ Le backend devait rester simple et cohérent avec TypeScript.
 
 Le choix Deno + Hono apporte :
 - une API REST légère ;
-- une mise en place rapide ;
+- une sécurité grace à DENO ;
 - une structure claire ;
 - un accès simple à SQLite.
 
@@ -110,4 +106,4 @@ Le prototype a donc dû gérer :
 - [fields.ts](../../frontend/src/features/infrastructure-map/markers/logic/marker-search/fields.ts)
 
 [Page précédente : Modèle de données et flux métier](./04-modele-de-donnees-et-flux.md)  
-[Page suivante : Limites, perspectives et bilan](./06-perspectives-et-bilan.md)
+[Page suivante : Perspectives et bilan](./06-perspectives-et-bilan.md)

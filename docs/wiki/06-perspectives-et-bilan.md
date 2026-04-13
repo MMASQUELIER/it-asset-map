@@ -1,62 +1,48 @@
-# Limites, perspectives et bilan
+﻿# Perspectives et bilan
 
 [Retour au sommaire](../projet-tutore-wiki.md)
 
-## Pistes d'amélioration
-- ajouter une gestion des rôles et permissions ;
+## Pistes d'amelioration
+- ajouter une gestion des roles et permissions ;
 - historiser les modifications ;
-- proposer des filtres avancés ;
-- détecter les incohérences de données
-
-## Limites actuelles observables dans l'implémentation
-- le redimensionnement d'une zone met bien à jour l'interface, mais la réaffectation éventuelle des marqueurs impactés n'est pas encore persistée côté backend ;
-- l'import Excel n'est pas industrialisé dans le dépôt actuel ;
-- certaines informations de contexte projet relèvent du déroulement réel du projet et non de l'état du code seul.
-
-**Références code :**
-- redimensionnement local et commit de zone : [useInfrastructureMapState.ts](../../frontend/src/features/infrastructure-map/state/useInfrastructureMapState.ts)
-- recalcul local des marqueurs : [markerAssignments.ts](../../frontend/src/features/infrastructure-map/markers/logic/interactive-markers/markerAssignments.ts)
+- proposer des filtres avances ;
 
 ## Bilan technique
 Le prototype valide plusieurs points importants :
-- la faisabilité d'une cartographie interactive basée sur un plan ;
-- la pertinence d'une architecture web légère ;
-- la possibilité de relier les données de parc à une représentation visuelle exploitable ;
-- l'intérêt d'un stockage simple et structuré pour les positions et les zones.
+- la faisabilite d'une cartographie interactive basee sur un plan ;
+- la pertinence d'une architecture web legere ;
+- la possibilite de relier les donnees de parc a une representation visuelle exploitable ;
+- l'interet d'un stockage simple et structure pour les positions et les zones.
 
 ## Bilan personnel
 Ce projet m'a permis de travailler sur :
-- l'analyse d'un besoin métier concret ;
+- l'analyse d'un besoin metier concret ;
 - la conception d'une solution utile pour les utilisateurs ;
 - la cartographie web ;
 - une architecture full stack ;
 - les arbitrages techniques ;
-- la recherche d'un compromis entre simplicité et efficacité.
+- la recherche d'un compromis entre simplicite et efficacite.
 
+## Montee en competences
+Ce projet m'a permis de monter en competences a plusieurs niveaux, aussi bien sur la methode de travail que sur la partie technique.
 
-## Montée en compétences
+D'abord, il m'a appris l'importance de bien analyser une idee avant de se lancer dans le developpement. Au debut, certaines pistes pouvaient sembler simples en theorie, comme le fait d'ecrire directement dans un fichier Excel. En pratique, ce projet m'a montre qu'une solution apparemment evidente peut rapidement devenir difficile a maintenir, lente ou peu adaptee a un usage reel.
 
-Ce projet m'a permis de monter en compétences à plusieurs niveaux, aussi bien sur la méthode de travail que sur la partie technique.
+Ce travail m'a egalement permis de progresser dans ma maniere de concevoir un projet. J'ai du comparer plusieurs options, faire des choix techniques et accepter qu'une bonne solution n'est pas forcement la plus complexe ou la plus "impressionnante", mais celle qui repond le mieux au probleme.
 
-D'abord, il m'a appris l'importance de bien analyser une idée avant de se lancer dans le développement. Au début, certaines pistes pouvaient sembler simples en théorie, comme le fait d'écrire directement dans un fichier Excel. En pratique, ce projet m'a montré qu'une solution apparemment évidente peut rapidement devenir difficile à maintenir, lente ou peu adaptée à un usage réel. Cette réflexion m'a permis de mieux comprendre qu'avant de développer, il faut toujours évaluer la viabilité d'une solution, ses limites, sa maintenabilité et son adéquation avec le besoin réel.
+Dans ce projet, cela s'est verifiee de facon tres concrete. Il aurait ete possible de choisir une base de donnees plus sophistiquee ou un framework plus ambitieux pour rendre la solution plus impressionnante sur le papier. Pourtant, cela n'aurait pas forcement rendu le prototype meilleur. Le besoin principal etait de localiser des postes sur un plan, de gerer des zones et de relier ces elements a des donnees techniques.
 
-Ce travail m'a également permis de progresser dans ma manière de concevoir un projet. J'ai dû comparer plusieurs options, faire des choix techniques, revenir sur certaines idées initiales et accepter qu'une bonne solution n'est pas forcément la plus complexe ou la plus "impressionnante", mais celle qui répond le mieux au problème posé. Cela m'a fait gagner en recul sur la façon de structurer une démarche de conception, de prototypage et de prise de décision.
+Par exemple, Leaflet etait suffisant pour afficher une image du site, placer des marqueurs et dessiner des zones. Il n'etait pas necessaire de partir sur une solution de cartographie plus complexe puisque le projet ne reposait pas sur de la cartographie geographique avancee. De la meme maniere, SQLite a finalement ete plus pertinent qu'une solution plus lourde avec ORM ou base plus complexe, car les donnees changent peu, le volume reste modeste et le besoin principal etait d'avoir un stockage fiable, lisible et facile a integrer au prototype.
 
-Sur la partie développement, ce projet m'a permis de découvrir et de mieux comprendre la cartographie web. J'ai appris à utiliser Leaflet pour afficher un plan interactif, à manipuler des coordonnées sur une image, à gérer le placement de zones et de marqueurs, et à relier une représentation visuelle à des données techniques. Cette partie m'a particulièrement fait progresser car elle m'a obligé à passer d'un besoin concret à une mise en oeuvre réellement exploitable dans l'interface.
+Sur la partie developpement, ce projet m'a permis de decouvrir et de mieux comprendre la cartographie web. J'ai appris a utiliser Leaflet pour afficher un plan interactif, a manipuler des coordonnees sur une image, a gerer le placement de zones et de marqueurs, et a relier une representation visuelle a des donnees techniques.
 
-Le projet m'a aussi permis de renforcer mes compétences en développement full stack. Côté backend, j'ai découvert l'utilisation de Deno et de Hono pour construire une API REST légère, organiser des routes, structurer une logique métier et gérer les échanges avec la base de données. Côté frontend, j'ai pu consolider ma pratique d'une application React structurée autour d'un état, d'interactions utilisateur et de composants spécialisés.
-
-En résumé, cette expérience m'a fait progresser :
-- dans l'analyse préalable d'un besoin et des contraintes d'un projet ;
+En resume, cette experience m'a fait progresser :
+- dans l'analyse prealable d'un besoin et des contraintes d'un projet ;
 - dans la comparaison et la justification de choix techniques ;
 - dans la conception d'une application web full stack ;
 - dans l'utilisation d'une API construite avec Deno et Hono ;
 - dans la mise en place d'une cartographie web interactive avec Leaflet ;
-- dans la prise de recul sur la pertinence, la simplicité et la maintenabilité d'une solution.
+- dans la prise de recul sur la pertinence et la simplicite
 
-## Conclusion
-Le prototype répond au besoin principal : mieux localiser et consulter les postes informatiques en zone de production.
 
-Il constitue une base pour une évolution future vers un outil plus complet
-
-[Page précédente : Choix techniques et problèmes rencontrés](./05-choix-techniques-et-problemes-rencontres.md)
+[Page precedente : Choix techniques et problemes rencontres](./05-choix-techniques-et-problemes-rencontres.md)
